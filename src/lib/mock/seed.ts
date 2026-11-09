@@ -273,7 +273,7 @@ export const events: Tables<'events'>[] = [
   ev(280, 134, 'vy', 'task_done', 'Đã đăng video lên TikTok Shop 1 (#134)'),
   ev(220, 135, 'ha', 'task_done', 'Đã đăng bài Facebook (#135)'),
   ev(190, 136, 'mai', 'task_done', 'Đã trả lời khách (#136)'),
-  ev(115, 137, 'boss', 'approved', 'Bạn đã duyệt bộ banner #137 (Telegram)'),
+  ev(115, 137, 'boss', 'approved', 'Đã duyệt bộ banner #137 qua Telegram'),
   ev(110, 137, 'vy', 'task_done', 'Đã thay banner trên Shopee 2 (#137)'),
   ev(70, 138, 'linh', 'task_done', 'Đã đăng 9 câu trả lời đánh giá (#138)'),
   ev(55, 139, 'thu', 'task_created', 'Đã nhận việc "Bộ banner sale 11.11" từ Telegram (#139)'),
@@ -286,7 +286,7 @@ export const events: Tables<'events'>[] = [
   ev(4, 141, 'linh', 'approval_requested', 'Chờ bạn duyệt 4 câu trả lời (#141)'),
   ev(3, 142, 'linh', 'step_done', 'Xong bước "Thu thập đánh giá": 12 đánh giá mới (#142)'),
   ev(2, 144, 'mai', 'step_started', 'Đang soạn câu trả lời cho khách (#144)'),
-  ev(1, 146, 'boss', 'task_created', 'Bạn đã giao việc "Banner trang chủ tháng 12" (#146)'),
+  ev(1, 146, 'boss', 'task_created', 'Đã giao việc "Banner trang chủ tháng 12" (#146)'),
 ]
 
 export const systemStatus: Tables<'system_status'> = { id: 1, n8n_heartbeat_at: ago(0.5), n8n_version: '1.92.0', note: null }

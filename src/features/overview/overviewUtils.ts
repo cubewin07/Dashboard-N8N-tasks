@@ -27,6 +27,8 @@ export function buildEmployeeDoingLine(
     const step = lang === 'vi' ? lowerFirst(rawStep) : rawStep
     return fmt(t.overview.teamSection.doingWorking, { step, shop, id: task.id })
   }
+  if (emp.status === 'waiting_boss') return fmt(t.overview.teamSection.doingWaiting, { shop, id: task.id })
+  if (emp.status === 'blocked') return fmt(t.overview.teamSection.doingBlocked, { step: `“${rawStep}”`, shop, id: task.id })
   return fmt(t.overview.teamSection.doingOther, { step: rawStep, shop, id: task.id })
 }
 

@@ -69,7 +69,7 @@ function Sidebar() {
       </nav>
       <div className="mt-auto flex flex-col gap-1 border-t border-border pt-4">
         <div className="px-3 pb-2">
-          <TeamOnlineIndicator compact />
+          <TeamOnlineIndicator />
         </div>
         <NavLink to="/settings" className={navCls}>
           <Settings className="size-[18px]" aria-hidden />

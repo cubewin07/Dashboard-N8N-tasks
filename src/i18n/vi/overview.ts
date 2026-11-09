@@ -24,6 +24,8 @@ export const overview = {
     idleLine: 'Sẵn sàng nhận việc',
     doingWorking: 'Đang {step} · {shop} · #{id}',
     doingOther: '{step} · {shop} · #{id}',
+    doingWaiting: 'Chờ bạn duyệt · {shop} · #{id}',
+    doingBlocked: 'Kẹt ở bước {step} · {shop} · #{id}',
     reviewAction: 'Xem & duyệt →',
     blockedAction: 'Xem & gỡ vướng →',
     cardAria: '{name} ({role}) — {status}',

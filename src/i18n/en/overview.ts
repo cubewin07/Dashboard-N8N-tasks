@@ -25,6 +25,8 @@ export const overview: typeof vi = {
     idleLine: 'Free for work',
     doingWorking: '{step} · {shop} · #{id}',
     doingOther: '{step} · {shop} · #{id}',
+    doingWaiting: 'Waiting for your approval · {shop} · #{id}',
+    doingBlocked: 'Stuck at {step} · {shop} · #{id}',
     reviewAction: 'Review →',
     blockedAction: 'Resolve →',
     cardAria: '{name} ({role}) — {status}',
