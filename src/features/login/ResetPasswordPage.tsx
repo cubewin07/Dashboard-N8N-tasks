@@ -56,7 +56,7 @@ export function ResetPasswordPage() {
               <span className="text-xl font-bold text-primary" aria-hidden>
                 ◆
               </span>
-              <span className="text-xl font-bold tracking-tight text-foreground">Shop HQ</span>
+              <span className="text-xl font-bold tracking-tight text-foreground">{t.common.app.name}</span>
             </div>
             <CardTitle className="text-lg">{t.login.resetPage.title}</CardTitle>
             <CardDescription>{t.login.resetPage.subtitle}</CardDescription>
@@ -65,7 +65,7 @@ export function ResetPasswordPage() {
           <CardContent>
             {success ? (
               <div className="space-y-4 text-center">
-                <div className="flex flex-col items-center gap-2 rounded-xl border border-done/30 bg-status-done-soft p-4 text-done">
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-done/30 bg-done-soft p-4 text-done">
                   <CheckCircle2 className="size-8" aria-hidden />
                   <p className="font-medium text-foreground">{t.login.resetPage.successTitle}</p>
                   <p className="text-xs text-muted-foreground">{t.login.resetPage.successMessage}</p>
@@ -79,7 +79,7 @@ export function ResetPasswordPage() {
                 {error && (
                   <div
                     role="alert"
-                    className="rounded-xl border border-blocked/30 bg-status-blocked-soft p-3 text-sm text-blocked"
+                    className="rounded-xl border border-blocked/30 bg-blocked-soft p-3 text-sm text-blocked"
                   >
                     {error}
                   </div>
@@ -92,6 +92,7 @@ export function ResetPasswordPage() {
                       id="reset-new-password"
                       type={showPassword ? 'text' : 'password'}
                       required
+                      autoComplete="new-password"
                       placeholder={t.login.resetPage.newPasswordPlaceholder}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -121,6 +122,7 @@ export function ResetPasswordPage() {
                       id="reset-confirm-password"
                       type={showConfirm ? 'text' : 'password'}
                       required
+                      autoComplete="new-password"
                       placeholder={t.login.resetPage.confirmPasswordPlaceholder}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}

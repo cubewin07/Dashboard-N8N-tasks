@@ -134,7 +134,7 @@ export function SettingsPage() {
                   <RadioGroupItem value="vi" id="lang-vi" />
                   <div>
                     <p className="text-sm font-medium text-foreground">{t.settings.language.vi}</p>
-                    <p className="text-xs text-muted-foreground">Mặc định · Tiếng Việt có dấu</p>
+                    <p className="text-xs text-muted-foreground">{t.settings.language.viSubtitle}</p>
                   </div>
                 </div>
                 <span className="text-lg" aria-hidden>
@@ -155,7 +155,7 @@ export function SettingsPage() {
                   <RadioGroupItem value="en" id="lang-en" />
                   <div>
                     <p className="text-sm font-medium text-foreground">{t.settings.language.en}</p>
-                    <p className="text-xs text-muted-foreground">English UI mode</p>
+                    <p className="text-xs text-muted-foreground">{t.settings.language.enSubtitle}</p>
                   </div>
                 </div>
                 <span className="text-lg" aria-hidden>
@@ -259,7 +259,7 @@ export function SettingsPage() {
                   {t.settings.account.emailLabel}
                 </span>
                 <p className="text-sm font-semibold text-foreground">
-                  {session?.email ?? 'boss@example.com'}
+                  {session?.email ?? t.settings.account.defaultEmail}
                 </p>
               </div>
 
@@ -279,7 +279,7 @@ export function SettingsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => signOut()}
-                  className="text-blocked hover:bg-status-blocked-soft hover:text-blocked"
+                  className="text-blocked hover:bg-blocked-soft hover:text-blocked"
                 >
                   <LogOut className="size-4" aria-hidden />
                   <span>{t.settings.account.signOutButton}</span>
@@ -325,14 +325,14 @@ export function SettingsPage() {
               <div className="flex items-center justify-between p-3.5">
                 <span className="text-muted-foreground">{t.settings.system.n8nVersion}</span>
                 <span className="rounded-md bg-surface-muted px-2 py-0.5 font-mono text-xs text-foreground">
-                  {version ?? status?.n8n_version ?? '1.74.2'}
+                  {version ?? status?.n8n_version ?? t.settings.system.defaultN8nVersion}
                 </span>
               </div>
 
               <div className="flex items-center justify-between p-3.5">
                 <span className="text-muted-foreground">{t.settings.system.contractVersion}</span>
                 <span className="rounded-md bg-primary-soft px-2 py-0.5 font-mono text-xs font-semibold text-primary">
-                  v0.2
+                  {t.settings.system.contractVersionValue}
                 </span>
               </div>
             </div>
@@ -344,7 +344,7 @@ export function SettingsPage() {
           <CardHeader>
             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="flex items-start gap-2.5 min-w-0">
-                <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-status-waiting-soft text-waiting">
+                <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-waiting-soft text-waiting">
                   <Sparkles className="size-4" aria-hidden />
                 </span>
                 <div className="min-w-0 space-y-0.5">
@@ -357,7 +357,7 @@ export function SettingsPage() {
                 </div>
               </div>
               <div className="pl-10.5 sm:pl-0 shrink-0">
-                <span className="inline-flex rounded-md border border-waiting/30 bg-status-waiting-soft px-2 py-0.5 text-[11px] font-semibold text-waiting">
+                <span className="inline-flex rounded-md border border-waiting/30 bg-waiting-soft px-2 py-0.5 text-[11px] font-semibold text-waiting">
                   {t.settings.demo.badge}
                 </span>
               </div>
@@ -398,13 +398,18 @@ export function SettingsPage() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div
+                role="group"
+                aria-label={t.settings.demo.connectionLabel}
+                className="flex flex-wrap gap-2 pt-1"
+              >
                 {(['live', 'reconnecting', 'offline'] as const).map((option) => {
                   const isActive = connState === option
                   return (
                     <button
                       key={option}
                       type="button"
+                      aria-pressed={isActive}
                       onClick={() => handleConnectionChange(option)}
                       className={cn(
                         'flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-ring',
@@ -444,7 +449,7 @@ export function SettingsPage() {
             {passwordError && (
               <div
                 role="alert"
-                className="rounded-xl border border-blocked/30 bg-status-blocked-soft p-3 text-xs text-blocked"
+                className="rounded-xl border border-blocked/30 bg-blocked-soft p-3 text-xs text-blocked"
               >
                 {passwordError}
               </div>
@@ -458,6 +463,7 @@ export function SettingsPage() {
                 id="current-password"
                 type="password"
                 required
+                autoComplete="current-password"
                 placeholder={t.settings.account.currentPasswordPlaceholder}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -471,6 +477,7 @@ export function SettingsPage() {
                 id="new-password"
                 type="password"
                 required
+                autoComplete="new-password"
                 placeholder={t.settings.account.newPasswordPlaceholder}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -486,6 +493,7 @@ export function SettingsPage() {
                 id="confirm-new-password"
                 type="password"
                 required
+                autoComplete="new-password"
                 placeholder={t.settings.account.confirmPasswordPlaceholder}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

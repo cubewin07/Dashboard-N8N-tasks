@@ -73,7 +73,7 @@ export function LoginPage() {
               <span className="text-xl font-bold text-primary" aria-hidden>
                 ◆
               </span>
-              <span className="text-xl font-bold tracking-tight text-foreground">Shop HQ</span>
+              <span className="text-xl font-bold tracking-tight text-foreground">{t.common.app.name}</span>
             </div>
             <CardTitle className="text-lg">
               {mode === 'login' ? t.login.title : t.login.resetTitle}
@@ -87,7 +87,7 @@ export function LoginPage() {
             {error && (
               <div
                 role="alert"
-                className="mb-4 rounded-xl border border-blocked/30 bg-status-blocked-soft p-3 text-sm text-blocked"
+                className="mb-4 rounded-xl border border-blocked/30 bg-blocked-soft p-3 text-sm text-blocked"
               >
                 {error}
               </div>

@@ -6,7 +6,9 @@ export const settings = {
     title: 'Ngôn ngữ hiển thị',
     description: 'Chọn ngôn ngữ giao diện cho bảng điều khiển',
     vi: 'Tiếng Việt',
+    viSubtitle: 'Mặc định · Tiếng Việt có dấu',
     en: 'English',
+    enSubtitle: 'Giao diện tiếng Anh',
   },
   drive: {
     title: 'Google Drive',
@@ -23,6 +25,7 @@ export const settings = {
     title: 'Tài khoản quản trị',
     description: 'Thông tin tài khoản đang đăng nhập',
     emailLabel: 'Email đăng nhập',
+    defaultEmail: 'boss@example.com',
     changePasswordButton: 'Đổi mật khẩu',
     signOutButton: 'Đăng xuất',
     dialogTitle: 'Đổi mật khẩu',
@@ -46,7 +49,9 @@ export const settings = {
     lastHeartbeat: 'Nhịp đập cuối (Heartbeat)',
     noHeartbeat: 'Chưa có tín hiệu',
     n8nVersion: 'Phiên bản n8n',
+    defaultN8nVersion: '1.74.2',
     contractVersion: 'Phiên bản hợp đồng',
+    contractVersionValue: 'v0.2',
   },
   demo: {
     badge: 'Chỉ dành cho Bản Demo',

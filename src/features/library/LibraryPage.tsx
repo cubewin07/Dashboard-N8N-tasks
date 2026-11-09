@@ -27,13 +27,14 @@ import {
   TimeAgo,
   EmptyState,
 } from '@/components'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import {
@@ -47,10 +48,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 type ArtifactTypeFilter = 'all' | 'image' | 'video' | 'text'
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+function formatBytes(bytes: number, units: { b: string; kb: string; mb: string }): string {
+  if (bytes < 1024) return `${bytes} ${units.b}`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} ${units.kb}`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} ${units.mb}`
 }
 
 function formatDuration(sec: number | null): string {
@@ -180,22 +181,30 @@ export function LibraryPage() {
         </div>
 
         {/* Type segmented buttons */}
-        <div className="flex w-full items-center gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1 sm:w-auto">
-          {(['all', 'image', 'video', 'text'] as const).map((typeKey) => (
-            <button
-              key={typeKey}
-              type="button"
-              onClick={() => setTypeFilter(typeKey)}
-              className={cn(
-                'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-ring',
-                typeFilter === typeKey
-                  ? 'bg-primary text-primary-foreground shadow-xs'
-                  : 'text-muted-foreground hover:bg-surface-muted hover:text-foreground',
-              )}
-            >
-              {t.library.filters.types[typeKey]}
-            </button>
-          ))}
+        <div
+          role="group"
+          aria-label={t.library.filters.type}
+          className="flex w-full items-center gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1 sm:w-auto"
+        >
+          {(['all', 'image', 'video', 'text'] as const).map((typeKey) => {
+            const isActive = typeFilter === typeKey
+            return (
+              <button
+                key={typeKey}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setTypeFilter(typeKey)}
+                className={cn(
+                  'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-ring',
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:bg-surface-muted hover:text-foreground',
+                )}
+              >
+                {t.library.filters.types[typeKey]}
+              </button>
+            )
+          })}
         </div>
 
         {/* Employee filter */}
@@ -239,18 +248,11 @@ export function LibraryPage() {
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
           {filteredArtifacts.map((artifact) => (
-            <Card
+            <button
               key={artifact.id}
-              role="button"
-              tabIndex={0}
+              type="button"
               onClick={() => setSelectedArtifact(artifact)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  setSelectedArtifact(artifact)
-                }
-              }}
-              className="group flex h-full cursor-pointer flex-col overflow-hidden transition-all hover:border-primary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
+              className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface text-left text-foreground shadow-[var(--shadow-soft)] transition-all hover:border-primary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
             >
               {/* Uniform aspect-[4/3] thumbnail area */}
               <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-surface-muted flex items-center justify-center">
@@ -304,7 +306,7 @@ export function LibraryPage() {
               </div>
 
               {/* Card metadata directly under the thumbnail */}
-              <CardContent className="flex flex-1 flex-col justify-between gap-2 p-3 sm:p-3.5">
+              <div className="flex flex-1 flex-col justify-between gap-2 p-3 sm:p-3.5 w-full">
                 <h3
                   className="truncate text-sm font-semibold text-foreground"
                   title={artifact.title}
@@ -319,10 +321,10 @@ export function LibraryPage() {
 
                 <div className="flex items-center justify-between border-t border-border/50 pt-1 text-[11px] text-muted-foreground sm:text-xs">
                   <TimeAgo iso={artifact.created_at} />
-                  <span className="tabular">{formatBytes(artifact.size_bytes)}</span>
+                  <span className="tabular">{formatBytes(artifact.size_bytes, t.library.card.units)}</span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </button>
           ))}
         </div>
       )}
@@ -340,6 +342,9 @@ export function LibraryPage() {
               <DialogTitle className="break-words text-base font-semibold leading-snug sm:text-lg">
                 {selectedArtifact.title}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                {t.library.lightbox.description}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
@@ -426,7 +431,7 @@ export function LibraryPage() {
                   <div>
                     <span className="text-muted-foreground">{t.library.lightbox.fileSize}:</span>
                     <p className="mt-1 font-medium tabular text-foreground">
-                      {formatBytes(selectedArtifact.size_bytes)}
+                      {formatBytes(selectedArtifact.size_bytes, t.library.card.units)}
                     </p>
                   </div>
 
@@ -434,7 +439,10 @@ export function LibraryPage() {
                     <div>
                       <span className="text-muted-foreground">{t.library.lightbox.dimensions}:</span>
                       <p className="mt-1 font-medium tabular text-foreground">
-                        {selectedArtifact.width} × {selectedArtifact.height} px
+                        {fmt(t.library.lightbox.dimensionsValue, {
+                          width: selectedArtifact.width,
+                          height: selectedArtifact.height,
+                        })}
                       </p>
                     </div>
                   )}
@@ -443,7 +451,10 @@ export function LibraryPage() {
                     <div>
                       <span className="text-muted-foreground">{t.library.lightbox.duration}:</span>
                       <p className="mt-1 font-medium tabular text-foreground">
-                        {formatDuration(selectedArtifact.duration_sec)} ({selectedArtifact.duration_sec}s)
+                        {fmt(t.library.lightbox.durationValue, {
+                          formatted: formatDuration(selectedArtifact.duration_sec),
+                          sec: selectedArtifact.duration_sec,
+                        })}
                       </p>
                     </div>
                   )}

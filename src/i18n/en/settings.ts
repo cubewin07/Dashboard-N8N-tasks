@@ -7,7 +7,9 @@ export const settings: typeof viSettings = {
     title: 'Display language',
     description: 'Select the interface language for the dashboard',
     vi: 'Tiếng Việt',
+    viSubtitle: 'Default · Vietnamese with diacritics',
     en: 'English',
+    enSubtitle: 'English UI mode',
   },
   drive: {
     title: 'Google Drive',
@@ -24,6 +26,7 @@ export const settings: typeof viSettings = {
     title: 'Admin account',
     description: 'Account information for the signed-in boss',
     emailLabel: 'Sign-in email',
+    defaultEmail: 'boss@example.com',
     changePasswordButton: 'Change password',
     signOutButton: 'Sign out',
     dialogTitle: 'Change password',
@@ -47,7 +50,9 @@ export const settings: typeof viSettings = {
     lastHeartbeat: 'Last heartbeat',
     noHeartbeat: 'No heartbeat received',
     n8nVersion: 'n8n version',
+    defaultN8nVersion: '1.74.2',
     contractVersion: 'Contract version',
+    contractVersionValue: 'v0.2',
   },
   demo: {
     badge: 'Demo Only',
