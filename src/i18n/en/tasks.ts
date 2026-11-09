@@ -2,11 +2,11 @@ import type { tasks as vi } from '../vi/tasks'
 
 export const tasks: typeof vi = {
   title: 'Tasks',
-  description: 'Track active, waiting, blocked and completed workflows across all 5 shops.',
+  description: 'Track all tasks currently working, waiting for your approval, or finished across your 5 shops.',
   newTaskButton: '+ Start work',
   tabs: {
-    active: 'Active',
-    waiting: 'Waiting',
+    active: 'Working',
+    waiting: 'Waiting for you',
     blocked: 'Blocked',
     done: 'Done',
     all: 'All',
@@ -32,16 +32,16 @@ export const tasks: typeof vi = {
   rowAria: 'Open task #{id} — {workflow} ({shop})',
   empty: {
     active: {
-      title: 'No active tasks right now',
-      description: 'The team is free. Start a new workflow whenever you’re ready.',
+      title: 'No tasks working right now',
+      description: 'The team is free. You can start new work anytime.',
     },
     waiting: {
       title: 'Nothing waiting for you',
-      description: 'All approvals and questions have been handled.',
+      description: 'You have handled all pending approvals and questions.',
     },
     blocked: {
       title: 'No blocked tasks',
-      description: 'Every workflow is running smoothly.',
+      description: 'Everything is running smoothly.',
     },
     done: {
       title: 'No finished tasks yet',
@@ -49,7 +49,7 @@ export const tasks: typeof vi = {
     },
     all: {
       title: 'No matching tasks found',
-      description: 'Try clearing the shop, workflow or employee filters.',
+      description: 'Try changing the shop, workflow or employee filters.',
     },
   },
 }

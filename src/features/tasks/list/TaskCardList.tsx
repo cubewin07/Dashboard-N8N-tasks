@@ -21,7 +21,7 @@ export function TaskCardList({ tasks, stepsByTask, employeeMap }: TaskCardListPr
   const { t } = useI18n()
 
   return (
-    <ul className="flex flex-col gap-3 md:hidden">
+    <ul role="list" className="flex flex-col gap-3 md:hidden">
       {tasks.map((task) => {
         const steps = stepsByTask.get(task.id) ?? []
         const ownerKey = resolveTaskOwner(task, steps)

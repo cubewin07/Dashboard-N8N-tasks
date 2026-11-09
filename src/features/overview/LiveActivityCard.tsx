@@ -35,7 +35,7 @@ export function LiveActivityCard({ events, employeeMap }: LiveActivityCardProps)
         {events.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">{t.overview.activity.empty}</p>
         ) : (
-          <ul className="flex flex-col divide-y divide-border/70">
+          <ul role="list" className="flex flex-col divide-y divide-border/70">
             {events.map((ev) => {
               const ownerKey = toOwnerKey(ev.actor)
               const actorName = ownerKey === 'boss' ? t.common.you : (employeeMap.get(ownerKey)?.name ?? ev.actor)

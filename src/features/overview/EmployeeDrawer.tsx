@@ -154,7 +154,7 @@ export function EmployeeDrawer({
               {fmt(t.overview.drawer.queueTitle, { n: queuedTasks.length })}
             </h3>
             {queuedTasks.length > 0 ? (
-              <ul className="flex flex-col gap-2">
+              <ul role="list" className="flex flex-col gap-2">
                 {queuedTasks.map((qt) => (
                   <li key={qt.id}>
                     <Link
@@ -190,7 +190,7 @@ export function EmployeeDrawer({
               {fmt(t.overview.drawer.todayHistory, { n: todayEvents.length })}
             </h3>
             {todayEvents.length > 0 ? (
-              <ul className="flex flex-col divide-y divide-border rounded-[var(--radius-card)] border border-border bg-surface">
+              <ul role="list" className="flex flex-col divide-y divide-border rounded-[var(--radius-card)] border border-border bg-surface">
                 {todayEvents.map((ev) => {
                   const msg = formatEventMessage(ev, t, employeeMap)
                   return (

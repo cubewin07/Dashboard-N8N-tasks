@@ -32,15 +32,19 @@ export function buildEmployeeDoingLine(
   return fmt(t.overview.teamSection.doingOther, { step: rawStep, shop, id: task.id })
 }
 
+const BARE_TASK_REF = /^#\d+$/
+
 export function formatEventMessage(
   event: Tables<'events'>,
   t: Messages,
   employeeMap: Map<string, Tables<'employees'>>,
 ): string {
-  if (event.data === null || typeof event.data !== 'object' || Array.isArray(event.data)) {
+  const isObj = event.data !== null && typeof event.data === 'object' && !Array.isArray(event.data)
+  const hasBareRefMessage = !event.message || BARE_TASK_REF.test(event.message.trim())
+  if (!isObj && !hasBareRefMessage) {
     return event.message
   }
-  const data = event.data as Record<string, unknown>
+  const data = (isObj ? event.data : {}) as Record<string, unknown>
   const stepKey = typeof data.step_key === 'string' ? data.step_key : null
   const stepLabel = stepKey ? (t.common.steps[stepKey] ?? stepKey) : ''
   const id = event.task_id ?? ''
@@ -48,11 +52,11 @@ export function formatEventMessage(
 
   switch (event.type) {
     case 'step_started':
-      return fmt(tpl.step_started, { step: stepLabel, id })
+      return stepLabel ? fmt(tpl.step_started, { step: stepLabel, id }) : event.message
     case 'step_done':
-      return fmt(tpl.step_done, { step: stepLabel, id })
+      return stepLabel ? fmt(tpl.step_done, { step: stepLabel, id }) : event.message
     case 'step_failed':
-      return fmt(tpl.step_failed, { step: stepLabel, id })
+      return stepLabel ? fmt(tpl.step_failed, { step: stepLabel, id }) : event.message
     case 'task_created':
       return fmt(tpl.task_created, { id })
     case 'task_done':
@@ -69,6 +73,10 @@ export function formatEventMessage(
       return fmt(tpl.changes_requested, { id })
     case 'answered':
       return fmt(tpl.answered, { id })
+    case 'blocked':
+      return fmt(tpl.blocked, { id })
+    case 'question':
+      return fmt(tpl.question, { id })
     case 'autonomy_changed': {
       const mode = (typeof data.autonomy === 'string' ? data.autonomy : 'ask_first') as AutonomyMode
       const modeLabel = t.common.autonomy[mode] ?? mode
@@ -82,6 +90,6 @@ export function formatEventMessage(
     case 'retry':
       return fmt(tpl.retry, { id })
     default:
-      return event.message || fmt(tpl.fallback, { id })
+      return !hasBareRefMessage ? event.message : fmt(tpl.fallback, { id })
   }
 }

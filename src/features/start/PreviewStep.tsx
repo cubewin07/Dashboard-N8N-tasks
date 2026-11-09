@@ -31,7 +31,7 @@ export function PreviewStep({
       {steps.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t.start.preview.noSteps}</p>
       ) : (
-        <ol className="flex flex-col divide-y divide-border rounded-[var(--radius-card)] border border-border">
+        <ol role="list" className="flex flex-col divide-y divide-border rounded-[var(--radius-card)] border border-border">
           {steps.map((s, i) => {
             const isApproval = s.kind === 'approval'
             const skipped = isApproval && !requireApproval

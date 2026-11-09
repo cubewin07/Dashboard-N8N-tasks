@@ -87,7 +87,7 @@ export const common = {
   command: {
     sending: 'Đang gửi…',
     queued: 'Đã gửi, chờ đội ngũ nhận',
-    queuedOffline: 'Đã xếp hàng: sẽ chạy khi đội ngũ trực tuyến lại',
+    queuedOffline: 'Đã lưu: sẽ chạy ngay khi đội ngũ trực lại',
     accepted: 'Đội ngũ đã nhận…',
     applied: 'Đã xong',
     failed: 'Không thành công',

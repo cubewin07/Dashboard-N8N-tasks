@@ -64,7 +64,7 @@ export function TeamMemberCard({
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               {t.team.sections.scope}
             </h3>
-            <ul className="flex flex-col gap-1.5 text-sm text-foreground">
+            <ul role="list" className="flex flex-col gap-1.5 text-sm text-foreground">
               {employee.scope.map((scopeKey) => (
                 <li key={scopeKey} className="flex items-start gap-2 leading-snug">
                   <span aria-hidden className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />
@@ -204,7 +204,7 @@ export function TeamMemberCard({
                 </DialogDescription>
               </DialogHeader>
 
-              <ul className="flex flex-col gap-2 rounded-xl border border-waiting/30 bg-waiting-soft/70 p-3.5 text-sm text-foreground">
+              <ul role="list" className="flex flex-col gap-2 rounded-xl border border-waiting/30 bg-waiting-soft/70 p-3.5 text-sm text-foreground">
                 {riskySteps.map((step) => {
                   const wfName =
                     t.common.workflows[step.workflow_key as keyof typeof t.common.workflows]?.short ??

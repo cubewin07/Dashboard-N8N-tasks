@@ -1,7 +1,7 @@
 // Text for the tasks feature. Owned by whoever builds src/features/tasks. Keep en/tasks.ts in sync (enforced by type).
 export const tasks = {
   title: 'Công việc',
-  description: 'Theo dõi toàn bộ quy trình đang chạy, chờ duyệt và đã hoàn thành trên 5 gian hàng.',
+  description: 'Theo dõi mọi công việc đang làm, chờ bạn duyệt hoặc đã xong trên 5 gian hàng.',
   newTaskButton: '+ Giao việc',
   tabs: {
     active: 'Đang làm',
@@ -31,20 +31,20 @@ export const tasks = {
   rowAria: 'Mở công việc #{id} — {workflow} ({shop})',
   empty: {
     active: {
-      title: 'Không có công việc nào đang chạy',
+      title: 'Chưa có việc nào đang làm',
       description: 'Đội ngũ đang rảnh. Bạn có thể giao việc mới bất cứ lúc nào.',
     },
     waiting: {
       title: 'Không có việc nào đang chờ bạn',
-      description: 'Mọi yêu cầu duyệt và câu hỏi đều đã được bạn xử lý xong.',
+      description: 'Bạn đã xử lý xong mọi việc cần duyệt và câu hỏi.',
     },
     blocked: {
       title: 'Không có việc nào bị kẹt',
-      description: 'Tất cả quy trình đều đang vận hành trơn tru.',
+      description: 'Mọi việc đều đang chạy trơn tru.',
     },
     done: {
-      title: 'Chưa có công việc nào hoàn thành',
-      description: 'Các công việc đã xong hoặc đã huỷ sẽ xuất hiện tại đây.',
+      title: 'Chưa có việc nào hoàn thành',
+      description: 'Những việc đã xong hoặc đã huỷ sẽ nằm ở đây.',
     },
     all: {
       title: 'Không tìm thấy công việc phù hợp',

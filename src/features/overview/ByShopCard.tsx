@@ -28,7 +28,7 @@ export function ByShopCard({ shops, tasks }: ByShopCardProps) {
         <CardTitle>{fmt(t.overview.byShop.title, { n: shops.length })}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1">
-        <ul className="flex flex-col divide-y divide-border/70">
+        <ul role="list" className="flex flex-col divide-y divide-border/70">
           {shops.map((shop) => {
             const shopActive = activeTasks.filter((tk) => tk.shop_id === shop.id)
             const workingCount = shopActive.filter((tk) => tk.status === 'running' || tk.status === 'queued').length

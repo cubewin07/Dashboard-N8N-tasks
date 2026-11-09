@@ -110,8 +110,8 @@ function ReviewReplyCard({
               aria-expanded={editing}
               aria-label={
                 editing
-                  ? `${t.inbox.reviews.doneEditing} (${item.customer})`
-                  : `${t.inbox.reviews.edit} (${item.customer})`
+                  ? fmt(t.inbox.reviews.doneEditingAria, { customer: item.customer })
+                  : fmt(t.inbox.reviews.editAria, { customer: item.customer })
               }
               onClick={() => setEditing((v) => !v)}
             >

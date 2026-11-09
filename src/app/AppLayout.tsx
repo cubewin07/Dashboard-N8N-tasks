@@ -9,7 +9,7 @@ import { useNow } from '@/hooks/useNow'
 import { formatHeaderDate, ictHour } from '@/lib/time'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { LiveBadge, OfflineBanner, TeamOnlineIndicator } from '@/components'
 import { StartWorkSheet } from '@/features/start/StartWorkSheet'
 
@@ -39,7 +39,7 @@ function InboxBadge({ className }: { className?: string }) {
   const { total } = useInboxCount()
   if (!total) return null
   return (
-    <span className={cn('tabular min-w-5 rounded-full bg-blocked px-1.5 text-center text-[11px] font-semibold leading-5 text-white', className)}>
+    <span className={cn('tabular min-w-5 rounded-full bg-blocked px-1.5 text-center text-[11px] font-semibold leading-5 text-primary-foreground', className)}>
       {total}
     </span>
   )
@@ -159,6 +159,7 @@ function MobileTabBar() {
         <SheetContent>
           <SheetHeader>
             <SheetTitle>{t.common.nav.more}</SheetTitle>
+            <SheetDescription className="sr-only">{t.common.nav.mainMenu}</SheetDescription>
           </SheetHeader>
           <div className="mt-4 flex flex-col gap-1">
             {moreLinks.map(({ to, icon: Icon, label }) => (

@@ -4,7 +4,7 @@ import { CheckCircle2, Clock, ListChecks, OctagonAlert, PlayCircle, Plus } from 
 import { EmptyState, PageHeader } from '@/components'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useStartWork } from '@/app/startWork'
 import {
   useAllTaskSteps,
@@ -141,8 +141,8 @@ export function TasksPage() {
         }
       />
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <Tabs value={activeTab} onValueChange={(v) => updateParam('tab', v, 'active')}>
+      <Tabs value={activeTab} onValueChange={(v) => updateParam('tab', v, 'active')} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <TabsList aria-label={t.tasks.title}>
             {TASK_TAB_ORDER.map((tab) => {
               const count = tabCounts[tab]
@@ -163,61 +163,63 @@ export function TasksPage() {
               )
             })}
           </TabsList>
-        </Tabs>
 
-        <TaskFiltersBar
-          shops={shops}
-          workflows={workflows}
-          employees={employees}
-          shopFilter={shopFilter}
-          workflowFilter={workflowFilter}
-          employeeFilter={employeeFilter}
-          onShopChange={(v) => updateParam('shop', v)}
-          onWorkflowChange={(v) => updateParam('workflow', v)}
-          onEmployeeChange={(v) => updateParam('employee', v)}
-          onReset={resetFilters}
-        />
-      </div>
-
-      {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-          ))}
+          <TaskFiltersBar
+            shops={shops}
+            workflows={workflows}
+            employees={employees}
+            shopFilter={shopFilter}
+            workflowFilter={workflowFilter}
+            employeeFilter={employeeFilter}
+            onShopChange={(v) => updateParam('shop', v)}
+            onWorkflowChange={(v) => updateParam('workflow', v)}
+            onEmployeeChange={(v) => updateParam('employee', v)}
+            onReset={resetFilters}
+          />
         </div>
-      ) : visibleTasks.length === 0 ? (
-        <EmptyState
-          icon={TAB_ICONS[activeTab]}
-          title={t.tasks.empty[activeTab].title}
-          description={t.tasks.empty[activeTab].description}
-          action={
-            hasActiveFilter ? (
-              <Button variant="outline" size="sm" onClick={resetFilters}>
-                {t.tasks.filters.reset}
-              </Button>
-            ) : (
-              <Button variant="primary" size="sm" onClick={() => openStartWork()}>
-                <Plus className="size-4" aria-hidden />
-                {t.common.actions.startWork}
-              </Button>
-            )
-          }
-        />
-      ) : (
-        <>
-          <TasksTable
-            tasks={visibleTasks}
-            stepsByTask={stepsByTask}
-            employeeMap={employeeMap}
-            shopMap={shopMap}
-          />
-          <TaskCardList
-            tasks={visibleTasks}
-            stepsByTask={stepsByTask}
-            employeeMap={employeeMap}
-          />
-        </>
-      )}
+
+        <TabsContent value={activeTab} className="mt-0">
+          {isLoading ? (
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : visibleTasks.length === 0 ? (
+            <EmptyState
+              icon={TAB_ICONS[activeTab]}
+              title={t.tasks.empty[activeTab].title}
+              description={t.tasks.empty[activeTab].description}
+              action={
+                hasActiveFilter ? (
+                  <Button variant="outline" size="sm" onClick={resetFilters}>
+                    {t.tasks.filters.reset}
+                  </Button>
+                ) : (
+                  <Button variant="primary" size="sm" onClick={() => openStartWork()}>
+                    <Plus className="size-4" aria-hidden />
+                    {t.common.actions.startWork}
+                  </Button>
+                )
+              }
+            />
+          ) : (
+            <>
+              <TasksTable
+                tasks={visibleTasks}
+                stepsByTask={stepsByTask}
+                employeeMap={employeeMap}
+                shopMap={shopMap}
+              />
+              <TaskCardList
+                tasks={visibleTasks}
+                stepsByTask={stepsByTask}
+                employeeMap={employeeMap}
+              />
+            </>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
