@@ -16,10 +16,10 @@ export function demoPreviewUrl(a: Pick<Tables<'artifacts'>, 'id' | 'title' | 'wi
   const w = a.width ?? 1080
   const h = a.height ?? 1080
   const [c1, c2] = palettes[a.id % palettes.length]
-  const label = a.title.replace(/[<>&"]/g, '').slice(0, 40)
-  const fs = Math.round(Math.min(w, h) / 14)
+  const label = a.title.replace(/[<>&"]/g, '').split(' · ')[0].slice(0, 28)
+  const fs = Math.round(Math.min(Math.min(w, h) / 12, (w * 0.8) / (label.length * 0.58)))
   const play = a.type === 'video' ? `<circle cx="${w / 2}" cy="${h / 2}" r="${fs * 1.6}" fill="rgba(255,255,255,.85)"/><path d="M${w / 2 - fs * 0.5} ${h / 2 - fs * 0.8}L${w / 2 + fs * 0.9} ${h / 2}L${w / 2 - fs * 0.5} ${h / 2 + fs * 0.8}Z" fill="${c2}"/>` : ''
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#g)"/><circle cx="${w * 0.82}" cy="${h * 0.2}" r="${Math.min(w, h) * 0.25}" fill="rgba(255,255,255,.12)"/>${play}<text x="${w * 0.06}" y="${h - fs * 1.4}" font-family="Be Vietnam Pro, sans-serif" font-weight="700" font-size="${fs}" fill="#fff">${label}</text></svg>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#g)"/><circle cx="${w * 0.82}" cy="${h * 0.2}" r="${Math.min(w, h) * 0.25}" fill="rgba(255,255,255,.12)"/>${play}<text x="${w / 2}" y="${a.type === 'video' ? h / 2 + fs * 3.2 : h / 2 + fs * 0.35}" text-anchor="middle" font-family="Be Vietnam Pro, sans-serif" font-weight="700" font-size="${fs}" fill="#fff">${label}</text></svg>`
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
