@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { api } from '@/lib/api'
 import { HEARTBEAT_STALE_MS } from '@/lib/status'
+import { useNow } from '@/hooks/useNow'
 
 export const useShops = () => useQuery({ queryKey: ['shops'], queryFn: api.shops, staleTime: Infinity })
 export const useEmployees = () => useQuery({ queryKey: ['employees'], queryFn: api.employees })
@@ -52,6 +53,7 @@ export function useInboxCount() {
 
 export function useTeamOnline() {
   const status = useSystemStatus().data
+  const now = useNow(15_000)
   const hb = status?.n8n_heartbeat_at ? Date.parse(status.n8n_heartbeat_at) : 0
-  return { online: Date.now() - hb < HEARTBEAT_STALE_MS, heartbeatAt: status?.n8n_heartbeat_at ?? null, version: status?.n8n_version ?? null }
+  return { online: now.getTime() - hb < HEARTBEAT_STALE_MS, heartbeatAt: status?.n8n_heartbeat_at ?? null, version: status?.n8n_version ?? null }
 }

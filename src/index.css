@@ -144,6 +144,11 @@
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: none; }
 }
+@keyframes slide-in-right {
+  from { opacity: 0.6; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-slide-in-right { animation: slide-in-right 200ms ease-out both; }
 .animate-pulse-dot { animation: pulse-dot 1.6s ease-out infinite; }
 .animate-fade-in { animation: fade-in 180ms ease-out both; }
 .striped-offline {
