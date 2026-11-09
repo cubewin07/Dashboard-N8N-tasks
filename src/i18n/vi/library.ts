@@ -1,0 +1,53 @@
+// Text for the library feature. Keep en/library.ts in sync (enforced by type).
+export const library = {
+  title: 'Thư viện',
+  description: 'Tất cả hình ảnh, video và nội dung do đội ngũ AI sản xuất',
+  driveBanner: {
+    title: 'Kết nối Google Drive để xem hình ảnh và video',
+    description: 'Xem trước chất lượng cao, hình ảnh gốc và video trực tiếp từ thư mục Drive của gian hàng.',
+    connectButton: 'Kết nối Google Drive',
+    connecting: 'Đang kết nối…',
+  },
+  filters: {
+    shop: 'Gian hàng',
+    allShops: 'Tất cả gian hàng',
+    workflow: 'Quy trình',
+    allWorkflows: 'Tất cả quy trình',
+    type: 'Loại tệp',
+    types: {
+      all: 'Tất cả',
+      image: 'Hình ảnh',
+      video: 'Video',
+      text: 'Văn bản',
+    },
+    employee: 'Nhân viên',
+    allEmployees: 'Tất cả nhân viên',
+  },
+  empty: {
+    title: 'Không tìm thấy tư liệu nào',
+    description: 'Thử thay đổi bộ lọc hoặc chọn quy trình khác để xem kết quả.',
+  },
+  card: {
+    notConnected: 'Chưa kết nối Drive',
+    videoDuration: '{duration}',
+    textFile: 'Tài liệu văn bản',
+  },
+  lightbox: {
+    title: 'Chi tiết tư liệu',
+    videoNote: 'Video mẫu mô phỏng. Khi kết nối Drive thật, video sẽ phát trực tiếp từ máy chủ Google.',
+    textNote: 'Tệp nội dung văn bản. Nhấn "Mở trong Drive" để xem toàn bộ tài liệu.',
+    detailsSection: 'Thông tin tệp',
+    shop: 'Gian hàng',
+    workflow: 'Quy trình',
+    creator: 'Người tạo',
+    createdAt: 'Thời gian tạo',
+    fileSize: 'Dung lượng',
+    dimensions: 'Kích thước',
+    duration: 'Thời lượng',
+    mimeType: 'Định dạng',
+    copiedToast: 'Đã sao chép liên kết vào bộ nhớ tạm',
+    copyLink: 'Sao chép liên kết',
+    openDrive: 'Mở trong Drive',
+    goToTask: 'Đến công việc #{id}',
+  },
+}
