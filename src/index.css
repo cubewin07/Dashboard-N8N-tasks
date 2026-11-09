@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens: see docs/LAYOUT.md → Visual system. Add new colours here, never ad hoc. */
+:root {
+  --background: #faf9f7;
+  --surface: #ffffff;
+  --surface-muted: #f3f1ed;
+  --foreground: #1c1b19;
+  --muted-foreground: #6b6862;
+  --border: #e7e4de;
+  --ring: #0f766e;
+
+  --primary: #0f766e;
+  --primary-hover: #0d6560;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e6f2f1;
+
+  --status-working: #2563eb;
+  --status-working-soft: #e8effd;
+  --status-waiting: #d97706;
+  --status-waiting-soft: #fdf3e3;
+  --status-blocked: #dc2626;
+  --status-blocked-soft: #fdeaea;
+  --status-done: #16a34a;
+  --status-done-soft: #e7f6ec;
+  --status-idle: #8a867f;
+  --status-idle-soft: #f0eeea;
+
+  /* Per-employee tints */
+  --emp-thu: #e11d48;
+  --emp-thu-soft: #ffe4e9;
+  --emp-mai: #0284c7;
+  --emp-mai-soft: #e0f2fe;
+  --emp-linh: #d97706;
+  --emp-linh-soft: #fef3c7;
+  --emp-ha: #7c3aed;
+  --emp-ha-soft: #ede9fe;
+  --emp-vy: #db2777;
+  --emp-vy-soft: #fce7f3;
+  --emp-an: #0d9488;
+  --emp-an-soft: #ccfbf1;
+  --emp-bao: #ea580c;
+  --emp-bao-soft: #ffedd5;
+  --emp-boss: #1c1b19;
+  --emp-boss-soft: #ece9e3;
+
+  --shadow-soft: 0 1px 2px rgb(28 27 25 / 0.04), 0 8px 24px -12px rgb(28 27 25 / 0.12);
+}
+
+.dark {
+  --background: #121211;
+  --surface: #1b1a18;
+  --surface-muted: #24231f;
+  --foreground: #f3f1ed;
+  --muted-foreground: #a19d95;
+  --border: #2e2c28;
+  --primary: #14b8a6;
+  --primary-hover: #2dd4bf;
+  --primary-foreground: #04201d;
+  --primary-soft: #0f2b28;
+  --status-working-soft: #172340;
+  --status-waiting-soft: #33240d;
+  --status-blocked-soft: #3a1515;
+  --status-done-soft: #12301c;
+  --status-idle-soft: #262521;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+}
+
+@theme inline {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+
+  --color-working: var(--status-working);
+  --color-working-soft: var(--status-working-soft);
+  --color-waiting: var(--status-waiting);
+  --color-waiting-soft: var(--status-waiting-soft);
+  --color-blocked: var(--status-blocked);
+  --color-blocked-soft: var(--status-blocked-soft);
+  --color-done: var(--status-done);
+  --color-done-soft: var(--status-done-soft);
+  --color-idle: var(--status-idle);
+  --color-idle-soft: var(--status-idle-soft);
+
+  --color-emp-thu: var(--emp-thu);
+  --color-emp-thu-soft: var(--emp-thu-soft);
+  --color-emp-mai: var(--emp-mai);
+  --color-emp-mai-soft: var(--emp-mai-soft);
+  --color-emp-linh: var(--emp-linh);
+  --color-emp-linh-soft: var(--emp-linh-soft);
+  --color-emp-ha: var(--emp-ha);
+  --color-emp-ha-soft: var(--emp-ha-soft);
+  --color-emp-vy: var(--emp-vy);
+  --color-emp-vy-soft: var(--emp-vy-soft);
+  --color-emp-an: var(--emp-an);
+  --color-emp-an-soft: var(--emp-an-soft);
+  --color-emp-bao: var(--emp-bao);
+  --color-emp-bao-soft: var(--emp-bao-soft);
+  --color-emp-boss: var(--emp-boss);
+  --color-emp-boss-soft: var(--emp-boss-soft);
+
+  --radius-card: 14px;
+  --shadow-soft: var(--shadow-soft);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent); }
+  50% { box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 0%, transparent); }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-pulse-dot { animation: pulse-dot 1.6s ease-out infinite; }
+.animate-fade-in { animation: fade-in 180ms ease-out both; }
+.striped-offline {
+  background-image: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--status-idle) 18%, transparent) 6px 8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
