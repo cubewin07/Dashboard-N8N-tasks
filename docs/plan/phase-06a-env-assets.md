@@ -141,7 +141,7 @@ Art pipeline (Blender headless generators, gltf-transform, validators) and ~95 e
 
 ## 8. Review checklist
 - [ ] Diff touches only `art/**`, `scripts/**`, `public/assets/**`, `src/content/palette.json`, palette schema, `package.json`, lockfile, `.gitignore`, CI, and this plan folder.
-- [ ] Every external source has licence evidence; nothing NC/ND/SA/unknown; no Mixamo; no brand logos; no AI-generated models without a recorded approval.
+- [ ] Every external source has licence evidence; nothing NC/ND/SA/unknown; no Mixamo; no brand logos; AI-generated models are allowed (Q11) and carry a recorded licence like any other asset.
 - [ ] `credits.json` ↔ files is 1:1 (`licences-check` green); generated assets marked `own-CC0`.
 - [ ] Contact sheets: one coherent style; scale right against the silhouette; no bare boxes; boss set distinct.
 - [ ] Only `M_Palette`/`M_Glass`/`M_Emissive`; no textures besides the palette.
