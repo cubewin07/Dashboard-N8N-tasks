@@ -32,6 +32,7 @@
     "office_glass_wall_01": {"file":"models/env/office_glass_wall_01.glb","tris":96,"bytes":7696,"bbox":{"min":[-1,0,-0.04],"max":[1,2.8,0.04]},"footprint":[2,0.5],"anchors":[],"nodes":["glass"]},
     "partition_low_01": {"file":"models/env/partition_low_01.glb","tris":148,"bytes":6848,"bbox":{"min":[-0.7,0,-0.2],"max":[0.7,1.2,0.2]},"footprint":[1.5,0.5],"anchors":[],"nodes":[]},
     "roof_parapet_01": {"file":"models/env/roof_parapet_01.glb","tris":56,"bytes":5400,"bbox":{"min":[-2,0,-0.15],"max":[2,1.06,0.15]},"footprint":[4,0.5],"anchors":[],"nodes":[]},
+    "scooter_01": {"file":"models/env/scooter_01.glb","tris":584,"bytes":15444,"bbox":{"min":[-0.325,-0.005,-0.839],"max":[0.325,1.25,0.88]},"footprint":[1,2],"anchors":[],"nodes":["lamp"]},
     "slab_floor_01": {"file":"models/env/slab_floor_01.glb","tris":120,"bytes":6048,"bbox":{"min":[-2,-0.38,-2],"max":[2,0.002,2]},"footprint":[4,4],"anchors":[],"nodes":[]},
     "stairs_flight_01": {"file":"models/env/stairs_flight_01.glb","tris":360,"bytes":9276,"bbox":{"min":[-0.6,0,-1.52],"max":[0.6,3.125,1.517]},"footprint":[1.5,3.5],"anchors":[],"nodes":[]},
     "stairs_landing_01": {"file":"models/env/stairs_landing_01.glb","tris":116,"bytes":6264,"bbox":{"min":[-1.2,-0.24,-0.6],"max":[1.2,1.12,0.6]},"footprint":[2.5,1.5],"anchors":[],"nodes":[]},
