@@ -1,6 +1,7 @@
 {
   "version": 1,
   "files": {
-    "desk_standard_01": {"file":"models/props/desk_standard_01.glb","tris":440,"bytes":12704,"bbox":{"min":[-0.7,0,-0.35],"max":[0.7,1.153,0.35]},"footprint":[1.5,1],"anchors":[{"kind":"pile","pos":[-0.5,0.74,0.1],"rotY":0},{"kind":"seat","pos":[0,0.46,-0.6],"rotY":0}],"nodes":["screen"]}
+    "desk_standard_01": {"file":"models/props/desk_standard_01.glb","tris":440,"bytes":12704,"bbox":{"min":[-0.7,0,-0.35],"max":[0.7,1.153,0.35]},"footprint":[1.5,1],"anchors":[{"kind":"pile","pos":[-0.5,0.74,0.1],"rotY":0},{"kind":"seat","pos":[0,0.46,-0.6],"rotY":0}],"nodes":["screen"]},
+    "desk_standard_02": {"file":"models/props/desk_standard_02.glb","tris":496,"bytes":13880,"bbox":{"min":[-0.7,0,-0.35],"max":[0.7,1.13,0.35]},"footprint":[1.5,1],"anchors":[{"kind":"pile","pos":[-0.5,0.74,0.1],"rotY":0},{"kind":"seat","pos":[0,0.46,-0.6],"rotY":0}],"nodes":["screen"]}
   }
 }
