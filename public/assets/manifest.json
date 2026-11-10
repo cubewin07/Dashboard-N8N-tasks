@@ -1,6 +1,7 @@
 {
   "version": 1,
   "files": {
+    "plant_bamboo_01": {"file":"models/decor/plant_bamboo_01.glb","tris":572,"bytes":13976,"bbox":{"min":[-0.473,0,-0.244],"max":[0.571,1.9,0.24]},"footprint":[1.5,0.5],"anchors":[],"nodes":[]},
     "plant_ficus_01": {"file":"models/decor/plant_ficus_01.glb","tris":332,"bytes":11396,"bbox":{"min":[-0.379,0,-0.3],"max":[0.399,1.82,0.3]},"footprint":[1,1],"anchors":[],"nodes":[]},
     "plant_monstera_01": {"file":"models/decor/plant_monstera_01.glb","tris":196,"bytes":8620,"bbox":{"min":[-0.561,0,-0.618],"max":[0.582,1.246,0.502]},"footprint":[1.5,1.5],"anchors":[],"nodes":[]},
     "plant_snake_01": {"file":"models/decor/plant_snake_01.glb","tris":124,"bytes":6996,"bbox":{"min":[-0.17,0,-0.17],"max":[0.17,1.14,0.17]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
