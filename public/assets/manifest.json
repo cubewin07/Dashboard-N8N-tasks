@@ -67,6 +67,7 @@
     "folder_01": {"file":"models/props/folder_01.glb","tris":60,"bytes":5644,"bbox":{"min":[-0.12,0,-0.16],"max":[0.12,0.017,0.183]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "fridge_01": {"file":"models/props/fridge_01.glb","tris":200,"bytes":7544,"bbox":{"min":[-0.375,0,-0.404],"max":[0.375,1.85,0.37]},"footprint":[1,1],"anchors":[{"kind":"stand","pos":[0,0,-0.75],"rotY":0}],"nodes":[]},
     "held_document_01": {"file":"models/props/held_document_01.glb","tris":84,"bytes":6300,"bbox":{"min":[-0.175,-0.033,-0.064],"max":[0.05,0.269,0.005]},"footprint":[0.5,0.5],"anchors":[{"kind":"hand_r","pos":[0,0,0],"rotY":0}],"nodes":[]},
+    "held_phone_01": {"file":"models/props/held_phone_01.glb","tris":68,"bytes":7560,"bbox":{"min":[-0.036,-0.05,-0.007],"max":[0.036,0.1,0.007]},"footprint":[0.5,0.5],"anchors":[{"kind":"hand_r","pos":[0,0,0],"rotY":0}],"nodes":["screen"]},
     "keyboard_01": {"file":"models/props/keyboard_01.glb","tris":44,"bytes":5408,"bbox":{"min":[-0.18,0,-0.06],"max":[0.18,0.02,0.06]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "laptop_open_01": {"file":"models/props/laptop_open_01.glb","tris":116,"bytes":8404,"bbox":{"min":[-0.165,0,-0.115],"max":[0.165,0.224,0.187]},"footprint":[0.5,0.5],"anchors":[],"nodes":["screen"]},
     "locker_01": {"file":"models/props/locker_01.glb","tris":264,"bytes":8312,"bbox":{"min":[-0.48,0,-0.27],"max":[0.48,1.8,0.24]},"footprint":[1,0.5],"anchors":[],"nodes":[]},
