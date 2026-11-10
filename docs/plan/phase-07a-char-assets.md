@@ -98,6 +98,7 @@ src/content/catalog/{hair,top,bottom,fullbody,shoes,glasses,neck,eyes,brows,mout
 - [ ] **P07a-T13** Contact sheets + turntables (`render_contact.py`), optimisation (`npm run assets:optimize`), ledger rows, `npm run assets:check`. *Acceptance:* R9, R10 (clean clone → `npm run art:build -- characters` → `git status` shows no diff beyond tolerated metadata).
 
 ## 6. Dependencies
+- **Do not recreate** environment, furniture or held-prop models: all 102 already exist (`assets.md` §8.1). This phase adds characters, animations and the cat rig only if needed.
 - **Needs:** P06a tooling (`art/blender/lib` basics, `assets:optimize`, `assets:check`, palette, ledger format); P05 list of held props and seat/desk/bed dimensions; `assets.md` style guide.
 - **Later phases rely on:** P07b (all files, `*.meta.json`, `library.json`), P08a (fitting pipeline, recipe), P08b (thumbnails, `colors.json`). **Expensive to change later:** skeleton bone names/rest pose, shape-key names, body topology (every garment depends on them).
 
