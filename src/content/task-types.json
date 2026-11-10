@@ -1,1 +1,647 @@
-[]
+[
+  {
+    "key": "cs.chat_faq",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Trả lời câu hỏi thường gặp",
+      "en": "Answer customer FAQ chat"
+    },
+    "specialty": "customer_chat",
+    "tags": ["faq_reply"],
+    "defaultPriority": "normal",
+    "durationMinutes": [3, 8],
+    "platformKeys": ["shopee", "lazada", "tiktok_shop"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.chat_size",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Tư vấn size sản phẩm",
+      "en": "Advise product size"
+    },
+    "specialty": "customer_chat",
+    "tags": ["faq_reply"],
+    "defaultPriority": "normal",
+    "durationMinutes": [4, 10],
+    "platformKeys": ["shopee", "tiktok_shop"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.chat_order_status",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Kiểm tra đơn hàng giao chậm",
+      "en": "Check delayed order status"
+    },
+    "specialty": "customer_chat",
+    "tags": ["routine_draft"],
+    "defaultPriority": "high",
+    "durationMinutes": [5, 12],
+    "platformKeys": ["shopee", "lazada"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.zalo_inbox",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Trả lời tin nhắn Zalo OA",
+      "en": "Reply to Zalo OA inbox"
+    },
+    "specialty": "customer_chat",
+    "tags": ["faq_reply"],
+    "defaultPriority": "normal",
+    "durationMinutes": [3, 8],
+    "platformKeys": ["zalo_oa"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.fb_comment",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Trả lời bình luận Facebook",
+      "en": "Reply to Facebook comment"
+    },
+    "specialty": "customer_chat",
+    "tags": ["faq_reply", "public_post"],
+    "defaultPriority": "normal",
+    "durationMinutes": [3, 6],
+    "platformKeys": ["facebook"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.review_positive",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Cảm ơn đánh giá 5 sao",
+      "en": "Thank 5-star reviews"
+    },
+    "specialty": "review_reply",
+    "tags": ["routine_draft"],
+    "defaultPriority": "low",
+    "durationMinutes": [6, 15],
+    "platformKeys": ["shopee", "lazada", "tiktok_shop"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.review_negative",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Trả lời đánh giá 1 sao",
+      "en": "Respond to 1-star review"
+    },
+    "specialty": "review_reply",
+    "tags": ["public_post", "angry_customer"],
+    "defaultPriority": "high",
+    "durationMinutes": [10, 20],
+    "platformKeys": ["shopee", "lazada"],
+    "needsHelpFrom": ["copywriting"],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.refund_request",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Xử lý yêu cầu hoàn tiền",
+      "en": "Process refund request"
+    },
+    "specialty": "customer_chat",
+    "tags": ["refund", "money", "angry_customer"],
+    "defaultPriority": "urgent",
+    "durationMinutes": [10, 25],
+    "platformKeys": ["shopee", "lazada", "tiktok_shop"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.exchange",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Hỗ trợ đổi sản phẩm lỗi",
+      "en": "Support defective item exchange"
+    },
+    "specialty": "customer_chat",
+    "tags": ["money"],
+    "defaultPriority": "high",
+    "durationMinutes": [10, 20],
+    "platformKeys": ["shopee"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.follow_up",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Nhắn hỏi thăm khách sau nhận hàng",
+      "en": "Post-delivery customer follow-up"
+    },
+    "specialty": "follow_up",
+    "tags": ["routine_draft"],
+    "defaultPriority": "low",
+    "durationMinutes": [10, 20],
+    "platformKeys": ["shopee", "zalo_oa"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.order_from_chat",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Tạo đơn từ tin nhắn Zalo",
+      "en": "Create order from Zalo chat"
+    },
+    "specialty": "customer_chat",
+    "tags": ["money"],
+    "defaultPriority": "normal",
+    "durationMinutes": [6, 12],
+    "platformKeys": ["zalo_oa"],
+    "needsHelpFrom": [],
+    "carries": "phone"
+  },
+  {
+    "key": "cs.night_summary",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Tổng hợp tin nhắn ca đêm",
+      "en": "Night-shift chat summary"
+    },
+    "specialty": "follow_up",
+    "tags": ["internal_note"],
+    "defaultPriority": "low",
+    "durationMinutes": [10, 15],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.post_fb",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Viết bài Facebook giới thiệu sản phẩm",
+      "en": "Write Facebook product post"
+    },
+    "specialty": "copywriting",
+    "tags": ["public_post"],
+    "defaultPriority": "normal",
+    "durationMinutes": [15, 30],
+    "platformKeys": ["facebook"],
+    "needsHelpFrom": ["image"],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.post_zalo",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Viết bài Zalo OA khuyến mãi",
+      "en": "Write Zalo OA promo post"
+    },
+    "specialty": "copywriting",
+    "tags": ["public_post"],
+    "defaultPriority": "normal",
+    "durationMinutes": [15, 30],
+    "platformKeys": ["zalo_oa"],
+    "needsHelpFrom": ["image"],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.caption_tiktok",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Viết caption TikTok",
+      "en": "Write TikTok video caption"
+    },
+    "specialty": "copywriting",
+    "tags": ["public_post"],
+    "defaultPriority": "normal",
+    "durationMinutes": [8, 15],
+    "platformKeys": ["tiktok"],
+    "needsHelpFrom": ["video"],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.schedule_week",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Lên lịch đăng bài tuần này",
+      "en": "Schedule weekly social posts"
+    },
+    "specialty": "social_scheduling",
+    "tags": ["routine_draft"],
+    "defaultPriority": "normal",
+    "durationMinutes": [15, 25],
+    "platformKeys": ["facebook", "zalo_oa", "tiktok"],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.campaign_plan",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Lập kế hoạch chiến dịch sale",
+      "en": "Plan mega sale campaign"
+    },
+    "specialty": "promotions",
+    "tags": ["campaign", "cross_department"],
+    "defaultPriority": "high",
+    "durationMinutes": [30, 60],
+    "platformKeys": ["shopee", "lazada", "tiktok_shop"],
+    "needsHelpFrom": ["image", "bookkeeping"],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.promo_join",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Đăng ký chương trình Flash Sale",
+      "en": "Register for Flash Sale program"
+    },
+    "specialty": "promotions",
+    "tags": ["money", "irreversible"],
+    "defaultPriority": "high",
+    "durationMinutes": [20, 35],
+    "platformKeys": ["shopee", "lazada"],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.voucher",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Tạo mã giảm giá gian hàng",
+      "en": "Create shop discount voucher"
+    },
+    "specialty": "promotions",
+    "tags": ["money"],
+    "defaultPriority": "normal",
+    "durationMinutes": [10, 20],
+    "platformKeys": ["shopee", "tiktok_shop"],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.ads_budget",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Đề xuất ngân sách quảng cáo tháng",
+      "en": "Propose monthly ad budget"
+    },
+    "specialty": "ads",
+    "tags": ["money"],
+    "defaultPriority": "high",
+    "durationMinutes": [25, 40],
+    "platformKeys": ["facebook", "tiktok_business"],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.ads_report",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Báo cáo hiệu quả quảng cáo tuần",
+      "en": "Weekly ad performance report"
+    },
+    "specialty": "reporting",
+    "tags": ["internal_note"],
+    "defaultPriority": "low",
+    "durationMinutes": [20, 30],
+    "platformKeys": ["facebook", "tiktok_business"],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.weekly_report",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Báo cáo doanh số theo kênh tuần này",
+      "en": "Weekly multi-channel sales report"
+    },
+    "specialty": "reporting",
+    "tags": ["internal_note"],
+    "defaultPriority": "normal",
+    "durationMinutes": [20, 35],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "mkt.product_desc",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Viết lại mô tả sản phẩm",
+      "en": "Rewrite product description"
+    },
+    "specialty": "copywriting",
+    "tags": ["routine_draft"],
+    "defaultPriority": "low",
+    "durationMinutes": [12, 20],
+    "platformKeys": ["shopee", "lazada"],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "design.banner_set",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Thiết kế bộ banner sale",
+      "en": "Design sale banner set"
+    },
+    "specialty": "image",
+    "tags": ["public_post"],
+    "defaultPriority": "high",
+    "durationMinutes": [30, 50],
+    "platformKeys": ["shopee", "lazada", "tiktok_shop"],
+    "needsHelpFrom": [],
+    "carries": "tablet"
+  },
+  {
+    "key": "design.post_image",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Làm ảnh minh hoạ bài đăng",
+      "en": "Create social post image"
+    },
+    "specialty": "image",
+    "tags": ["routine_draft"],
+    "defaultPriority": "normal",
+    "durationMinutes": [15, 30],
+    "platformKeys": ["facebook", "zalo_oa"],
+    "needsHelpFrom": [],
+    "carries": "tablet"
+  },
+  {
+    "key": "design.product_photos",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Chỉnh ảnh sản phẩm",
+      "en": "Retouch product photos"
+    },
+    "specialty": "product_photo",
+    "tags": ["routine_draft"],
+    "defaultPriority": "normal",
+    "durationMinutes": [20, 40],
+    "platformKeys": ["shopee"],
+    "needsHelpFrom": [],
+    "carries": "camera"
+  },
+  {
+    "key": "design.thumbnail",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Làm ảnh bìa video",
+      "en": "Create video thumbnail"
+    },
+    "specialty": "image",
+    "tags": ["routine_draft"],
+    "defaultPriority": "low",
+    "durationMinutes": [10, 20],
+    "platformKeys": ["tiktok"],
+    "needsHelpFrom": [],
+    "carries": "tablet"
+  },
+  {
+    "key": "design.short_video",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Dựng video ngắn giới thiệu sản phẩm",
+      "en": "Edit short product video"
+    },
+    "specialty": "video",
+    "tags": ["public_post"],
+    "defaultPriority": "normal",
+    "durationMinutes": [40, 70],
+    "platformKeys": ["tiktok", "facebook"],
+    "needsHelpFrom": [],
+    "carries": "camera"
+  },
+  {
+    "key": "design.video_subtitle",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Thêm phụ đề và nhạc cho video",
+      "en": "Add video subtitles and music"
+    },
+    "specialty": "video",
+    "tags": ["routine_draft"],
+    "defaultPriority": "low",
+    "durationMinutes": [15, 25],
+    "platformKeys": ["tiktok"],
+    "needsHelpFrom": [],
+    "carries": "camera"
+  },
+  {
+    "key": "design.shop_decor",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Trang trí lại gian hàng dịp lễ",
+      "en": "Redecorate storefront for campaign"
+    },
+    "specialty": "image",
+    "tags": ["public_post", "irreversible"],
+    "defaultPriority": "high",
+    "durationMinutes": [35, 60],
+    "platformKeys": ["shopee", "lazada"],
+    "needsHelpFrom": [],
+    "carries": "tablet"
+  },
+  {
+    "key": "design.size_chart",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Vẽ bảng size sản phẩm",
+      "en": "Draw product size chart"
+    },
+    "specialty": "image",
+    "tags": ["routine_draft"],
+    "defaultPriority": "low",
+    "durationMinutes": [15, 25],
+    "platformKeys": ["shopee"],
+    "needsHelpFrom": [],
+    "carries": "tablet"
+  },
+  {
+    "key": "design.packaging_label",
+    "departmentKey": "design",
+    "label": {
+      "vi": "Thiết kế tem dán hộp sản phẩm",
+      "en": "Design packaging box label"
+    },
+    "specialty": "image",
+    "tags": ["cross_department"],
+    "defaultPriority": "normal",
+    "durationMinutes": [25, 40],
+    "platformKeys": [],
+    "needsHelpFrom": ["copywriting"],
+    "carries": "tablet"
+  },
+  {
+    "key": "acc.invoice",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Xuất hoá đơn cho đơn hàng",
+      "en": "Issue customer order invoice"
+    },
+    "specialty": "invoicing",
+    "tags": ["money"],
+    "defaultPriority": "normal",
+    "durationMinutes": [8, 15],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "document"
+  },
+  {
+    "key": "acc.invoice_batch",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Xuất loạt hoá đơn điện tử trong ngày",
+      "en": "Issue daily e-invoice batch"
+    },
+    "specialty": "invoicing",
+    "tags": ["money"],
+    "defaultPriority": "normal",
+    "durationMinutes": [20, 35],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "document"
+  },
+  {
+    "key": "acc.reconcile",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Đối soát doanh thu gian hàng",
+      "en": "Reconcile monthly shop payouts"
+    },
+    "specialty": "bookkeeping",
+    "tags": ["money"],
+    "defaultPriority": "high",
+    "durationMinutes": [30, 50],
+    "platformKeys": ["shopee", "lazada", "tiktok_shop"],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "acc.ledger",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Ghi sổ chi phí tuần này",
+      "en": "Record weekly expense ledger"
+    },
+    "specialty": "bookkeeping",
+    "tags": ["internal_note"],
+    "defaultPriority": "normal",
+    "durationMinutes": [20, 30],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "acc.vat_return",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Lập tờ khai thuế GTGT quý",
+      "en": "Prepare quarterly VAT return"
+    },
+    "specialty": "tax",
+    "tags": ["tax", "legal", "irreversible"],
+    "defaultPriority": "urgent",
+    "durationMinutes": [45, 90],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "document"
+  },
+  {
+    "key": "acc.pit",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Tính thuế thu nhập cá nhân tháng",
+      "en": "Calculate monthly PIT"
+    },
+    "specialty": "tax",
+    "tags": ["tax", "money"],
+    "defaultPriority": "high",
+    "durationMinutes": [30, 50],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "document"
+  },
+  {
+    "key": "acc.revenue_report",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Báo cáo doanh thu tháng",
+      "en": "Monthly revenue report"
+    },
+    "specialty": "bookkeeping",
+    "tags": ["internal_note"],
+    "defaultPriority": "high",
+    "durationMinutes": [25, 40],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "laptop"
+  },
+  {
+    "key": "acc.supplier_payment",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Đề nghị thanh toán nhà cung cấp",
+      "en": "Request supplier payment"
+    },
+    "specialty": "bookkeeping",
+    "tags": ["money", "irreversible"],
+    "defaultPriority": "high",
+    "durationMinutes": [15, 25],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "document"
+  },
+  {
+    "key": "acc.refund_payout",
+    "departmentKey": "accounting",
+    "label": {
+      "vi": "Chi hoàn tiền cho khách hàng",
+      "en": "Disburse customer refund payout"
+    },
+    "specialty": "invoicing",
+    "tags": ["refund", "money"],
+    "defaultPriority": "urgent",
+    "durationMinutes": [8, 15],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "document"
+  },
+  {
+    "key": "sys.hire_over_cap",
+    "departmentKey": "cs",
+    "label": {
+      "vi": "Đề nghị tuyển thêm nhân viên tạm vượt trần",
+      "en": "Request hiring temp staff over cap"
+    },
+    "specialty": "qc",
+    "tags": ["hire_over_cap"],
+    "defaultPriority": "high",
+    "durationMinutes": [5, 10],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "document"
+  },
+  {
+    "key": "sys.connect_account",
+    "departmentKey": "marketing",
+    "label": {
+      "vi": "Kết nối tài khoản nền tảng mới",
+      "en": "Connect new platform account"
+    },
+    "specialty": "qc",
+    "tags": ["new_account", "irreversible"],
+    "defaultPriority": "high",
+    "durationMinutes": [5, 15],
+    "platformKeys": [],
+    "needsHelpFrom": [],
+    "carries": "document"
+  }
+]
