@@ -10,6 +10,7 @@
     "desk_review_01": {"file":"models/props/desk_review_01.glb","tris":592,"bytes":14416,"bbox":{"min":[-0.8,0,-0.375],"max":[0.8,1.165,0.375]},"footprint":[2,1],"anchors":[{"kind":"pile","pos":[-0.2,0.74,0.12],"rotY":0},{"kind":"seat","pos":[0,0.46,-0.625],"rotY":0}],"nodes":["screen"]},
     "desk_standard_01": {"file":"models/props/desk_standard_01.glb","tris":440,"bytes":12704,"bbox":{"min":[-0.7,0,-0.35],"max":[0.7,1.153,0.35]},"footprint":[1.5,1],"anchors":[{"kind":"pile","pos":[-0.5,0.74,0.1],"rotY":0},{"kind":"seat","pos":[0,0.46,-0.6],"rotY":0}],"nodes":["screen"]},
     "desk_standard_02": {"file":"models/props/desk_standard_02.glb","tris":496,"bytes":13880,"bbox":{"min":[-0.7,0,-0.35],"max":[0.7,1.13,0.35]},"footprint":[1.5,1],"anchors":[{"kind":"pile","pos":[-0.5,0.74,0.1],"rotY":0},{"kind":"seat","pos":[0,0.46,-0.6],"rotY":0}],"nodes":["screen"]},
-    "desk_standard_03": {"file":"models/props/desk_standard_03.glb","tris":428,"bytes":12960,"bbox":{"min":[-0.6,0,-0.325],"max":[0.6,1.17,0.325]},"footprint":[1.5,1],"anchors":[{"kind":"pile","pos":[-0.4,0.74,0.1],"rotY":0},{"kind":"seat","pos":[0,0.46,-0.575],"rotY":0}],"nodes":["screen"]}
+    "desk_standard_03": {"file":"models/props/desk_standard_03.glb","tris":428,"bytes":12960,"bbox":{"min":[-0.6,0,-0.325],"max":[0.6,1.17,0.325]},"footprint":[1.5,1],"anchors":[{"kind":"pile","pos":[-0.4,0.74,0.1],"rotY":0},{"kind":"seat","pos":[0,0.46,-0.575],"rotY":0}],"nodes":["screen"]},
+    "sofa_2seat_01": {"file":"models/props/sofa_2seat_01.glb","tris":404,"bytes":11808,"bbox":{"min":[-0.8,0,-0.43],"max":[0.8,0.785,0.43]},"footprint":[2,1],"anchors":[{"kind":"seat","pos":[-0.31,0.46,-0.1],"rotY":-3.142},{"kind":"seat","pos":[0.31,0.46,-0.1],"rotY":-3.142}],"nodes":[]}
   }
 }

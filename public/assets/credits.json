@@ -11,6 +11,7 @@
     {"path":"assets/models/props/desk_review_01.glb","title":"desk_review_01","author":"AI Office project","source":"art/blender/gen_desks.py","license":"own-CC0","modified":false,"sha256":"6210aafd18dddb34ac3715ec879e26285a9844d532f310f6fabcc22ea095b0fc"},
     {"path":"assets/models/props/desk_standard_01.glb","title":"desk_standard_01","author":"AI Office project","source":"art/blender/gen_desks.py","license":"own-CC0","modified":false,"sha256":"4859d2d7d5cb58555876d10d557f1e7a59c3ffaf3709bd65bc7e024d37539167"},
     {"path":"assets/models/props/desk_standard_02.glb","title":"desk_standard_02","author":"AI Office project","source":"art/blender/gen_desks.py","license":"own-CC0","modified":false,"sha256":"fee816968cbeadeec4963d2ffaf7000462a6e31d50a4fe5e4f0f7256f8f685d6"},
-    {"path":"assets/models/props/desk_standard_03.glb","title":"desk_standard_03","author":"AI Office project","source":"art/blender/gen_desks.py","license":"own-CC0","modified":false,"sha256":"1fca51f4e929e7beb21bc7d5b6d8f025cf686e4393e7af7d938ffe179e205f9b"}
+    {"path":"assets/models/props/desk_standard_03.glb","title":"desk_standard_03","author":"AI Office project","source":"art/blender/gen_desks.py","license":"own-CC0","modified":false,"sha256":"1fca51f4e929e7beb21bc7d5b6d8f025cf686e4393e7af7d938ffe179e205f9b"},
+    {"path":"assets/models/props/sofa_2seat_01.glb","title":"sofa_2seat_01","author":"AI Office project","source":"art/blender/gen_seating.py","license":"own-CC0","modified":false,"sha256":"f001d351356801596b0fdbad82e9b3a5ec303d6b120a11ad567a9b8eb51e6fc2"}
   ]
 }
