@@ -1,11 +1,24 @@
 {
   "targets": [
+    {"name": "ceiling_edge_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/ceiling_edge_01.glb", "budget": "kit", "anchors": [], "nodes": ["accent"], "source": "generated"},
+    {"name": "column_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/column_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "facade_panel_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/facade_panel_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "facade_panel_02", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/facade_panel_02.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "roof_parapet_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/roof_parapet_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "slab_floor_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/slab_floor_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "terrace_rail_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/terrace_rail_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "wall_glass_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/wall_glass_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "wall_solid_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/wall_solid_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "wall_window_01", "family": "building_kit", "script": "art/blender/gen_building_kit.py", "out": "public/assets/models/env/wall_window_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
     {"name": "desk_boss_01", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_boss_01.glb", "budget": "large", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
     {"name": "desk_manager_01", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_manager_01.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
     {"name": "desk_review_01", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_review_01.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
     {"name": "desk_standard_01", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_standard_01.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
     {"name": "desk_standard_02", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_standard_02.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
     {"name": "desk_standard_03", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_standard_03.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
+    {"name": "office_glass_door_01", "family": "rooms", "script": "art/blender/gen_rooms.py", "out": "public/assets/models/env/office_glass_door_01.glb", "budget": "kit", "anchors": [], "nodes": ["door"], "source": "generated"},
+    {"name": "office_glass_wall_01", "family": "rooms", "script": "art/blender/gen_rooms.py", "out": "public/assets/models/env/office_glass_wall_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "partition_low_01", "family": "rooms", "script": "art/blender/gen_rooms.py", "out": "public/assets/models/env/partition_low_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
     {"name": "armchair_01", "family": "seating", "script": "art/blender/gen_seating.py", "out": "public/assets/models/props/armchair_01.glb", "budget": "furniture", "anchors": ["seat"], "nodes": [], "source": "generated"},
     {"name": "bench_waiting_01", "family": "seating", "script": "art/blender/gen_seating.py", "out": "public/assets/models/props/bench_waiting_01.glb", "budget": "furniture", "anchors": ["seat"], "nodes": [], "source": "generated"},
     {"name": "chair_massage_01", "family": "seating", "script": "art/blender/gen_seating.py", "out": "public/assets/models/props/chair_massage_01.glb", "budget": "furniture", "anchors": ["seat"], "nodes": [], "source": "generated"},
@@ -22,6 +35,11 @@
     {"name": "monitor_02", "family": "tech", "script": "art/blender/gen_tech.py", "out": "public/assets/models/props/monitor_02.glb", "budget": "furniture", "anchors": [], "nodes": ["screen"], "source": "generated"},
     {"name": "phone_desk_01", "family": "tech", "script": "art/blender/gen_tech.py", "out": "public/assets/models/props/phone_desk_01.glb", "budget": "small", "anchors": [], "nodes": [], "source": "generated"},
     {"name": "printer_01", "family": "tech", "script": "art/blender/gen_tech.py", "out": "public/assets/models/props/printer_01.glb", "budget": "furniture", "anchors": ["stand"], "nodes": ["led"], "source": "generated"},
-    {"name": "tv_wall_01", "family": "tech", "script": "art/blender/gen_tech.py", "out": "public/assets/models/props/tv_wall_01.glb", "budget": "furniture", "anchors": [], "nodes": ["screen"], "source": "generated"}
+    {"name": "tv_wall_01", "family": "tech", "script": "art/blender/gen_tech.py", "out": "public/assets/models/props/tv_wall_01.glb", "budget": "furniture", "anchors": [], "nodes": ["screen"], "source": "generated"},
+    {"name": "elevator_car_01", "family": "vertical", "script": "art/blender/gen_vertical.py", "out": "public/assets/models/env/elevator_car_01.glb", "budget": "large", "anchors": ["stand"], "nodes": ["door_l", "door_r", "led", "lamp"], "source": "generated"},
+    {"name": "elevator_door_frame_01", "family": "vertical", "script": "art/blender/gen_vertical.py", "out": "public/assets/models/env/elevator_door_frame_01.glb", "budget": "furniture", "anchors": [], "nodes": ["door_l", "door_r", "led"], "source": "generated"},
+    {"name": "elevator_shaft_frame_01", "family": "vertical", "script": "art/blender/gen_vertical.py", "out": "public/assets/models/env/elevator_shaft_frame_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "stairs_flight_01", "family": "vertical", "script": "art/blender/gen_vertical.py", "out": "public/assets/models/env/stairs_flight_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "stairs_landing_01", "family": "vertical", "script": "art/blender/gen_vertical.py", "out": "public/assets/models/env/stairs_landing_01.glb", "budget": "kit", "anchors": [], "nodes": [], "source": "generated"}
   ]
 }
