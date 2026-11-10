@@ -4,6 +4,7 @@
     "ceiling_edge_01": {"file":"models/env/ceiling_edge_01.glb","tris":56,"bytes":6884,"bbox":{"min":[-2,-0.34,-0.1],"max":[2,0.02,0.02]},"footprint":[4,0.5],"anchors":[],"nodes":["accent"]},
     "column_01": {"file":"models/env/column_01.glb","tris":96,"bytes":6064,"bbox":{"min":[-0.26,0,-0.26],"max":[0.26,3.7,0.26]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "facade_panel_01": {"file":"models/env/facade_panel_01.glb","tris":156,"bytes":8376,"bbox":{"min":[-2,-0.3,-0.455],"max":[2,3.7,0]},"footprint":[4,0.5],"anchors":[],"nodes":["glass"]},
+    "facade_panel_02": {"file":"models/env/facade_panel_02.glb","tris":144,"bytes":6608,"bbox":{"min":[-2,-0.3,-0.26],"max":[2,3.7,0]},"footprint":[4,0.5],"anchors":[],"nodes":[]},
     "slab_floor_01": {"file":"models/env/slab_floor_01.glb","tris":120,"bytes":6048,"bbox":{"min":[-2,-0.38,-2],"max":[2,0.002,2]},"footprint":[4,4],"anchors":[],"nodes":[]},
     "wall_glass_01": {"file":"models/env/wall_glass_01.glb","tris":120,"bytes":7820,"bbox":{"min":[-2,0,-0.05],"max":[2,3.7,0.05]},"footprint":[4,0.5],"anchors":[],"nodes":["glass"]},
     "wall_solid_01": {"file":"models/env/wall_solid_01.glb","tris":84,"bytes":5744,"bbox":{"min":[-2,0,-0.09],"max":[2,3.7,0.09]},"footprint":[4,0.5],"anchors":[],"nodes":[]},
