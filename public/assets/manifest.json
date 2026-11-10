@@ -70,6 +70,7 @@
     "locker_01": {"file":"models/props/locker_01.glb","tris":264,"bytes":8312,"bbox":{"min":[-0.48,0,-0.27],"max":[0.48,1.8,0.24]},"footprint":[1,0.5],"anchors":[],"nodes":[]},
     "monitor_01": {"file":"models/props/monitor_01.glb","tris":88,"bytes":7768,"bbox":{"min":[-0.27,0,-0.075],"max":[0.27,0.413,0.075]},"footprint":[1,0.5],"anchors":[],"nodes":["screen"]},
     "monitor_02": {"file":"models/props/monitor_02.glb","tris":108,"bytes":7972,"bbox":{"min":[-0.39,0,-0.017],"max":[0.39,0.47,0.1]},"footprint":[1,0.5],"anchors":[],"nodes":["screen"]},
+    "paper_sheet_01": {"file":"models/props/paper_sheet_01.glb","tris":2,"bytes":4792,"bbox":{"min":[-0.105,0.001,-0.148],"max":[0.105,0.001,0.148]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "phone_desk_01": {"file":"models/props/phone_desk_01.glb","tris":64,"bytes":5708,"bbox":{"min":[-0.09,0,-0.1],"max":[0.09,0.07,0.1]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "pillow_01": {"file":"models/props/pillow_01.glb","tris":56,"bytes":5728,"bbox":{"min":[-0.26,0,-0.185],"max":[0.26,0.12,0.17]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "printer_01": {"file":"models/props/printer_01.glb","tris":284,"bytes":10564,"bbox":{"min":[-0.31,0,-0.302],"max":[0.31,0.953,0.29]},"footprint":[1,1],"anchors":[{"kind":"stand","pos":[0,0,-0.65],"rotY":0}],"nodes":["led"]},
