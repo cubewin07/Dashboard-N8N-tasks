@@ -7,6 +7,7 @@
     "facade_panel_02": {"file":"models/env/facade_panel_02.glb","tris":144,"bytes":6608,"bbox":{"min":[-2,-0.3,-0.26],"max":[2,3.7,0]},"footprint":[4,0.5],"anchors":[],"nodes":[]},
     "roof_parapet_01": {"file":"models/env/roof_parapet_01.glb","tris":56,"bytes":5400,"bbox":{"min":[-2,0,-0.15],"max":[2,1.06,0.15]},"footprint":[4,0.5],"anchors":[],"nodes":[]},
     "slab_floor_01": {"file":"models/env/slab_floor_01.glb","tris":120,"bytes":6048,"bbox":{"min":[-2,-0.38,-2],"max":[2,0.002,2]},"footprint":[4,4],"anchors":[],"nodes":[]},
+    "stairs_flight_01": {"file":"models/env/stairs_flight_01.glb","tris":360,"bytes":9276,"bbox":{"min":[-0.6,0,-1.52],"max":[0.6,3.125,1.517]},"footprint":[1.5,3.5],"anchors":[],"nodes":[]},
     "terrace_rail_01": {"file":"models/env/terrace_rail_01.glb","tris":104,"bytes":7728,"bbox":{"min":[-2,0,-0.05],"max":[2,1.13,0.05]},"footprint":[4,0.5],"anchors":[],"nodes":["glass"]},
     "wall_glass_01": {"file":"models/env/wall_glass_01.glb","tris":120,"bytes":7820,"bbox":{"min":[-2,0,-0.05],"max":[2,3.7,0.05]},"footprint":[4,0.5],"anchors":[],"nodes":["glass"]},
     "wall_solid_01": {"file":"models/env/wall_solid_01.glb","tris":84,"bytes":5744,"bbox":{"min":[-2,0,-0.09],"max":[2,3.7,0.09]},"footprint":[4,0.5],"anchors":[],"nodes":[]},
