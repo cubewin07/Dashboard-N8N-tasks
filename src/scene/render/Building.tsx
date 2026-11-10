@@ -15,8 +15,8 @@ import { Exterior } from './Exterior'
 import { Floor } from './Floor'
 import { buildFloorChips, type FloorLabelChip } from './FloorLabel'
 import { decodeFloorSummaries, encodeFloorSummaries } from './floorSummaryKey'
-import { InstancedModels } from './InstancedModels'
 import { Stairwell } from './Stairwell'
+import { StaticModels } from './StaticModels'
 
 export interface BuildingProps {
   layout: BuildingLayout
@@ -109,14 +109,14 @@ export function Building({ layout, reducedMotion = false }: BuildingProps) {
         activeFloorIndex={activeFloorIndex}
         skipSlots={modelSlots}
       />
-      <InstancedModels
+      <StaticModels
         name="building-furniture"
         placements={furniture}
         activeFloorIndex={activeFloorIndex}
       />
       <Exterior layout={layout} showSign={activeFloorIndex === null} />
       {shellReady ? (
-        <InstancedModels
+        <StaticModels
           name="building-shell"
           placements={shell}
           activeFloorIndex={activeFloorIndex}
