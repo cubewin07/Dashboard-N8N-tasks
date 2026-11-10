@@ -18,7 +18,7 @@ All timestamps are `timestamptz` in UTC. IDs are `bigint identity` unless noted.
 
 ```
 app_admins      (user_id uuid pk)                                  -- who counts as "boss"
-shops           (id, name, platform enum, handle, reply_rules text, active bool)
+shops           (id, name, platform enum(shopee|lazada|tiktok_shop), handle, reply_rules text, active bool)
 employees       (key text pk: thu|mai|linh|ha|vy|an|bao, name, role_key, color, scope text[],
                  status emp_status, current_task_id, current_step_key, autonomy autonomy_mode,
                  status_since timestamptz)
@@ -84,7 +84,7 @@ The dashboard subscribes to one channel and patches the TanStack Query cache. On
 ## Seed data (owned by this repo's migrations)
 - `employees`: the 7 employees from `docs/EMPLOYEES.md`, all `idle`, `ask_first`
 - `workflows` + `workflow_steps`: the 6 workflows with fixed steps, `enabled = false`, `n8n_workflow_ref = null`
-- `shops`: 7 placeholder shops (edit names/platforms later)
+- `shops`: 5 placeholder shops: Shopee ×3, Lazada ×1, TikTok Shop ×1 (real store names filled in later by SQL or n8n upsert)
 
 n8n may later **upsert** into `shops`, `workflows` and `workflow_steps` (e.g. to set `n8n_workflow_ref` and `enabled = true`). New workflows can be added by migration or by n8n. The dashboard renders whatever exists.
 

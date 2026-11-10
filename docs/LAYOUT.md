@@ -68,7 +68,7 @@ You only open detail when you choose to.
 │ └──────────────────────┘ └──────────────────────┘ └──────────────────────┘   │
 │  … Thu, Mai, Ha, Bao                                                         │
 ├───────────────────────────────────────────────┬──────────────────────────────┤
-│ LIVE ACTIVITY                                 │ BY SHOP (7)                  │
+│ LIVE ACTIVITY                                 │ BY SHOP (5)                  │
 │ 09:41 Linh finished "Collect reviews" (#142)  │ Shop A  ●●○  2 active        │
 │ 09:40 An passed QC on post #140               │ Shop B  ○    idle            │
 │ 09:38 You approved banner set #137 (Telegram) │ Shop C  ◆    1 waiting       │

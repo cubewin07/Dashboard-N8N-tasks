@@ -1,10 +1,12 @@
 # AGENTS.md
 
+> **Current plan: `docs/plan/` only** (start at `docs/plan/00-overview.md`). The older docs listed below (`docs/PLAN.md`, `docs/CONTRACT.md`, `docs/EMPLOYEES.md`, `docs/LAYOUT.md`, `docs/MVP-NOTES.md`, `docs/OPEN-QUESTIONS.md`) are under audit in `docs/plan/00-audit.md` and will be archived. Where they disagree with `docs/plan/`, `docs/plan/` wins.
+
 Guidance for any coding agent (Claude Code, Codex, Cursor…) working in this repository.
 
 ## What this repo is
 
-The **boss dashboard** for a team of AI "employees" that run 7 online shops (Shopee, TikTok Shop, Lazada, Zalo, Facebook).
+The **boss dashboard** for a team of AI "employees" that run 5 online shops on 3 marketplaces: **Shopee (3 shops), Lazada (1), TikTok Shop (1)**. Zalo / Facebook are only posting channels for the `social_post` workflow, not shops.
 
 - **This repo = React dashboard + Supabase schema. Nothing else.**
 - **All work happens in n8n** (separate repo, runs on a Windows PC behind a Cloudflare Tunnel): Telegram, LLM calls, shop platforms, Google Drive, image/video generation, retries, watchdogs.
