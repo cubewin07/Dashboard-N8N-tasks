@@ -3,7 +3,7 @@
 Asset PR: binaries + generator scripts only. No `src/` changes except JSON content rows.
 
 ## 1. Goal and demo
-Produce everything the character system (P07b) needs: a base body family with shape keys, one shared skeleton, a face atlas, one animation library, a starter wardrobe, and the **garment fitting pipeline** that makes any future clothing item fit every body slider value.
+Produce everything the character system (P07b) needs: two base bodies (female, male) with shape keys, one shared skeleton, a face atlas, one animation library, a starter wardrobe, and the **garment fitting pipeline** that makes any future clothing item fit every body slider value.
 **Demo after merge:** the app looks the same (capsules still). In the PR: contact-sheet renders (`art/out/contact/*.png`, attached to the PR, not committed) show the base body at slider extremes wearing every starter item, plus a turntable GIF of the walk and sit clips. `npm run assets:check` passes.
 
 ## 2. Requirements
@@ -43,7 +43,8 @@ Evaluate, in this order, and fill the table in `art/DECISIONS.md`:
 `Root → Hips → Spine → Spine1 → Spine2 → Neck → Head`; `Shoulder/Arm/ForeArm/Hand` L+R; `UpLeg/Leg/Foot/ToeBase` L+R; one bone per hand for fingers (`HandGrip` L+R). 24–26 deform bones. Max 4 influences per vertex. Rest pose: A-pose 45°.
 
 ### 3.4 Animation clips (`anim/library.glb`)
-`idle`, `walk`, `carry_walk`, `sit_idle`, `sit_type`, `sit_read`, `sit_phone`, `stand_talk_a`, `stand_talk_b`, `wave`, `think`, `drink`, `sleep_desk`, `sleep_bed`, `sofa_sit`, `pingpong`, `arcade`, `karaoke`, `elevator_wait`, `celebrate`, `frustrated`.
+`idle`, `walk`, `carry_walk`, `sit_idle`, `sit_type`, `sit_read`, `sit_phone`, `stand_talk_a`, `stand_talk_b`, `stand_listen`, `wave`, `think`, `drink`, `sleep_desk`, `sleep_bed`, `sofa_sit`, `pingpong`, `arcade`, `boardgame`, `karaoke`, `elevator_wait`, `celebrate`, `frustrated`, `pick_up`, `put_down` (25 clips).
+- **This list is the authority for clip names in `library.glb`** (where `assets.md` §8.2 names a clip differently, this list wins). It covers every pose key of `00-overview.md` §7; the pose key → clip mapping is `src/scene/characters/clipMap.ts` (P07b-T08).
 - 30 fps authoring, resampled to 15 fps keys on export; loops 1–3 s; root motion removed (in-place), walk cycle tuned so foot speed = 1.3 m/s at timeScale 1 (documented in `anim/library.json` with `{clip, loop, duration, speedMps?}`).
 - Seat height convention 0.45 m, desk-top 0.74 m, bed 0.40 m (must match `assets.md` furniture dimensions).
 
@@ -75,27 +76,180 @@ src/content/catalog/{hair,top,bottom,fullbody,shoes,glasses,neck,eyes,brows,mout
 ## 4. Design choices
 | Topic | Options | Choice | Reason | Revisit if |
 |---|---|---|---|---|
-| Base body | CC0 pack as-is · own generated body · AI-generated mesh | **Own body (default), CC0 rig/animations reused** | Continuous sliders need controlled shape keys on body *and* clothes; packs have baked clothes | Spike finds a CC0 pack with separable clothes + shape keys |
+| Base body | CC0 pack as-is · own generated body · AI-generated mesh (not allowed) | **Own bodies (default), CC0 rig/animations reused** | Continuous sliders need controlled shape keys on body *and* clothes; packs have baked clothes | Spike finds a CC0 pack with separable clothes + shape keys |
 | Body sliders | bone scaling only · shape keys · both | **Shape keys for build; bone/root scale only for height** | Bone scaling breaks animation contact (hands on desk); shape keys keep the skeleton constant | Morph count hurts perf (see `performance.md`) → bake morphs at assembly (already planned in P07b) |
 | Clothes fit | per-size variants · runtime cloth · transferred shape keys | **Transferred shape keys + clipping test + hide masks** | Fully scriptable; zero runtime cost after assembly | Penetration cannot get under 5 mm for loose items → allow per-item extra offset |
 | Face | geometry features · texture atlas cells | **Atlas cells** | Many faces for few bytes; gives blink/sleep for free | Close-up wardrobe view looks too flat → add nose geometry variants |
-| Two silhouettes | one · two (a/b) · many | **Two sharing topology** | Variety without doubling garment work | – |
+| Base bodies | one unisex · two sharing topology · **separate female and male** | **Separate `female` / `male` bases, one shared skeleton** (boss decision 2026-11-10) | Clearly different silhouettes; animations and attach bones still shared | – (every garment is fitted per base; frozen after this phase) |
 | Animations | Mixamo · UAL CC0 · hand-authored | **UAL (verify) else authored in script** | Mixamo raw files are not redistributable in a public repo | – |
 
 ## 5. Tasks
-- [ ] **P07a-T01** Spike and decision. *Files:* `art/DECISIONS.md`, `art/sources/characters.json`. *Steps:* download candidates into `art/.cache/` (git-ignored); inspect in headless Blender (bone list, clip list, mesh separation); snapshot licence pages; fill §3.1 table; state decision. If a download needs a browser click, use the browser-automation skill; only if that fails add a row to `art/MANUAL-DOWNLOADS.md`. *Acceptance:* R1; decision names rig bone list and clip source for every clip in §3.4.
-- [ ] **P07a-T02** `lib/` helpers: palette UV assign, `TINT` vertex colour, GLB export settings, deterministic naming. *Files:* `art/blender/lib/*.py`. *Acceptance:* `blender -b -P art/blender/lib/selftest.py` exits 0 and exports a test cube with `M_Palette`.
-- [ ] **P07a-T03** Body mesh + shape keys (`gen_body.py`). *Acceptance:* R2; report prints tri count ≤ 3 000 and the 6 keys for each base; contact sheet of 14 extreme combos has no self-intersection visible.
-- [ ] **P07a-T04** Skeleton + skinning (`gen_skeleton.py`). *Acceptance:* R3; test poses (sit, arms up, deep bend) render without collapsed joints (contact sheet).
-- [ ] **P07a-T05** ∥ Face atlas (`gen_face_atlas.py` draws vector shapes → PNG) + `face-atlas.json` + starter rows for eyes ×3, brows ×2, mouth ×3. *Acceptance:* R4; atlas ≤ 60 KB; closed-eye and half-eye cells exist for each eye style.
-- [ ] **P07a-T06** Animation library (retarget or author). *Files:* `gen_anims.py`/`retarget_anims.py`, `anim/library.{glb,json}`. *Acceptance:* R5; a script check lists all 21 clip names and loop deltas.
-- [ ] **P07a-T07** Fitting pipeline (`fit_garment.py`, `lib/fit.py`) with the clipping test and hide masks. *Acceptance:* R7, R8 on a synthetic test garment (a tube around the torso); deliberately too-tight tube fails with exit code 1.
-- [ ] **P07a-T08** ∥ Starter tops ×3 (t-shirt, shirt, hoodie) and bottoms ×3 (jeans, trousers, shorts). *Acceptance:* R6 per item; reports committed to PR description.
-- [ ] **P07a-T09** ∥ Starter fullbody ×1 (simple dress), shoes ×2 (sneaker, loafer). *Acceptance:* as T08; dress `hides: ['top','bottom']`.
-- [ ] **P07a-T10** ∥ Starter hair ×4 (short, bob, long, bun), glasses ×1, necklace ×1 (rigid attach). *Acceptance:* R6; attach offsets recorded in meta; hair does not clip the head at `Heavy=0.8`.
-- [ ] **P07a-T11** Catalogue JSON rows + `colors.json` (8 skin, 8 hair, 16 fabric swatches from `palette.json`). *Files:* `src/content/catalog/*.json`. *Acceptance:* `npm run content:validate` passes (schema from P01); every row has `credit`.
-- [ ] **P07a-T12** Thumbnails for the 15 items + face parts (`npm run thumbs:render`). *Acceptance:* 256×256 WebP ≤ 15 KB each in `public/assets/thumbs/`.
-- [ ] **P07a-T13** Contact sheets + turntables (`render_contact.py`), optimisation (`npm run assets:optimize`), ledger rows, `npm run assets:check`. *Acceptance:* R9, R10 (clean clone → `npm run art:build -- characters` → `git status` shows no diff beyond tolerated metadata).
+
+Conventions for every task in this phase:
+- Blender is run headless: `BL=/Applications/Blender.app/Contents/MacOS/Blender; "$BL" -b -P <script> -- <args>`. Scripts never open a UI and exit non-zero on failure.
+- Generator scripts are the source of truth. Never commit `.blend`, zips or anything under `art/.cache/` or `art/out/` (contact sheets go in the PR description).
+- Bases are `female` and `male` everywhere (file suffixes `_f` / `_m`). No AI-generated models (`AGENTS.md` rule 12).
+- One commit per task, subject starts with the task ID.
+
+- [ ] **P07a-T01** Spike and decision on the character base
+  - *Files:* `art/DECISIONS.md` (create or append section "Character base"), `art/sources/characters.json`, `art/blender/inspect_pack.py`.
+  - *Depends on:* –
+  - *Steps:*
+    1. Read `assets.md` §2–§3 (sourcing order, licences, how to download) and §3.1 of this file.
+    2. For each candidate in §3.1, download the pack into `art/.cache/<pack>/` with a script (curl + sha256). If a download needs a browser click-through, use the browser-automation skill; only if that fails add a row to `art/MANUAL-DOWNLOADS.md` (URL + target folder) and continue with the other candidates.
+    3. Write `inspect_pack.py`: imports a glTF/FBX file and prints JSON `{bones:[names], deformBoneCount, clips:[{name, frames}], meshes:[{name, tris, hasShapeKeys}], materials}`. Run it on every pack.
+    4. Save the licence page text of each source to `art/sources/licences/<pack>.txt` with the retrieval date.
+    5. Fill the §3.1 table in `art/DECISIONS.md` and state the decision in one paragraph: source of the skeleton, source of each clip in §3.4 (pack clip name → our clip name, or "authored"), source of the two bodies. If inconclusive, write the default decision from §3.1.
+    6. Write `art/sources/characters.json`: `[{id, url, sha256, licence, author, retrievedAt, usedFor}]` for packs actually used.
+  - *Acceptance:* R1. `art/DECISIONS.md` lists the final bone names (24–26 deform + 6 attach bones of R3) and a clip-source row for every clip in §3.4. `git status` shows nothing under `art/.cache/`.
+  - *Out of scope:* importing or exporting any final asset; this task only decides.
+
+- [ ] **P07a-T02** Shared Blender helpers for characters
+  - *Files:* `art/blender/lib/{palette,export,rig,fit}.py` (extend the P06a lib; `fit.py` is a stub here, filled in T07), `art/blender/lib/selftest.py`.
+  - *Depends on:* P06a tooling.
+  - *Steps:*
+    1. `palette.py`: `assign_swatch(obj, swatch_key, faces=None)` moves the faces' UVs to the centre of that swatch cell (cell positions from `src/content/palette.json`).
+    2. `palette.py`: `paint_tint(obj, region, faces)` writes the vertex-colour attribute **`TINT`** (R = primary, G = secondary, B = accent; value 1 inside the region, 0 elsewhere). Untinted meshes get `TINT` = (0,0,0).
+    3. `export.py`: `export_glb(objects, path, *, skins=True, morphs=True, anims=False)` with fixed settings (Y-up, no cameras/lights, vertex colours on, material `M_Palette` only, deterministic object order by name).
+    4. `rig.py`: `BONES` (list from the T01 decision), `ATTACH_BONES`, `check_skeleton(armature)` raising if names/order differ.
+    5. `selftest.py`: build a cube, assign a swatch, paint a tint region, export to `art/out/selftest.glb`, re-import, assert material name, `TINT` attribute and UVs survive.
+  - *Acceptance:* `"$BL" -b -P art/blender/lib/selftest.py` exits 0 and prints `selftest ok`.
+  - *Out of scope:* garment fitting logic (T07).
+
+- [ ] **P07a-T03** Two base bodies with shape keys (`gen_body.py`)
+  - *Files:* `art/blender/gen_body.py`, outputs `public/assets/models/characters/body_female.glb`, `body_male.glb` (final export happens after T04 adds the rig), `art/out/reports/body_{female,male}.json`.
+  - *Depends on:* T01, T02.
+  - *Steps:*
+    1. Implement `build_body(base: 'female'|'male') -> bpy.types.Object` following §3.2: 1.70 m tall at rest, A-pose 45°, head/hands/feet included, proportions per the style guide (`assets.md` §1), clearly different shoulder/hip/chest/waist ratios between the two bases. Topology may differ between bases.
+    2. UVs: skin faces on one `skin_*` swatch; three separate small UV islands on the face for eyes, brows and mouth (each mapped to one face-atlas cell, §3.2), tagged by vertex groups `face_eyes`, `face_brows`, `face_mouth`.
+    3. Add six shape keys to each body with exactly these names and order: `Heavy, Slim, Muscle, Chest, Hips, Shoulders` (deltas, 0..1). They must not move hands, feet soles or the face region.
+    4. Sort faces by body region (head, torso, arms L/R, hands, legs L/R, feet) and write the region → triangle index ranges into `public/assets/models/characters/body.meta.json` under `{female:{regions}, male:{regions}}` (needed for hide masks in T07).
+    5. Write the report JSON `{tris, shapeKeys, bounds}` per base; fail if tris > 3 000 or a key is missing.
+  - *Acceptance:* R2 (mesh part). `"$BL" -b -P art/blender/gen_body.py -- --base female --check` and `--base male --check` exit 0 and print tri counts ≤ 3 000 and the six key names. A contact sheet (T13 script, or a temporary render) of each base at 14 slider extremes shows no self-intersection.
+  - *Out of scope:* skinning and skeleton (T04); clothing.
+
+- [ ] **P07a-T04** Shared skeleton and skinning (`gen_skeleton.py`)
+  - *Files:* `art/blender/gen_skeleton.py`, final `public/assets/models/characters/body_{female,male}.glb`, `art/out/reports/skeleton.json`.
+  - *Depends on:* T03.
+  - *Steps:*
+    1. Build one armature per §3.3 and the T01 bone list (≤ 26 deform bones) plus non-deforming `Attach_Head`, `Attach_HandL`, `Attach_HandR`, `Attach_Neck`, `Attach_Back`, `Attach_WristL` (children of Head, HandL, HandR, Neck, Spine2, ForeArmL).
+    2. The same armature (identical names, order, rest pose) is used for both bases; only bone *positions* may be fitted per base if the T01 decision allows, otherwise both bodies are modelled to the one rest pose (preferred, so animations are shared without retargeting).
+    3. Skin each body: automatic weights, then limit to 4 influences, normalise, smooth; fix shoulders/hips/knees manually in script (weight gradients by distance) until the test poses are clean.
+    4. Export both bodies with `export_glb(..., skins=True, morphs=True)`; run `check_skeleton`.
+    5. Render test poses (sit, arms up, deep bend) for both bases to `art/out/contact/skeleton_{f,m}.png`.
+  - *Acceptance:* R2, R3. `inspect_pack.py` on both GLBs prints identical bone lists (names + order) with ≤ 26 deform bones and the six attach bones; test-pose renders show no collapsed joints.
+  - *Out of scope:* animations (T06).
+
+- [ ] **P07a-T05** ∥ Face atlas and starter face parts (`gen_face_atlas.py`)
+  - *Files:* `art/blender/gen_face_atlas.py` (may use Python PIL/Blender image API, vector shapes → PNG), `public/assets/textures/face_atlas.png`, `src/content/catalog/face-atlas.json`, `src/content/catalog/{eyes,brows,mouth}.json`.
+  - *Depends on:* T02.
+  - *Steps:*
+    1. Draw a 512×512 PNG with an 8×8 grid (64 px cells, transparent background). Rows: eyes (per style: open, half, closed, happy), brows, mouths.
+    2. Starter styles: eyes ×3, brows ×2, mouth ×3. Every eye style has open, half, closed and happy cells.
+    3. Write `face-atlas.json`: `{cell: 64, size: 512, eyes: {<styleId>: {open:[c,r], half:[c,r], closed:[c,r], happy:[c,r]}}, brows: {<id>:[c,r]}, mouth: {<id>:[c,r]}}`.
+    4. Add `CatalogItem` rows (data-model.md §2.10) for each style with `model: null`, `faceTile`, `bases: ['female','male']`, `attach` omitted, `credit: 'own-cc0'`.
+  - *Acceptance:* R4. File ≤ 60 KB; a script check asserts every eye style has the four states; `npm run content:validate` passes.
+  - *Out of scope:* blinking logic (P07b-T10).
+
+- [ ] **P07a-T06** Animation library
+  - *Files:* `art/blender/retarget_anims.py` and/or `art/blender/gen_anims.py` (per the T01 decision), `public/assets/anim/library.glb`, `public/assets/anim/library.json`, `art/blender/check_anims.py`.
+  - *Depends on:* T01, T04.
+  - *Steps:*
+    1. Produce every clip in §3.4 on the T04 skeleton: retarget from the chosen CC0 library where a matching clip exists, otherwise keyframe it in `gen_anims.py` (simple low-poly motion is fine).
+    2. All clips are in-place (no root motion), authored at 30 fps and resampled to 15 fps keys on export; looping clips 1–3 s.
+    3. Respect furniture dimensions from `00-overview.md` §7: seat 0.45 m, desk 0.74 m, bed 0.40 m; hands reach desk height in `sit_type`.
+    4. Tune `walk` and `carry_walk` so foot speed is 1.3 m/s at timeScale 1.
+    5. Export skeleton-only `library.glb` (no mesh) and `library.json`: `[{clip, loop: boolean, duration, speedMps?}]`.
+    6. `check_anims.py`: load the GLB, assert the clip name set equals §3.4 exactly, bone names equal the body's, and for looping clips first/last pose delta < 1° per bone.
+  - *Acceptance:* R5. `"$BL" -b -P art/blender/check_anims.py` exits 0 and lists all §3.4 clips; `library.glb` ≤ 1.2 MB after `npm run assets:optimize`.
+  - *Out of scope:* mapping pose keys to clips (that is `clipMap.ts` in P07b-T08); §3.4 must still contain a clip for every pose key in `00-overview.md` §7.
+
+- [ ] **P07a-T07** Garment fitting pipeline with clipping test and hide masks
+  - *Files:* `art/blender/fit_garment.py` (CLI), `art/blender/lib/fit.py`, `art/blender/tests/test_fit.py`.
+  - *Depends on:* T04.
+  - *Steps:*
+    1. CLI: `fit_garment.py -- --item <id> --src <mesh.glb|generator fn> --bases female,male --kind top|bottom|fullbody|outer|shoes|hair --out public/assets/models/wardrobe/`.
+    2. Implement §3.5 steps 1–7 in `lib/fit.py` as functions `refit_to_base`, `transfer_weights`, `transfer_shape_keys`, `clipping_test`, `compute_hide_ranges`, `export_item`, run **once per base**.
+    3. `clipping_test(body, garment, limits) -> {maxPenetrationMm, combos}` samples the corners of the 6-D slider box plus 20 seeded random combos; when > 5 mm it narrows the offending slider by 0.05 and retries, returning the final `bodyLimits`.
+    4. Outputs per item: `<item>_f.glb`, `<item>_m.glb` (only the bases requested), one `<item>.meta.json` = `{bases, female?: {hideRanges, bodyLimits}, male?: {...}, attach, merge: true, heelLift?: number}`, and `art/out/reports/<item>.json` per §3.5 step 7.
+    5. If Surface Deform binding fails (non-manifold), fall back to nearest-surface delta transfer and note it in the report.
+    6. `test_fit.py`: fit a synthetic tube around the torso on both bases (must pass), then a deliberately too-tight tube (script must exit 1).
+  - *Acceptance:* R7, R8 on the synthetic garment: `"$BL" -b -P art/blender/tests/test_fit.py` exits 0; reports show `maxPenetrationMm ≤ 5` for both bases; the too-tight case exits 1.
+  - *Out of scope:* authoring real garments (T08–T10); skirts (P08a).
+
+- [ ] **P07a-T08** ∥ Starter tops ×3 and bottoms ×3
+  - *Files:* `art/blender/gen_wardrobe_starter.py` (functions `top_tshirt_crew_01`, `top_shirt_01`, `top_hoodie_01`, `bottom_jeans_01`, `bottom_trousers_01`, `bottom_shorts_01`), outputs in `public/assets/models/wardrobe/` (`*_f.glb`, `*_m.glb`, `*.meta.json`).
+  - *Depends on:* T07.
+  - *Steps:*
+    1. Generate each garment from the base body surface (duplicate the covered body region, offset outward 8 mm, add collar/cuffs/hem detail) so it starts well-fitted; ≤ 1 500 tris.
+    2. Assign palette swatches (white base under tint regions) and paint `TINT` regions (primary = main fabric; secondary = collar/trim where present).
+    3. Run `fit_garment.py` for both bases.
+    4. Check each report: tris ≤ 1 500, `maxPenetrationMm ≤ 5`.
+  - *Acceptance:* R6 for these six items: 12 GLBs + 6 meta files exist; every report passes; the report table is pasted in the PR description.
+  - *Out of scope:* catalogue JSON rows (T11), thumbnails (T12).
+
+- [ ] **P07a-T09** ∥ Starter fullbody ×1 and shoes ×2
+  - *Files:* `art/blender/gen_wardrobe_starter.py` (functions `fullbody_dress_simple_01`, `shoes_sneaker_01`, `shoes_loafer_01`), outputs as T08.
+  - *Depends on:* T07.
+  - *Steps:*
+    1. Dress: knee-length, straight cut so it works without a skirt rig; declare `bases: ['female']` only if the male fit fails the clipping test, otherwise both.
+    2. Shoes: replace the foot region (hide mask covers feet); record `heelLift` (metres) in the meta when the sole is thicker than 15 mm.
+    3. Run `fit_garment.py` (`--kind fullbody` / `--kind shoes`) per base and check reports.
+  - *Acceptance:* R6 for these three items; the dress meta/catalogue row will carry `hides: ['top','bottom']`; reports pass.
+  - *Out of scope:* skirts with flare (P08a).
+
+- [ ] **P07a-T10** ∥ Starter hair ×4, glasses ×1, necklace ×1
+  - *Files:* `art/blender/gen_wardrobe_starter.py` (functions `hair_short_01`, `hair_bob_01`, `hair_long_01`, `hair_bun_01`, `glasses_round_01`, `neck_chain_01`), outputs as T08.
+  - *Depends on:* T04.
+  - *Steps:*
+    1. Hair short/bob/bun, glasses and necklace are **rigid**: one GLB used for both bases, `attach: {bone: 'Head'}` (necklace: `'Neck'`), with a per-base offset `{female:{pos,rot,scale}, male:{…}}` in the meta.
+    2. Long hair is skinned to Head/Neck/Spine2 (no shape keys) and fitted per base (`hair_long_01_f.glb`, `_m.glb`), with the `Shoulders` offset rule from §3.5.
+    3. Hair UVs on one `hair_*` swatch (remapped at assembly); glasses frame `TINT` primary.
+    4. Verify no clipping with the head at `Heavy = 0.8` on both bases (render check).
+  - *Acceptance:* R6 for these six items; hair ≤ 1 500 tris; attach offsets present for both bases; head-clipping render is clean.
+  - *Out of scope:* hats and other accessories (P08a).
+
+- [ ] **P07a-T11** Catalogue rows and colour swatches
+  - *Files:* `src/content/catalog/{hair,top,bottom,fullbody,shoes,glasses,neck}.json`, `src/content/catalog/colors.json`.
+  - *Depends on:* T05, T08, T09, T10.
+  - *Steps:*
+    1. Add one `CatalogItem` row per item exactly as in data-model.md §2.10: `id`, `slot`, `label {vi,en}` (natural Vietnamese, e.g. "Áo thun cổ tròn"), `bases`, `model: {female: 'models/wardrobe/<id>_f.glb', male: '…_m.glb'}` (rigid items point both keys to the same file), `thumb`, `attach`, `tint`, `hides`, `bodyLimits` (copied from the meta: the intersection across bases), `tags`, `credit`.
+    2. `colors.json`: `{skin: [8 keys], hair: [8 keys], fabric: [16 keys]}`, every key existing in `src/content/palette.json`.
+    3. Mark one item per slot as the slot default (`"default": true`) for each base.
+  - *Acceptance:* `npm run content:validate` passes; a script check confirms every `model` and `thumb` path exists (thumbs after T12) and every row has `credit`.
+  - *Out of scope:* presets and generator weights (P08a/P08b).
+
+- [ ] **P07a-T12** Thumbnails
+  - *Files:* `art/blender/render_thumbs.py`, npm script `thumbs:render` (if P06a did not add it), `public/assets/thumbs/*.webp`.
+  - *Depends on:* T11.
+  - *Steps:*
+    1. For each catalogue item render the item on a neutral mannequin bust/body crop of its first supported base, fixed camera per slot, transparent or `surface-muted` background, 256×256.
+    2. Face parts: crop the atlas cell upscaled to 256.
+    3. Encode WebP quality ~80; names `<itemId>.webp`.
+  - *Acceptance:* one thumb per catalogue row (15 items + face parts), each ≤ 15 KB; `npm run assets:check` size rule passes.
+  - *Out of scope:* in-app thumbnail UI (P08b).
+
+- [ ] **P07a-T13** Contact sheets, optimisation, ledger and reproducibility
+  - *Files:* `art/blender/render_contact.py`, `art/LICENSES.md`, `public/assets/credits.json`, `art/targets.json` (add target `characters`), `package.json` scripts if missing.
+  - *Depends on:* T03–T12.
+  - *Steps:*
+    1. `render_contact.py`: for each base, a grid of the body at slider extremes wearing each starter item → `art/out/contact/*.png`; plus turntable frames of `walk` and `sit_type`.
+    2. Register every generator in `art/targets.json` so `npm run art:build -- characters` runs T03–T12 scripts in order.
+    3. Run `npm run assets:optimize` (meshopt, no Draco) and confirm morph targets, skin data and the `TINT` attribute survive (re-inspect one garment).
+    4. Add ledger rows for every new file (own work → `own-cc0`; third-party → source rows from T01).
+    5. Run `npm run assets:check`; record `public/assets` size before/after in the PR body.
+    6. Reproducibility: fresh clone → `npm run art:build -- characters` → `git status` clean apart from tolerated metadata.
+  - *Acceptance:* R9, R10; phase adds ≤ 6 MB; contact sheets attached to the PR show no poke-through at slider extremes on either base.
+  - *Out of scope:* any `src/` code other than JSON content.
+
+- [ ] **P07a-T14** Fixture parts for P07b unit tests
+  - *Files:* `art/blender/gen_fixtures.py`, `src/scene/characters/__fixtures__/{body_f,body_m,top_f,top_m,glasses}.glb` + `*.meta.json`.
+  - *Depends on:* T07.
+  - *Steps:*
+    1. Generate tiny versions (≤ 200 tris, < 20 KB each) of a body per base, one fitted top per base and one rigid accessory, with the real skeleton, the six shape keys, `TINT`, hide ranges and metas.
+    2. Export without meshopt so Node tests can load them with plain `GLTFLoader`.
+  - *Acceptance:* five GLBs exist, each < 20 KB; `inspect_pack.py` shows the same bone list as the real bodies.
+  - *Out of scope:* the tests themselves (P07b-T05).
 
 ## 6. Dependencies
 - **Needs:** P06a tooling (`art/blender/lib` basics, `assets:optimize`, `assets:check`, palette, ledger format); P05 list of held props and seat/desk/bed dimensions; `assets.md` style guide.
