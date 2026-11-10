@@ -37,9 +37,8 @@ declare global {
   }
 }
 
-const IS_DEBUG_ENABLED =
-  import.meta.env.DEV ||
-  Boolean(import.meta.env.VITE_E2E)
+const IS_E2E = Boolean(import.meta.env.VITE_E2E)
+const IS_DEBUG_ENABLED = import.meta.env.DEV || IS_E2E
 
 function addDepartmentToStore(
   key = 'logistics',
@@ -159,7 +158,7 @@ function useReducedMotion(): boolean {
 export function OfficeCanvas() {
   const config = useConfigStore((s) => s.config)
   const [ready, setReady] = useState(false)
-  const [dpr, setDpr] = useState(1.5)
+  const [dpr, setDpr] = useState(IS_E2E ? 1 : 1.5)
   const reducedMotion = useReducedMotion()
 
   const location = useLocation()
@@ -215,6 +214,10 @@ export function OfficeCanvas() {
   // 3. Sync viewStore -> URL when mode or focusedFloorKey changes
   useEffect(() => {
     if (!initializedUrlRef.current) return
+    const latest = useViewStore.getState()
+    if (mode !== latest.mode || focusedFloorKey !== latest.focusedFloorKey) {
+      return
+    }
     const nextSearch = serializeViewSearch(mode, focusedFloorKey)
     if (location.search !== nextSearch) {
       lastWrittenSearchRef.current = nextSearch
@@ -236,16 +239,19 @@ export function OfficeCanvas() {
       className="relative h-[calc(100dvh-11rem)] min-h-[460px] w-full overflow-hidden rounded-[14px] border border-border bg-surface"
     >
       <Canvas
-        shadows="soft"
+        frameloop={IS_E2E ? 'demand' : 'always'}
+        shadows={IS_E2E ? true : 'soft'}
         dpr={dpr}
         camera={{ position: [14, 24, 52], fov: 35, near: 0.5, far: 320 }}
       >
-        <PerformanceMonitor
-          onChange={({ factor }) => {
-            const nextDpr = Math.round((1 + factor) * 100) / 100
-            setDpr(nextDpr)
-          }}
-        />
+        {!IS_E2E && (
+          <PerformanceMonitor
+            onChange={({ factor }) => {
+              const nextDpr = Math.round((1 + factor) * 100) / 100
+              setDpr(nextDpr)
+            }}
+          />
+        )}
         <Environment />
         <Lights layout={layout} />
         <Building layout={layout} reducedMotion={reducedMotion} />

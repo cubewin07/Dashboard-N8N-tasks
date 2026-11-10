@@ -42,7 +42,6 @@ export function applyGroupFade(
       mat.transparent = Boolean(mat.userData.baseTransparent) || isFaded
       mat.opacity = nextOpacity
       mat.depthWrite = !isFaded && !mat.userData.baseTransparent
-      mat.needsUpdate = true
     }
 
     if (Array.isArray(obj.material)) {

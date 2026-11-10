@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { WallSegment } from '@/domain/config'
 import { getFloorFadeTarget, useViewStore } from '@/scene/camera/viewStore'
@@ -19,6 +19,7 @@ const WALL_HEIGHT = 2.8
 const WALL_THICKNESS = 0.16
 const DOOR_HEIGHT = 2.15
 const SLAB_THICKNESS = 0.3
+const IS_E2E = Boolean(import.meta.env.VITE_E2E)
 const tempWallObj = new THREE.Object3D()
 
 function buildWallPieces(
@@ -97,8 +98,9 @@ export function Floor({
   const wallInstancedRef = useRef<THREE.InstancedMesh>(null)
   const pointerDownPosRef = useRef<{ x: number; y: number } | null>(null)
   const opacityRef = useRef(1)
-  const scaleProgressRef = useRef(animateMount && !reducedMotion ? 0.01 : 1)
-  const [labelOpacity, setLabelOpacity] = useState(1)
+  const scaleProgressRef = useRef(animateMount && !reducedMotion && !IS_E2E ? 0.01 : 1)
+  const targetFade = getFloorFadeTarget(floor.index, activeFloorIndex)
+  const invalidate = useThree((s) => s.invalidate)
 
   const hoveredFloorKey = useViewStore((s) => s.hoveredFloorKey)
   const focusedFloorKey = useViewStore((s) => s.focusedFloorKey)
@@ -136,22 +138,21 @@ export function Floor({
       const target = getFloorFadeTarget(floor.index, activeFloorIndex)
       opacityRef.current = target.opacity
       applyGroupFade(fadeContentRef.current, target.opacity, target.castShadow)
-      setLabelOpacity(target.opacity)
+      invalidate()
     }
-  }, [floor.index, activeFloorIndex])
+  }, [floor.index, activeFloorIndex, invalidate])
 
   useFrame((_, delta) => {
     const target = getFloorFadeTarget(floor.index, activeFloorIndex)
-    const nextOpacity = stepFadeOpacity(
-      opacityRef.current,
-      target.opacity,
-      delta,
-      reducedMotion,
-    )
-    if (Math.abs(nextOpacity - opacityRef.current) > 0.002 && fadeContentRef.current) {
+    if (Math.abs(target.opacity - opacityRef.current) > 0.002 && fadeContentRef.current) {
+      const nextOpacity = stepFadeOpacity(
+        opacityRef.current,
+        target.opacity,
+        delta,
+        reducedMotion,
+      )
       opacityRef.current = nextOpacity
       applyGroupFade(fadeContentRef.current, nextOpacity, target.castShadow)
-      setLabelOpacity(nextOpacity)
     }
 
     if (scaleProgressRef.current < 1 && groupRef.current) {
@@ -306,7 +307,7 @@ export function Floor({
       ) : null}
 
       {/* 3D floor label on front facade */}
-      <FloorLabel floor={floor} opacity={labelOpacity} chips={chips} />
+      <FloorLabel floor={floor} opacity={targetFade.opacity} chips={chips} />
 
       {/* Invisible pick volume for floor hover and click-to-focus */}
       <mesh
