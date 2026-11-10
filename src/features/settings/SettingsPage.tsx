@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   Box,
@@ -611,6 +612,21 @@ export function SettingsPage() {
                 })}
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Asset credits */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.credits.settingsCard.title}</CardTitle>
+            <CardDescription>{t.credits.settingsCard.description}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link to="/credits" data-credits-link>
+                {t.credits.settingsCard.open}
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

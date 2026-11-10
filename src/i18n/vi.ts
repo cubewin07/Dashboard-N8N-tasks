@@ -1,5 +1,6 @@
 import { activity } from './vi/activity'
 import { common } from './vi/common'
+import { credits } from './vi/credits'
 import { inbox } from './vi/inbox'
 import { library } from './vi/library'
 import { login } from './vi/login'
@@ -27,6 +28,7 @@ export const vi = {
   taskDetail,
   office,
   org,
+  credits,
   activity,
   queue,
   sim,
