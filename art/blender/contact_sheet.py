@@ -79,7 +79,7 @@ def main():
     for name, root, lo, hi in items:
         w, d = hi.x - lo.x, hi.y - lo.y
         if x + w > ROW_WIDTH and x > 1.2:
-            y -= row_depth + 1.3
+            y -= row_depth + 1.9
             x, row_depth = 1.2, 0.0
             sil_rows.append(y)
         root.location.x += -(x + w) - lo.x  # camera looks from +Y, so -X reads left-to-right
