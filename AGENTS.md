@@ -24,13 +24,16 @@ Hosting: GitHub Pages (static, served from a repo subpath) via GitHub Actions.
 
 ```bash
 npm install
-npm run dev          # local dev server
-npm run build        # typecheck + production build into dist/
+npm run dev              # local dev server
+npm run build            # typecheck + production build into dist/
 npm run lint
 npm run typecheck
-npm run test         # vitest
+npm run test             # vitest unit tests
+npm run test:coverage    # vitest with coverage thresholds (src/domain >= 90%)
+npm run test:e2e         # playwright desktop + phone E2E tests
+npm run content:validate # validate src/content/*.json against OrgConfigSchema
 # added by the phases that introduce them (see docs/plan/testing.md, assets.md):
-# npm run test:e2e · content:validate · catalog:validate · art:build · assets:optimize · assets:check · perf:check
+# npm run catalog:validate · art:build · assets:optimize · assets:check · perf:check
 ```
 
 ## Repo layout

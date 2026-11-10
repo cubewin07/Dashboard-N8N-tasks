@@ -47,11 +47,19 @@ let nextEventId = Math.max(...db.events.map((e) => e.id)) + 1
 // ---------- subscriptions ----------
 type Listener = (table: TableName) => void
 const listeners = new Set<Listener>()
+let emitCount = 0
 export function subscribe(fn: Listener) {
   listeners.add(fn)
   return () => listeners.delete(fn)
 }
+export function getEmitCount() {
+  return emitCount
+}
+export function resetEmitCount() {
+  emitCount = 0
+}
 function emit(...tables: TableName[]) {
+  emitCount += 1
   for (const t of new Set(tables)) listeners.forEach((l) => l(t))
 }
 

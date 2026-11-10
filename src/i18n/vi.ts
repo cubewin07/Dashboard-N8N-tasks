@@ -1,15 +1,29 @@
 import { common } from './vi/common'
-import { overview } from './vi/overview'
 import { inbox } from './vi/inbox'
-import { tasks } from './vi/tasks'
-import { start } from './vi/start'
 import { library } from './vi/library'
-import { team } from './vi/team'
-import { settings } from './vi/settings'
 import { login } from './vi/login'
+import { office } from './vi/office'
+import { org } from './vi/org'
+import { overview } from './vi/overview'
+import { settings } from './vi/settings'
+import { start } from './vi/start'
 import { taskDetail } from './vi/taskDetail'
+import { tasks } from './vi/tasks'
+import { team } from './vi/team'
 
-
-export const vi = { common, overview, inbox, tasks, start, library, team, settings, login, taskDetail }
+export const vi = {
+  common,
+  overview,
+  inbox,
+  tasks,
+  start,
+  library,
+  team,
+  settings,
+  login,
+  taskDetail,
+  office,
+  org,
+}
 
 export type Messages = typeof vi

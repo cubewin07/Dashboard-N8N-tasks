@@ -1,0 +1,44 @@
+[
+  {
+    "key": "cs",
+    "label": { "vi": "Xanh da trời", "en": "Sky" },
+    "hex": "#0284c7",
+    "softHex": "#e0f2fe"
+  },
+  {
+    "key": "marketing",
+    "label": { "vi": "Tím", "en": "Violet" },
+    "hex": "#7c3aed",
+    "softHex": "#ede9fe"
+  },
+  {
+    "key": "design",
+    "label": { "vi": "Hồng", "en": "Pink" },
+    "hex": "#db2777",
+    "softHex": "#fce7f3"
+  },
+  {
+    "key": "accounting",
+    "label": { "vi": "Hổ phách", "en": "Amber" },
+    "hex": "#d97706",
+    "softHex": "#fef3c7"
+  },
+  {
+    "key": "management",
+    "label": { "vi": "Ngọc bích", "en": "Jade" },
+    "hex": "#0f766e",
+    "softHex": "#e6f2f1"
+  },
+  {
+    "key": "boss",
+    "label": { "vi": "Mực & Vàng", "en": "Ink & Gold" },
+    "hex": "#92400e",
+    "softHex": "#fef3c7"
+  },
+  {
+    "key": "leisure",
+    "label": { "vi": "Xanh ngọc", "en": "Teal" },
+    "hex": "#0d9488",
+    "softHex": "#ccfbf1"
+  }
+]

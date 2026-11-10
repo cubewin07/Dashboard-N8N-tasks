@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "id": "cmd_01JTEST000000000000000001",
+  "type": "task.set_priority",
+  "issuedBy": {
+    "userId": "usr_boss_1",
+    "role": "boss"
+  },
+  "issuedAt": "2026-11-10T08:00:00Z",
+  "payload": {
+    "taskId": "task_01JTEST000000000000000001",
+    "priority": "urgent"
+  }
+}

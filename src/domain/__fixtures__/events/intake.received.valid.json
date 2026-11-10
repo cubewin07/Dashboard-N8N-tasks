@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "id": "evt_01JTEST000000000000000001",
+  "seq": 1,
+  "at": "2026-11-10T08:00:00Z",
+  "type": "intake.received",
+  "actor": {
+    "kind": "system",
+    "id": null
+  },
+  "causedBy": null,
+  "payload": {
+    "messageId": "msg_01JTEST000000000000000001",
+    "channel": "telegram",
+    "modality": "text",
+    "fromUserId": "usr_boss_1",
+    "text": "Kiểm tra đánh giá mới trên Shopee 1 giúp anh"
+  }
+}

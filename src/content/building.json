@@ -1,0 +1,15 @@
+{
+  "floorHeight": 4.0,
+  "stack": [
+    { "kind": "fixed", "key": "lobby_cafe", "template": "lobby_cafe" },
+    { "kind": "departments" },
+    { "kind": "fixed", "key": "games_rest", "template": "games_rest" },
+    { "kind": "fixed", "key": "management", "template": "management" }
+  ],
+  "elevator": {
+    "cars": 2,
+    "speedFloorsPerSec": 1.5,
+    "doorSeconds": 1.2,
+    "capacity": 6
+  }
+}

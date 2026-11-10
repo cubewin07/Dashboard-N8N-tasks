@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import {
+  Box,
   CheckCircle2,
   KeyRound,
   Laptop,
@@ -12,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '@/app/auth'
+import { useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTier'
 import { useDrive } from '@/app/drive'
 import { useI18n, type Lang } from '@/i18n'
 import { useTeamOnline, useSystemStatus } from '@/hooks/queries'
@@ -43,6 +45,7 @@ import {
 export function SettingsPage() {
   const { t, lang, setLang } = useI18n()
   const { session, signOut } = useAuth()
+  const { tier, override: tierOverride, setOverride: setTierOverride } = useDeviceTierPreference()
   const drive = useDrive()
   const { heartbeatAt, version } = useTeamOnline()
   const { data: status } = useSystemStatus()
@@ -163,6 +166,77 @@ export function SettingsPage() {
                 </span>
               </label>
             </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* 1b. Device tier section (3D / 2D) */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-start gap-2.5 sm:items-center">
+              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                <Box className="size-4" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <CardTitle>{t.settings.deviceTier.title}</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  {t.settings.deviceTier.description}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <RadioGroup
+              value={tierOverride}
+              onValueChange={(val) => setTierOverride(val as DeviceTierOverride)}
+              className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+              aria-label={t.settings.deviceTier.title}
+            >
+              {(
+                [
+                  {
+                    value: 'auto',
+                    label: t.settings.deviceTier.options.auto,
+                    sub: t.settings.deviceTier.options.autoSubtitle,
+                  },
+                  {
+                    value: 'full3d',
+                    label: t.settings.deviceTier.options.full3d,
+                    sub: t.settings.deviceTier.options.full3dSubtitle,
+                  },
+                  {
+                    value: 'fallback',
+                    label: t.settings.deviceTier.options.fallback,
+                    sub: t.settings.deviceTier.options.fallbackSubtitle,
+                  },
+                ] as const
+              ).map((opt) => (
+                <label
+                  key={opt.value}
+                  htmlFor={`device-tier-${opt.value}`}
+                  className={cn(
+                    'flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors',
+                    tierOverride === opt.value
+                      ? 'border-primary bg-primary-soft/40'
+                      : 'border-border bg-surface hover:bg-surface-muted',
+                  )}
+                >
+                  <RadioGroupItem
+                    value={opt.value}
+                    id={`device-tier-${opt.value}`}
+                    className="mt-0.5"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">{opt.label}</p>
+                    <p className="text-xs text-muted-foreground">{opt.sub}</p>
+                  </div>
+                </label>
+              ))}
+            </RadioGroup>
+            <p className="text-xs text-muted-foreground">
+              {fmt(t.settings.deviceTier.activeLabel, {
+                mode: t.settings.deviceTier.activeModes[tier],
+              })}
+            </p>
           </CardContent>
         </Card>
 

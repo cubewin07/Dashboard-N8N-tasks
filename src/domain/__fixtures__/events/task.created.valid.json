@@ -1,0 +1,43 @@
+{
+  "v": 1,
+  "id": "evt_01JTEST000000000000000001",
+  "seq": 1,
+  "at": "2026-11-10T08:00:00Z",
+  "type": "task.created",
+  "actor": {
+    "kind": "system",
+    "id": null
+  },
+  "causedBy": null,
+  "payload": {
+    "task": {
+      "id": "task_01JTEST000000000000000001",
+      "typeKey": "cs.reply_review",
+      "title": "Trả lời đánh giá khách hàng",
+      "detail": null,
+      "departmentId": "dep_cs",
+      "assigneeId": "emp_mai",
+      "requestedBy": {
+        "kind": "manager",
+        "id": "emp_thu"
+      },
+      "channel": "platform",
+      "platformKey": "shopee",
+      "shopId": "shop_shopee_1",
+      "amountVnd": null,
+      "tags": [
+        "routine_draft"
+      ],
+      "priority": "normal",
+      "createdAt": "2026-11-10T08:00:00Z",
+      "startedAt": null,
+      "finishedAt": null,
+      "status": "queued",
+      "progress": 0,
+      "requiredLevel": "reviewer",
+      "matchedRuleIds": [],
+      "parentTaskId": null,
+      "attempts": 1
+    }
+  }
+}

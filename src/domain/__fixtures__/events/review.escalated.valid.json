@@ -1,0 +1,28 @@
+{
+  "v": 1,
+  "id": "evt_01JTEST000000000000000001",
+  "seq": 1,
+  "at": "2026-11-10T08:00:00Z",
+  "type": "review.escalated",
+  "actor": {
+    "kind": "system",
+    "id": null
+  },
+  "causedBy": null,
+  "payload": {
+    "reviewId": "rev_01JTEST000000000000000001",
+    "toLevel": "dept_manager",
+    "newReview": {
+      "id": "rev_01JTEST000000000000000002",
+      "taskId": "task_01JTEST000000000000000001",
+      "level": "dept_manager",
+      "assigneeId": "emp_ngoc",
+      "status": "pending",
+      "priority": "normal",
+      "createdAt": "2026-11-10T08:00:00Z",
+      "decidedAt": null,
+      "decidedBy": null,
+      "note": null
+    }
+  }
+}
