@@ -33,6 +33,7 @@ let active = 0
 let version = 0
 let manifest: AssetManifest | null = null
 let manifestPromise: Promise<AssetManifest | null> | null = null
+let manifestFailed = false
 
 const loader = new GLTFLoader()
 loader.setMeshoptDecoder(MeshoptDecoder)
@@ -68,6 +69,8 @@ export function loadManifest(): Promise<AssetManifest | null> {
     })
     .catch((err: unknown) => {
       console.warn('[assets] manifest.json could not be loaded; showing blockout only', err)
+      manifestFailed = true
+      emit()
       return null
     })
   return manifestPromise
@@ -98,7 +101,9 @@ function bakeGeometry(mesh: THREE.Mesh, toRoot: THREE.Matrix4): THREE.BufferGeom
   copy('position', 3)
   copy('normal', 3)
   copy('uv', 2)
-  if (src.index) out.setIndex(Array.from(src.index.array))
+  // Always indexed, so any set of parts can be merged into one geometry.
+  const count = src.getAttribute('position')?.count ?? 0
+  out.setIndex(src.index ? Array.from(src.index.array) : Array.from({ length: count }, (_, i) => i))
   out.applyMatrix4(toRoot)
   if (!out.getAttribute('normal')) out.computeVertexNormals()
   return out
@@ -170,12 +175,26 @@ export function isModelReady(name: string): boolean {
   return records.get(name)?.status === 'ready'
 }
 
-export function getLoadProgress(): { done: number; total: number } {
+/** Loaded or failed: nothing more will arrive for this model. */
+export function isModelSettled(name: string): boolean {
+  const status = records.get(name)?.status
+  return status === 'ready' || status === 'error'
+}
+
+export interface LoadProgress {
+  done: number
+  total: number
+  /** Nothing more will arrive: all files settled, or there is no manifest at all. */
+  settled: boolean
+}
+
+export function getLoadProgress(): LoadProgress {
   let done = 0
   records.forEach((r) => {
     if (r.status !== 'loading') done += 1
   })
-  return { done, total: records.size }
+  const total = records.size
+  return { done, total, settled: manifestFailed || (total > 0 && done === total) }
 }
 
 /** One geometry per material for a model (optionally a single named node). */
@@ -205,5 +224,6 @@ export function resetModelStore(): void {
   queue.length = 0
   manifest = null
   manifestPromise = null
+  manifestFailed = false
   emit()
 }

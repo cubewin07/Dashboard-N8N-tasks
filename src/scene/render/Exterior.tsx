@@ -6,7 +6,7 @@ import { FURNITURE_MAP } from './assets/furnitureMap'
 import { isModelReady } from './assets/modelStore'
 import { buildExteriorPlacements } from './assets/placements'
 import { useAssetManifest, useModelsVersion } from './assets/useModels'
-import { InstancedModels } from './InstancedModels'
+import { StaticModels } from './StaticModels'
 import { SCENE_PALETTE } from './palette'
 
 const FONT_URL = `${import.meta.env.BASE_URL}assets/fonts/BeVietnamPro-SemiBold.ttf`
@@ -46,7 +46,7 @@ export function Exterior({ layout, showSign = true }: ExteriorProps) {
 
   return (
     <group name="exterior">
-      <InstancedModels name="exterior-props" placements={placements} activeFloorIndex={null} />
+      <StaticModels name="exterior-props" placements={placements} activeFloorIndex={null} />
       {signText && showSign ? (
         <Text
           position={[signText[0], signText[1], signText[2]]}
