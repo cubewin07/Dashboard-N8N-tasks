@@ -30,14 +30,20 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      include: ['src/domain/**/*.ts'],
+      include: ['src/domain/**/*.ts', 'src/scene/layout/**/*.ts'],
       exclude: [
         'src/domain/**/__tests__/**',
         'src/domain/**/__fixtures__/**',
         'src/domain/index.ts',
+        'src/scene/layout/**/__tests__/**',
+        'src/scene/layout/index.ts',
+        'src/scene/layout/types.ts',
       ],
       thresholds: {
         'src/domain/**/*.ts': {
+          lines: 90,
+        },
+        'src/scene/layout/**/*.ts': {
           lines: 90,
         },
       },
