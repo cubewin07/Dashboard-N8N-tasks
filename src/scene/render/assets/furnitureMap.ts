@@ -57,6 +57,28 @@ const KitSchema = z.object({
   elevatorDoor: z.string().min(1),
 })
 
+const ExteriorSchema = z.object({
+  /** Building-centred metres; +Z is the street in front. `rotY` 0 faces the street. */
+  props: z.array(
+    z.object({
+      model: z.string().min(1),
+      x: z.number(),
+      z: z.number(),
+      y: z.number().optional(),
+      rotY: z.number().optional(),
+    }),
+  ),
+  /** Roof sign; its text is drawn at runtime on the model's `text` anchor. */
+  sign: z
+    .object({
+      model: z.string().min(1),
+      x: z.number(),
+      z: z.number(),
+      aboveRoof: z.number(),
+    })
+    .optional(),
+})
+
 export const FurnitureMapSchema = z.object({
   version: z.literal(1),
   slots: z.record(z.string(), SlotArtSchema),
@@ -70,6 +92,7 @@ export const FurnitureMapSchema = z.object({
     )
     .optional(),
   kit: KitSchema,
+  exterior: ExteriorSchema.optional(),
 })
 
 export type ModelRef = z.infer<typeof ModelRefSchema>
@@ -93,6 +116,8 @@ export function listMapModels(map: FurnitureMap): string[] {
     Object.values(tpl.slots ?? {}).forEach(addArt)
     tpl.extras?.forEach((e) => names.add(e.model))
   })
+  map.exterior?.props.forEach((e) => names.add(e.model))
+  if (map.exterior?.sign) names.add(map.exterior.sign.model)
   const kit = map.kit
   ;[...kit.wallBack, ...kit.wallSide].forEach((n) => names.add(n))
   ;[

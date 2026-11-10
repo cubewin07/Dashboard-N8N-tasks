@@ -11,6 +11,7 @@ import { buildShellPlacements } from './assets/shell'
 import { useAssetManifest, useModelsVersion } from './assets/useModels'
 import { Blockout } from './Blockout'
 import { ElevatorShaft } from './ElevatorShaft'
+import { Exterior } from './Exterior'
 import { Floor } from './Floor'
 import { buildFloorChips, type FloorLabelChip } from './FloorLabel'
 import { decodeFloorSummaries, encodeFloorSummaries } from './floorSummaryKey'
@@ -113,6 +114,7 @@ export function Building({ layout, reducedMotion = false }: BuildingProps) {
         placements={furniture}
         activeFloorIndex={activeFloorIndex}
       />
+      <Exterior layout={layout} showSign={activeFloorIndex === null} />
       {shellReady ? (
         <InstancedModels
           name="building-shell"
