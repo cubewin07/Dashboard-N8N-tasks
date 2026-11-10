@@ -24,8 +24,8 @@ for (const family of families) {
     process.exit(1)
   }
   const out = join(ROOT, 'art', 'out', `contact-sheet-${family}.png`)
-  for (const colours of [128, 64, 32]) {
-    await sharp(raw).png({ palette: true, colours, effort: 10 }).toFile(out)
+  for (const [width, colours] of [[1600, 96], [1600, 48], [1400, 48], [1200, 32], [1000, 32]]) {
+    await sharp(raw).resize({ width }).png({ palette: true, colours, effort: 10, dither: 0.6 }).toFile(out)
     if (statSync(out).size <= 400 * 1024) break
   }
   console.log(`${family}: ${files.length} model(s) -> art/out/contact-sheet-${family}.png (${(statSync(out).size / 1024).toFixed(0)} KB)`)
