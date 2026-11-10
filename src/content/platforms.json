@@ -1,0 +1,74 @@
+[
+  {
+    "key": "facebook",
+    "label": { "vi": "Facebook", "en": "Facebook" },
+    "kind": "social",
+    "badge": { "text": "FB", "swatch": "blue_600" },
+    "iconAsset": null,
+    "active": true
+  },
+  {
+    "key": "instagram",
+    "label": { "vi": "Instagram", "en": "Instagram" },
+    "kind": "social",
+    "badge": { "text": "IG", "swatch": "pink_600" },
+    "iconAsset": null,
+    "active": true
+  },
+  {
+    "key": "zalo_oa",
+    "label": { "vi": "Zalo OA", "en": "Zalo OA" },
+    "kind": "messaging",
+    "badge": { "text": "ZOA", "swatch": "sky_600" },
+    "iconAsset": null,
+    "active": true
+  },
+  {
+    "key": "zalo",
+    "label": { "vi": "Zalo", "en": "Zalo" },
+    "kind": "messaging",
+    "badge": { "text": "ZL", "swatch": "sky_500" },
+    "iconAsset": null,
+    "active": true
+  },
+  {
+    "key": "tiktok",
+    "label": { "vi": "TikTok", "en": "TikTok" },
+    "kind": "social",
+    "badge": { "text": "TT", "swatch": "neutral_900" },
+    "iconAsset": null,
+    "active": true
+  },
+  {
+    "key": "tiktok_business",
+    "label": { "vi": "TikTok Business", "en": "TikTok Business" },
+    "kind": "social",
+    "badge": { "text": "TTB", "swatch": "teal_600" },
+    "iconAsset": null,
+    "active": true
+  },
+  {
+    "key": "shopee",
+    "label": { "vi": "Shopee", "en": "Shopee" },
+    "kind": "marketplace",
+    "badge": { "text": "SP", "swatch": "orange_500" },
+    "iconAsset": null,
+    "active": true
+  },
+  {
+    "key": "lazada",
+    "label": { "vi": "Lazada", "en": "Lazada" },
+    "kind": "marketplace",
+    "badge": { "text": "LZ", "swatch": "indigo_600" },
+    "iconAsset": null,
+    "active": true
+  },
+  {
+    "key": "tiktok_shop",
+    "label": { "vi": "TikTok Shop", "en": "TikTok Shop" },
+    "kind": "marketplace",
+    "badge": { "text": "TTS", "swatch": "rose_600" },
+    "iconAsset": null,
+    "active": true
+  }
+]

@@ -1,8 +1,50 @@
 import { describe, expect, it } from 'vitest'
+import approvalRules from '@/content/approval-rules.json'
+import building from '@/content/building.json'
+import orgSeed from '@/content/org.seed.json'
+import palette from '@/content/palette.json'
+import platforms from '@/content/platforms.json'
+import policy from '@/content/policy.json'
+import roles from '@/content/roles.json'
+import specialties from '@/content/specialties.json'
+import taskTypes from '@/content/task-types.json'
 import { makeConfig } from '../__fixtures__/builders'
 import { parseOrgConfig } from '../config'
 
 describe('parseOrgConfig', () => {
+  it('parses the full bundled src/content/*.json seed (28 core staff, 4 departments)', () => {
+    const seedCfg = parseOrgConfig({
+      departments: orgSeed.departments,
+      employees: orgSeed.employees,
+      shops: orgSeed.shops,
+      roles,
+      specialties,
+      platforms,
+      approvalRules,
+      policy,
+      taskTypes,
+      building,
+      floorTemplates: [],
+      palette,
+    })
+    expect(seedCfg.departments).toHaveLength(4)
+    expect(seedCfg.employees).toHaveLength(28)
+    expect(seedCfg.roles).toHaveLength(6)
+    expect(seedCfg.specialties).toHaveLength(15)
+    expect(seedCfg.platforms).toHaveLength(9)
+    expect(seedCfg.shops).toHaveLength(5)
+    expect(seedCfg.approvalRules).toHaveLength(5)
+
+    // 1 manager, 2 owners, and 1 dept_manager + 1 lead per department
+    expect(seedCfg.employees.filter((e) => e.roleKey === 'manager')).toHaveLength(1)
+    expect(seedCfg.employees.filter((e) => e.roleKey === 'owner')).toHaveLength(2)
+    for (const dept of seedCfg.departments) {
+      const inDept = seedCfg.employees.filter((e) => e.departmentId === dept.id)
+      expect(inDept.filter((e) => e.roleKey === 'dept_manager')).toHaveLength(1)
+      expect(inDept.filter((e) => e.roleKey === 'lead')).toHaveLength(1)
+    }
+  })
+
   it('parses a valid config', () => {
     const cfg = makeConfig()
     expect(parseOrgConfig(cfg)).toEqual(cfg)
