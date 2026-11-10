@@ -18,6 +18,7 @@ export interface FloorLayout {
   walls: WallSegment[]
   elevatorDoorSlots: Slot[]
   stairsEntrySlot: Slot
+  occupants: Record<string, EmployeeId>
 }
 
 export interface SeatAssignment {
@@ -28,8 +29,16 @@ export interface SeatAssignment {
 
 export interface BuildingLayout {
   floors: FloorLayout[]
+  floorHeight: number
   totalHeight: number
+  footprint: { w: number; d: number }
   bounds: { min: [number, number, number]; max: [number, number, number] }
+  shafts: {
+    elevator: { x: number; z: number; cars: number }
+    stairs: { x: number; z: number }
+  }
+  byKey: Record<string, number>
+  seatOf: Record<EmployeeId, SeatAssignment>
   seatAssignments: Record<EmployeeId, SeatAssignment>
   elevatorCarCount: number
 }

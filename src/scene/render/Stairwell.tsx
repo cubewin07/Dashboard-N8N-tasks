@@ -1,4 +1,5 @@
 import type { BuildingLayout } from '@/scene/layout'
+import { toWorldX, toWorldZ } from './coords'
 import { SCENE_PALETTE } from './palette'
 
 export interface StairwellProps {
@@ -11,14 +12,14 @@ export function Stairwell({ layout }: StairwellProps) {
     return null
   }
 
+  const { w, d, h: floorH } = firstFloor.size
   const entry = firstFloor.stairsEntrySlot
-  const floorH = firstFloor.size.h
   const flightCount = layout.floors.length - 1
   const rampRunZ = 2.4
   const rampLen = Math.hypot(rampRunZ, floorH / 2)
   const rampPitch = Math.atan2(floorH / 2, rampRunZ)
-  const baseX = entry.x + 0.6
-  const baseZ = entry.z
+  const baseX = toWorldX(entry.x + 0.6, w)
+  const baseZ = toWorldZ(entry.z, d)
 
   return (
     <group name="stairwell">
@@ -27,10 +28,10 @@ export function Stairwell({ layout }: StairwellProps) {
         const yMid = y0 + floorH / 2
         return (
           <group key={`stair_flight_${i}`}>
-            {/* Lower half flight (going +Z and +Y) */}
+            {/* Lower half flight */}
             <mesh
               position={[baseX - 0.45, y0 + floorH * 0.25, baseZ]}
-              rotation={[-rampPitch, 0, 0]}
+              rotation={[rampPitch, 0, 0]}
               castShadow
               receiveShadow
             >
@@ -40,7 +41,7 @@ export function Stairwell({ layout }: StairwellProps) {
 
             {/* Mid-floor landing */}
             <mesh
-              position={[baseX, yMid, baseZ + rampRunZ / 2 + 0.45]}
+              position={[baseX, yMid, baseZ - rampRunZ / 2 - 0.45]}
               castShadow
               receiveShadow
             >
@@ -48,10 +49,10 @@ export function Stairwell({ layout }: StairwellProps) {
               <meshStandardMaterial color={SCENE_PALETTE.stairsRail} roughness={0.75} />
             </mesh>
 
-            {/* Upper half flight (going -Z and +Y) */}
+            {/* Upper half flight */}
             <mesh
               position={[baseX + 0.45, y0 + floorH * 0.75, baseZ]}
-              rotation={[rampPitch, 0, 0]}
+              rotation={[-rampPitch, 0, 0]}
               castShadow
               receiveShadow
             >

@@ -1,5 +1,5 @@
 export { allocateSeats } from './allocate'
-export { computeBuildingLayout } from './buildingLayout'
+export { buildBuildingLayout, computeBuildingLayout } from './buildingLayout'
 export {
   buildFloorSlots,
   generateDeskClusterSlots,

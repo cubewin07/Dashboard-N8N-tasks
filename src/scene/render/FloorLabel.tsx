@@ -1,6 +1,7 @@
 import { Text } from '@react-three/drei'
 import { useI18n } from '@/i18n'
 import type { FloorLayout } from '@/scene/layout'
+import { toWorldX, toWorldZ } from './coords'
 import { getSwatchColor, SCENE_PALETTE } from './palette'
 
 export interface FloorLabelChip {
@@ -25,9 +26,10 @@ export function FloorLabel({ floor, opacity = 1, chips }: FloorLabelProps) {
       : `F${floor.index + 1} · ${floor.label.en}`
 
   const swatchColor = getSwatchColor(floor.colorSwatch)
+  const { w, d } = floor.size
 
   return (
-    <group position={[1.2, 0.55, -0.22]}>
+    <group position={[toWorldX(1.2, w), 0.52, toWorldZ(-0.22, d)]}>
       <mesh position={[-0.45, 0, 0]} userData={{ ignoreFade: true }}>
         <boxGeometry args={[0.32, 0.32, 0.06]} />
         <meshStandardMaterial
