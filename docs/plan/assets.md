@@ -94,7 +94,7 @@ art/
 1. **Existing CC0 packs**, restyled onto the palette (fast, consistent author style per pack).
 2. **CC0 single models**, then **CC-BY 4.0** single models (credit required).
 3. **Generate in Blender** from Python (always possible for furniture/architecture; the fallback for everything).
-4. AI-generated models (Blender MCP `generate_3d`): **only with the boss's explicit OK** per batch (may cost credits; output licence must be checked and recorded). Default: not used.
+4. AI-generated models: **allowed** (boss decision, 2026-11-11). This covers generator scripts written by a coding agent (the default, see 3) and text/image-to-3D tools such as Blender MCP `generate_3d`. The output licence must be checked and recorded like any other asset, and the result must pass the same palette, budget and `assets:check` rules. A tool that costs credits is still announced before a batch is run.
 
 ### 2.2 Candidate sources (every one must be VERIFIED at download time)
 The licence and download method below are what we expect; the downloading agent confirms on the source page and records the evidence (URL + date + licence text snippet) in `art/sources/manifest.json`. If a pack's licence is not what is expected, skip it and fall back.
