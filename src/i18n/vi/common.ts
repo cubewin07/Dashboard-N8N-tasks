@@ -2,6 +2,9 @@
 export const common = {
   app: { name: 'Shop HQ', tagline: 'Đội ngũ AI vận hành 5 gian hàng' },
   nav: {
+    office: 'Văn phòng',
+    org: 'Sơ đồ',
+    legacyGroup: 'Bản cũ',
     overview: 'Tổng quan',
     inbox: 'Cần bạn xử lý',
     inboxShort: 'Cần xử lý',

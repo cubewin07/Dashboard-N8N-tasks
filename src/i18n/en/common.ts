@@ -3,6 +3,9 @@ import type { common as vi } from '../vi/common'
 export const common: typeof vi = {
   app: { name: 'Shop HQ', tagline: 'An AI team running 5 online shops' },
   nav: {
+    office: 'Office',
+    org: 'Org chart',
+    legacyGroup: 'Classic',
     overview: 'Overview',
     inbox: 'Needs you',
     inboxShort: 'Inbox',
