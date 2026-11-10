@@ -67,10 +67,16 @@ def main():
         bpy.ops.import_scene.gltf(filepath=os.path.abspath(f))
         new = [o for o in bpy.data.objects if o not in before]
         root = next(o for o in new if o.parent is None)
+        for k, ob in enumerate(sorted((o for o in new if o.name.startswith("pose_")), key=lambda o: o.name)):
+            ob.location.x += k * 0.55  # alternate poses share an origin: spread them for the sheet only
         bpy.context.view_layer.update()
         items.append((os.path.basename(f)[:-4], root, *world_bounds(root)))
 
     # rows run along X; each further row sits behind (-Y) because fronts face +Y
+    small = all(max(hi - lo) < 0.6 for _n, _r, lo, hi in items)   # props: tighter grid, smaller labels
+    gap, row_gap, label = (0.3, 0.6, 0.05) if small else (GAP, 1.9, 0.15)
+    area = sum((hi.x - lo.x + gap) * (hi.y - lo.y + row_gap) for _n, _r, lo, hi in items)
+    row_width = min(ROW_WIDTH, max(2.4, 1.2 + (area ** 0.5) * 1.5))
     x = 1.2
     y = 0.0
     row_depth = 0.0
@@ -78,14 +84,15 @@ def main():
     sil_rows = [0.0]
     for name, root, lo, hi in items:
         w, d = hi.x - lo.x, hi.y - lo.y
-        if x + w > ROW_WIDTH and x > 1.2:
-            y -= row_depth + 1.9
+        if x + w > row_width and x > 1.2:
+            y -= row_depth + row_gap
             x, row_depth = 1.2, 0.0
             sil_rows.append(y)
         root.location.x += -(x + w) - lo.x  # camera looks from +Y, so -X reads left-to-right
         root.location.y += y - hi.y
+        root.location.z -= lo.z  # wall / ceiling / held items have their pivot above their lowest point
         placed.append((name, -(x + w / 2), y, hi.z - lo.z))
-        x += w + GAP
+        x += w + gap
         row_depth = max(row_depth, d)
     for ry in sil_rows:
         s = silhouette()
@@ -95,11 +102,11 @@ def main():
     for name, cx, fy, _h in placed:
         cu = bpy.data.curves.new(name, "FONT")
         cu.body = name
-        cu.size = 0.15
+        cu.size = label
         cu.align_x = "CENTER"
         ob = bpy.data.objects.new("label_" + name, cu)
         scene.collection.objects.link(ob)
-        ob.location = (cx, fy + 0.32, 0.005)
+        ob.location = (cx, fy + label * 2.2, 0.005)
         ob.rotation_euler = (0, 0, math.pi)
         mat = bpy.data.materials.get("label") or bpy.data.materials.new("label")
         mat.diffuse_color = (0.05, 0.05, 0.05, 1)
