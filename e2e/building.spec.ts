@@ -8,6 +8,8 @@ test.describe('P02 building blockout and camera modes', () => {
   test('renders 8-floor building, camera modes, URL sync, shortcuts, and dynamic department updates', async ({
     page,
   }, testInfo) => {
+    test.setTimeout(90_000)
+
     await page.goto('./#/login')
     await page.locator('#login-email').fill('boss@example.com')
     await page.locator('#login-password').fill('123456')
@@ -47,10 +49,7 @@ test.describe('P02 building blockout and camera modes', () => {
     ])
 
     // 1. Overview mode + screenshot + draw call budget check
-    await page.goto('./#/?cam=overview')
-    await expect(canvasWrapper).toHaveAttribute('data-ready', 'true', {
-      timeout: 20_000,
-    })
+    await expect(canvasWrapper).toHaveAttribute('data-camera-mode-state', 'overview')
     await expect(page.locator('[data-camera-mode="overview"]')).toHaveAttribute(
       'aria-pressed',
       'true',

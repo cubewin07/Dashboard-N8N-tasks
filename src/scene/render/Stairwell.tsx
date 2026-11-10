@@ -84,6 +84,7 @@ export function Stairwell({ layout }: StairwellProps) {
   return (
     <group name="stairwell">
       <instancedMesh
+        key={`ramps_${transforms.ramps.length}`}
         ref={rampMeshRef}
         args={[undefined, undefined, transforms.ramps.length]}
         receiveShadow
@@ -93,6 +94,7 @@ export function Stairwell({ layout }: StairwellProps) {
       </instancedMesh>
 
       <instancedMesh
+        key={`landings_${transforms.landings.length}`}
         ref={landingMeshRef}
         args={[undefined, undefined, transforms.landings.length]}
         receiveShadow

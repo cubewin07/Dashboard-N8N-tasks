@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { CameraControls } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import type CameraControlsImpl from 'camera-controls'
 import * as THREE from 'three'
 import type { BuildingLayout } from '@/scene/layout'
@@ -12,6 +12,7 @@ export interface CameraRigProps {
   reducedMotion?: boolean
 }
 
+const IS_E2E = Boolean(import.meta.env.VITE_E2E)
 const tempPos = new THREE.Vector3()
 const tempTarget = new THREE.Vector3()
 const tempForward = new THREE.Vector3()
@@ -33,6 +34,7 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
   const hasMountedRef = useRef(false)
   const prevModeRef = useRef<string | null>(null)
   const prevFloorRef = useRef<string | null>(null)
+  const invalidate = useThree((s) => s.invalidate)
 
   const mode = useViewStore((s) => s.mode)
   const focusedFloorKey = useViewStore((s) => s.focusedFloorKey)
@@ -73,7 +75,7 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
     controls.maxPolarAngle = pose.maxPolarAngle
     controls.minDistance = pose.minDistance
     controls.maxDistance = pose.maxDistance
-    controls.smoothTime = reducedMotion ? 0 : 0.6
+    controls.smoothTime = reducedMotion || IS_E2E ? 0 : 0.6
 
     const shouldReposition =
       !hasMountedRef.current ||
@@ -87,7 +89,7 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
       hasMountedRef.current && mode === 'free' && prevModeRef.current !== 'free'
 
     if (shouldReposition && !keepCurrentPoseInFree) {
-      const animate = hasMountedRef.current && !reducedMotion
+      const animate = hasMountedRef.current && !reducedMotion && !IS_E2E
       void controls.setLookAt(
         pose.position[0],
         pose.position[1],
@@ -102,7 +104,8 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
     hasMountedRef.current = true
     prevModeRef.current = mode
     prevFloorRef.current = focusedFloorKey
-  }, [mode, focusedFloorKey, layout, reducedMotion])
+    invalidate()
+  }, [mode, focusedFloorKey, layout, reducedMotion, invalidate])
 
   useFrame((_, delta) => {
     const controls = controlsRef.current

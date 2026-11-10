@@ -15,6 +15,7 @@ interface MeshBatch {
   size: [number, number, number]
   color: THREE.Color
   faded: boolean
+  capacity: number
   instances: InstanceTransform[]
 }
 
@@ -47,6 +48,11 @@ function InstancedBatchMesh({ batch }: InstancedBatchProps) {
     const mesh = meshRef.current
     if (!mesh) return
 
+    const count = batch.instances.length
+    mesh.count = count
+    mesh.visible = count > 0
+    if (count === 0) return
+
     batch.instances.forEach((inst, idx) => {
       tempObject.position.set(inst.position[0], inst.position[1], inst.position[2])
       tempObject.rotation.set(0, inst.rotY, 0)
@@ -61,7 +67,7 @@ function InstancedBatchMesh({ batch }: InstancedBatchProps) {
   return (
     <instancedMesh
       ref={meshRef}
-      args={[undefined, undefined, batch.instances.length]}
+      args={[undefined, undefined, batch.capacity]}
       castShadow={!batch.faded && SHADOW_CASTING_KINDS.has(batch.kind)}
       receiveShadow
     >
@@ -84,7 +90,43 @@ export interface BlockoutProps {
 
 export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
   const batches = useMemo(() => {
+    const countsByKind = new Map<BlockoutMeshKind, number>()
+    for (const floor of floors) {
+      for (const slot of floor.slots) {
+        const spec = SLOT_BLOCKOUT[slot.type]
+        if (!spec.render) continue
+        for (const part of spec.parts) {
+          countsByKind.set(part.kind, (countsByKind.get(part.kind) ?? 0) + 1)
+        }
+      }
+    }
+
     const map = new Map<string, MeshBatch>()
+
+    for (const floor of floors) {
+      for (const slot of floor.slots) {
+        const spec = SLOT_BLOCKOUT[slot.type]
+        if (!spec.render) continue
+        for (const part of spec.parts) {
+          const totalForKind = countsByKind.get(part.kind) ?? 1
+          const capacity = Math.max(16, Math.ceil(totalForKind / 16) * 16)
+          for (const faded of [false, true]) {
+            const batchKey = `${part.kind}::${faded ? 'faded' : 'opaque'}`
+            if (!map.has(batchKey)) {
+              map.set(batchKey, {
+                key: batchKey,
+                kind: part.kind,
+                size: part.size,
+                color: part.color,
+                faded,
+                capacity,
+                instances: [],
+              })
+            }
+          }
+        }
+      }
+    }
 
     for (const floor of floors) {
       const faded = activeFloorIndex !== null && floor.index > activeFloorIndex
@@ -106,22 +148,13 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
           const wz = toWorldZ(localZ, d)
 
           const batchKey = `${part.kind}::${faded ? 'faded' : 'opaque'}`
-          let batch = map.get(batchKey)
-          if (!batch) {
-            batch = {
-              key: batchKey,
-              kind: part.kind,
-              size: part.size,
-              color: part.color,
-              faded,
-              instances: [],
-            }
-            map.set(batchKey, batch)
+          const batch = map.get(batchKey)
+          if (batch) {
+            batch.instances.push({
+              position: [wx, wy, wz],
+              rotY: -slot.rotY,
+            })
           }
-          batch.instances.push({
-            position: [wx, wy, wz],
-            rotY: -slot.rotY,
-          })
         }
       }
     }
@@ -132,7 +165,7 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
   return (
     <group name="building-blockout">
       {batches.map((batch) => (
-        <InstancedBatchMesh key={`${batch.key}::${batch.instances.length}`} batch={batch} />
+        <InstancedBatchMesh key={`${batch.key}::${batch.capacity}`} batch={batch} />
       ))}
     </group>
   )

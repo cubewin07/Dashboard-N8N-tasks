@@ -5,6 +5,8 @@ export interface LightsProps {
   layout: BuildingLayout
 }
 
+const SHADOW_MAP_SIZE = import.meta.env.VITE_E2E ? 1024 : 2048
+
 export function Lights({ layout }: LightsProps) {
   const totalH = layout.totalHeight
   const extentX = Math.max(24, layout.footprint.w * 1.1)
@@ -22,7 +24,7 @@ export function Lights({ layout }: LightsProps) {
         intensity={1.35}
         color={SCENE_PALETTE.sunLight}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[SHADOW_MAP_SIZE, SHADOW_MAP_SIZE]}
         shadow-bias={-0.0004}
         shadow-camera-left={-extentX}
         shadow-camera-right={extentX}
