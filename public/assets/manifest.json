@@ -26,6 +26,7 @@
     "facade_panel_01": {"file":"models/env/facade_panel_01.glb","tris":156,"bytes":8376,"bbox":{"min":[-2,-0.3,-0.455],"max":[2,3.7,0]},"footprint":[4,0.5],"anchors":[],"nodes":["glass"]},
     "facade_panel_02": {"file":"models/env/facade_panel_02.glb","tris":144,"bytes":6608,"bbox":{"min":[-2,-0.3,-0.26],"max":[2,3.7,0]},"footprint":[4,0.5],"anchors":[],"nodes":[]},
     "ground_plaza_01": {"file":"models/env/ground_plaza_01.glb","tris":104,"bytes":6160,"bbox":{"min":[-2,-0.1,-2],"max":[2,0.008,2]},"footprint":[4,4],"anchors":[],"nodes":[]},
+    "lamp_street_01": {"file":"models/env/lamp_street_01.glb","tris":148,"bytes":8508,"bbox":{"min":[-0.13,0,-1.1],"max":[0.5,4.224,0.129]},"footprint":[1,1.5],"anchors":[],"nodes":["lamp"]},
     "office_glass_door_01": {"file":"models/env/office_glass_door_01.glb","tris":196,"bytes":12084,"bbox":{"min":[-0.5,0,-0.064],"max":[0.5,2.8,0.064]},"footprint":[1,0.5],"anchors":[],"nodes":["door","door_glass","glass"]},
     "office_glass_wall_01": {"file":"models/env/office_glass_wall_01.glb","tris":96,"bytes":7696,"bbox":{"min":[-1,0,-0.04],"max":[1,2.8,0.04]},"footprint":[2,0.5],"anchors":[],"nodes":["glass"]},
     "partition_low_01": {"file":"models/env/partition_low_01.glb","tris":148,"bytes":6848,"bbox":{"min":[-0.7,0,-0.2],"max":[0.7,1.2,0.2]},"footprint":[1.5,0.5],"anchors":[],"nodes":[]},
