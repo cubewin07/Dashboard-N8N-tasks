@@ -183,7 +183,7 @@ function elevatorPlacements(
   const out: Placement[] = []
   doors.forEach((door, idx) => {
     // Doors face west (people walk in from the floor); the shaft sits east of them.
-    const rotY = -Math.PI / 2
+    const rotY = Math.PI / 2
     const cx = door.x + 0.1 + (frameLen * k) / 2
     out.push(vertical(floor, kit.shaftFrame, cx, door.z, rotY, [k, 1, k]))
     out.push(vertical(floor, kit.elevatorDoor, door.x, door.z, rotY, [bay / doorLen, 1, 1]))
