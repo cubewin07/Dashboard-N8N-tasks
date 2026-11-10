@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { PerformanceMonitor } from '@react-three/drei'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { addAfterEffect, Canvas, useFrame, useThree } from '@react-three/fiber'
 import type CameraControlsImpl from 'camera-controls'
 import * as THREE from 'three'
 import type { Department, OrgConfig } from '@/domain/config'
@@ -9,6 +9,7 @@ import type { DepartmentId } from '@/domain/primitives'
 import { ActivityTicker } from '@/features/activity/ActivityTicker'
 import { CameraModeBar } from '@/features/office/CameraModeBar'
 import { FloorPicker } from '@/features/office/FloorPicker'
+import { LoadProgress } from '@/features/office/LoadProgress'
 import { PeopleList } from '@/features/office/PeopleList'
 import { PersonDrawer } from '@/features/office/PersonDrawer'
 import { ShortcutHint } from '@/features/office/ShortcutHint'
@@ -31,6 +32,7 @@ import {
   type DirectorDebug,
 } from '@/scene/debug'
 import { buildBuildingLayout, type BuildingLayout } from '@/scene/layout'
+import { useLoadProgress } from '@/scene/render/assets/useModels'
 import { Building } from '@/scene/render/Building'
 import { Environment } from '@/scene/render/Environment'
 import { Lights } from '@/scene/render/Lights'
@@ -182,6 +184,21 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
     }
   })
 
+  // useFrame runs before the render, so its numbers are one frame old. With
+  // on-demand rendering that frame may never be followed by another: refresh
+  // the render counters right after each render as well.
+  useEffect(() => {
+    if (!IS_DEBUG_ENABLED) return
+    return addAfterEffect(() => {
+      const debug = window.__office_debug
+      if (!debug) return
+      debug.drawCalls = gl.info.render.calls
+      debug.triangles = gl.info.render.triangles
+      debug.geometries = gl.info.memory.geometries
+      debug.textures = gl.info.memory.textures
+    })
+  }, [gl])
+
   return null
 }
 
@@ -205,6 +222,7 @@ export function OfficeCanvas() {
   const [ready, setReady] = useState(false)
   const [dpr, setDpr] = useState(IS_E2E ? 1 : 1.5)
   const reducedMotion = useReducedMotionPref()
+  const assets = useLoadProgress()
 
   const location = useLocation()
   const [, setSearchParams] = useSearchParams()
@@ -301,6 +319,7 @@ export function OfficeCanvas() {
     <div
       data-office-canvas
       data-ready={ready ? 'true' : 'false'}
+      data-assets={assets.settled ? 'ready' : 'loading'}
       data-camera-mode-state={mode}
       data-focused-floor={focusedFloorKey ?? ''}
       style={{ cursor: hoveredFloorKey || personHovered ? 'pointer' : 'default' }}
@@ -356,6 +375,7 @@ export function OfficeCanvas() {
         </div>
 
         <div className="flex items-end justify-between gap-4">
+          <LoadProgress progress={assets} />
           <ActivityTicker />
           <ShortcutHint />
         </div>

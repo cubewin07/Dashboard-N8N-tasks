@@ -31,6 +31,13 @@ test.describe('P02 building blockout and camera modes', () => {
       timeout: 20_000,
     })
 
+    // P06b: wait until every model has loaded and the scenery is baked
+    await expect(canvasWrapper).toHaveAttribute('data-assets', 'ready', {
+      timeout: 30_000,
+    })
+    await expect(page.locator('[data-load-progress]')).toHaveCount(0)
+    await page.waitForTimeout(500)
+
     // Verify 8 floors top-to-bottom in FloorPicker
     const pickerItems = page.locator('[data-floor-picker-item]')
     await expect(pickerItems).toHaveCount(8)
