@@ -1,4 +1,10 @@
 {
   "targets": [
+    {"name": "desk_boss_01", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_boss_01.glb", "budget": "large", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
+    {"name": "desk_manager_01", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_manager_01.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
+    {"name": "desk_review_01", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_review_01.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
+    {"name": "desk_standard_01", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_standard_01.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
+    {"name": "desk_standard_02", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_standard_02.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"},
+    {"name": "desk_standard_03", "family": "desks", "script": "art/blender/gen_desks.py", "out": "public/assets/models/props/desk_standard_03.glb", "budget": "furniture", "anchors": ["seat", "screen", "pile"], "nodes": [], "source": "generated"}
   ]
 }
