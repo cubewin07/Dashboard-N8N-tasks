@@ -1,3 +1,5 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
 # MVP UI notes (mock data, no backend)
 
 Goal: a clickable UI for the boss to approve **before** wiring Supabase and Google. Branch `feat/mvp-ui`.

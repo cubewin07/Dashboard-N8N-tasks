@@ -1,3 +1,5 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
 # Boss Dashboard: Implementation Plan
 
 > Scope of **this repo**: the boss dashboard (React) + the Supabase schema it reads.

@@ -1,3 +1,5 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
 # Layout & Design Direction
 
 Design goal: **"a calm control room"**. In 3 seconds you should know: *Is the team working? Does anything need me?*

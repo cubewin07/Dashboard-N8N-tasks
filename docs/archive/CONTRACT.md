@@ -1,3 +1,5 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
 # Dashboard ⇄ n8n Contract (via Supabase)
 
 Version: **v0.2 (draft)**. Changes require bumping the version and updating both repos.

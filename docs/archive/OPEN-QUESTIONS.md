@@ -1,3 +1,5 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
 # Open Questions & Decisions (dashboard repo only)
 
 Out of scope here: everything about how work gets done (platform APIs, review collection, prices, providers, Telegram). That belongs to n8n. The dashboard shows whatever n8n writes to Supabase per `docs/CONTRACT.md`.
