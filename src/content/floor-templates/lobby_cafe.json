@@ -1,0 +1,206 @@
+{
+  "key": "lobby_cafe",
+  "size": { "w": 24, "d": 14 },
+  "gridCell": 0.5,
+  "fixedSlots": [
+    {
+      "id": "elevator_door_1",
+      "type": "elevator_door",
+      "x": 20.5,
+      "z": 9,
+      "rotY": -1.5708,
+      "footprint": [[41, 18]],
+      "approach": [40, 18]
+    },
+    {
+      "id": "elevator_door_2",
+      "type": "elevator_door",
+      "x": 20.5,
+      "z": 11,
+      "rotY": -1.5708,
+      "footprint": [[41, 22]],
+      "approach": [40, 22]
+    },
+    {
+      "id": "stairs_entry",
+      "type": "stairs_entry",
+      "x": 21,
+      "z": 4,
+      "rotY": -1.5708,
+      "footprint": [[42, 8]],
+      "approach": [40, 8]
+    },
+    {
+      "id": "entrance",
+      "type": "entrance",
+      "x": 0.5,
+      "z": 7,
+      "rotY": 1.5708,
+      "footprint": [[1, 14]],
+      "approach": [2, 14]
+    },
+    {
+      "id": "reception_desk",
+      "type": "decor",
+      "x": 12,
+      "z": 3,
+      "rotY": 0,
+      "footprint": [
+        [23, 6],
+        [24, 6]
+      ],
+      "approach": [24, 5]
+    },
+    {
+      "id": "idle_coffee_1",
+      "type": "idle_coffee",
+      "x": 4,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [[8, 23]],
+      "approach": [8, 22]
+    },
+    {
+      "id": "idle_coffee_2",
+      "type": "idle_coffee",
+      "x": 7,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [[14, 23]],
+      "approach": [14, 22]
+    },
+    {
+      "id": "idle_tea_table_1",
+      "type": "idle_tea_table",
+      "x": 4.5,
+      "z": 5,
+      "rotY": 0,
+      "capacity": 4,
+      "footprint": [[9, 10]],
+      "approach": [9, 9]
+    },
+    {
+      "id": "idle_tea_table_2",
+      "type": "idle_tea_table",
+      "x": 8,
+      "z": 5,
+      "rotY": 0,
+      "capacity": 4,
+      "footprint": [[16, 10]],
+      "approach": [16, 9]
+    },
+    {
+      "id": "idle_sofa_1",
+      "type": "idle_sofa",
+      "x": 14,
+      "z": 11,
+      "rotY": 0,
+      "footprint": [[28, 22]],
+      "approach": [28, 21]
+    },
+    {
+      "id": "idle_sofa_2",
+      "type": "idle_sofa",
+      "x": 17,
+      "z": 11,
+      "rotY": 0,
+      "footprint": [[34, 22]],
+      "approach": [34, 21]
+    },
+    {
+      "id": "idle_sofa_3",
+      "type": "idle_sofa",
+      "x": 17,
+      "z": 7.5,
+      "rotY": -1.5708,
+      "footprint": [[34, 15]],
+      "approach": [33, 15]
+    },
+    {
+      "id": "idle_chat_1",
+      "type": "idle_chat",
+      "x": 10.5,
+      "z": 8,
+      "rotY": 0,
+      "footprint": [[21, 16]],
+      "approach": [21, 15]
+    },
+    {
+      "id": "idle_chat_2",
+      "type": "idle_chat",
+      "x": 13.5,
+      "z": 8,
+      "rotY": 0,
+      "footprint": [[27, 16]],
+      "approach": [27, 15]
+    },
+    {
+      "id": "idle_chat_3",
+      "type": "idle_chat",
+      "x": 6,
+      "z": 8,
+      "rotY": 0,
+      "footprint": [[12, 16]],
+      "approach": [12, 15]
+    },
+    {
+      "id": "decor_plant_1",
+      "type": "decor",
+      "x": 1,
+      "z": 1,
+      "rotY": 0,
+      "footprint": [[2, 2]],
+      "approach": [3, 2]
+    },
+    {
+      "id": "decor_plant_2",
+      "type": "decor",
+      "x": 1,
+      "z": 13,
+      "rotY": 0,
+      "footprint": [[2, 26]],
+      "approach": [3, 25]
+    },
+    {
+      "id": "decor_plant_3",
+      "type": "decor",
+      "x": 23,
+      "z": 1,
+      "rotY": 0,
+      "footprint": [[46, 2]],
+      "approach": [45, 2]
+    },
+    {
+      "id": "decor_plant_4",
+      "type": "decor",
+      "x": 23,
+      "z": 13,
+      "rotY": 0,
+      "footprint": [[46, 26]],
+      "approach": [45, 25]
+    },
+    {
+      "id": "cat_spot_1",
+      "type": "cat_spot",
+      "x": 2.5,
+      "z": 2.5,
+      "rotY": 0,
+      "footprint": [[5, 5]],
+      "approach": [5, 4]
+    },
+    {
+      "id": "cat_spot_2",
+      "type": "cat_spot",
+      "x": 18,
+      "z": 2.5,
+      "rotY": 0,
+      "footprint": [[36, 5]],
+      "approach": [36, 4]
+    }
+  ],
+  "walls": [
+    { "x1": 0, "z1": 14, "x2": 24, "z2": 14 },
+    { "x1": 0, "z1": 0, "x2": 0, "z2": 14, "door": { "offset": 6.5, "width": 1 } },
+    { "x1": 24, "z1": 0, "x2": 24, "z2": 14 }
+  ]
+}

@@ -399,6 +399,7 @@ export interface Slot {
   rotY: number
   roleHint?: string
   capacity?: number
+  parentSlotId?: string
   footprint?: Array<[number, number]>
   approach?: [number, number]
 }
@@ -411,8 +412,9 @@ export const SlotSchema = z.object({
   rotY: z.number(),
   roleHint: z.string().optional(),
   capacity: z.number().int().positive().optional(),
-  footprint: z.array(z.tuple([z.number().int(), z.number().int()])).optional(),
-  approach: z.tuple([z.number().int(), z.number().int()]).optional(),
+  parentSlotId: z.string().min(1).optional(),
+  footprint: z.array(z.tuple([z.number().int(), z.number().int()])).min(1),
+  approach: z.tuple([z.number().int(), z.number().int()]),
 })
 
 export interface Rect {
@@ -791,27 +793,166 @@ export const OrgConfigSchema = z
       }
     })
 
-    if (cfg.floorTemplates.length > 0) {
-      const tplKeys = new Set(cfg.floorTemplates.map((t) => t.key))
-      cfg.departments.forEach((d, idx) => {
-        if (!tplKeys.has(d.floorTemplate)) {
+    const requiredTemplateKeys = [
+      'department',
+      'lobby_cafe',
+      'games_rest',
+      'management',
+      'boss',
+    ] as const
+    const tplKeys = new Set<string>()
+    cfg.floorTemplates.forEach((tpl, tIdx) => {
+      if (tplKeys.has(tpl.key)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['floorTemplates', tIdx, 'key'],
+          message: `Duplicate floorTemplate key "${tpl.key}"`,
+        })
+      }
+      tplKeys.add(tpl.key)
+
+      const slotIds = new Set<string>()
+      tpl.fixedSlots.forEach((slot, sIdx) => {
+        if (slotIds.has(slot.id)) {
           ctx.addIssue({
             code: 'custom',
-            path: ['departments', idx, 'floorTemplate'],
-            message: `Unknown floorTemplate "${d.floorTemplate}" on department "${d.key}"`,
+            path: ['floorTemplates', tIdx, 'fixedSlots', sIdx, 'id'],
+            message: `Duplicate slot id "${slot.id}" in template "${tpl.key}"`,
+          })
+        }
+        slotIds.add(slot.id)
+
+        if (slot.x < 0 || slot.x > tpl.size.w || slot.z < 0 || slot.z > tpl.size.d) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['floorTemplates', tIdx, 'fixedSlots', sIdx],
+            message: `Slot "${slot.id}" at (${slot.x}, ${slot.z}) is outside template "${tpl.key}" bounds [0..${tpl.size.w}]×[0..${tpl.size.d}]`,
+          })
+        }
+
+        for (let prevIdx = 0; prevIdx < sIdx; prevIdx += 1) {
+          const prev = tpl.fixedSlots[prevIdx]
+          if (!prev) continue
+          const dist = Math.hypot(slot.x - prev.x, slot.z - prev.z)
+          if (dist < 0.4) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['floorTemplates', tIdx, 'fixedSlots', sIdx],
+              message: `Slot "${slot.id}" in template "${tpl.key}" is within 0.4m (${dist.toFixed(2)}m) of slot "${prev.id}"`,
+            })
+          }
+        }
+      })
+
+      tpl.walls.forEach((wall, wIdx) => {
+        if (wall.door && wall.door.width < tpl.gridCell * 2) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['floorTemplates', tIdx, 'walls', wIdx, 'door', 'width'],
+            message: `Door width (${wall.door.width}m) in template "${tpl.key}" must be at least 2 grid cells (${tpl.gridCell * 2}m)`,
           })
         }
       })
-      cfg.building.stack.forEach((entry, idx) => {
-        if (entry.kind === 'fixed' && !tplKeys.has(entry.template)) {
+
+      const elevatorDoors = tpl.fixedSlots.filter((s) => s.type === 'elevator_door')
+      if (elevatorDoors.length < cfg.building.elevator.cars) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['floorTemplates', tIdx, 'fixedSlots'],
+          message: `Template "${tpl.key}" has ${elevatorDoors.length} elevator_door slots, but building requires at least ${cfg.building.elevator.cars}`,
+        })
+      }
+
+      const stairsEntries = tpl.fixedSlots.filter((s) => s.type === 'stairs_entry')
+      if (stairsEntries.length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['floorTemplates', tIdx, 'fixedSlots'],
+          message: `Template "${tpl.key}" must have at least 1 stairs_entry slot`,
+        })
+      }
+
+      if (tpl.key === 'lobby_cafe' && !tpl.fixedSlots.some((s) => s.type === 'entrance')) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['floorTemplates', tIdx, 'fixedSlots'],
+          message: `Template "lobby_cafe" must have at least 1 entrance slot`,
+        })
+      }
+
+      if (tpl.key === 'boss' && !tpl.fixedSlots.some((s) => s.type === 'boss_desk')) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['floorTemplates', tIdx, 'fixedSlots'],
+          message: `Template "boss" must have at least 1 boss_desk slot`,
+        })
+      }
+    })
+
+    for (const reqKey of requiredTemplateKeys) {
+      if (!tplKeys.has(reqKey)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['floorTemplates'],
+          message: `Missing required floorTemplate "${reqKey}"`,
+        })
+      }
+    }
+
+    if (cfg.floorTemplates.length > 1) {
+      const formatCoordList = (slots: Slot[]) =>
+        slots
+          .map((s) => `${s.x.toFixed(3)},${s.z.toFixed(3)}`)
+          .sort()
+          .join('|')
+
+      const baseTpl = cfg.floorTemplates[0]!
+      const baseElevators = formatCoordList(
+        baseTpl.fixedSlots.filter((s) => s.type === 'elevator_door'),
+      )
+      const baseStairs = formatCoordList(
+        baseTpl.fixedSlots.filter((s) => s.type === 'stairs_entry'),
+      )
+
+      cfg.floorTemplates.forEach((tpl, tIdx) => {
+        if (tIdx === 0) return
+        const elev = formatCoordList(tpl.fixedSlots.filter((s) => s.type === 'elevator_door'))
+        if (elev !== baseElevators) {
           ctx.addIssue({
             code: 'custom',
-            path: ['building', 'stack', idx, 'template'],
-            message: `Unknown floorTemplate "${entry.template}" in building stack`,
+            path: ['floorTemplates', tIdx, 'fixedSlots'],
+            message: `Template "${tpl.key}" elevator_door (x, z) coordinates (${elev}) do not match "${baseTpl.key}" (${baseElevators})`,
+          })
+        }
+        const stairs = formatCoordList(tpl.fixedSlots.filter((s) => s.type === 'stairs_entry'))
+        if (stairs !== baseStairs) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['floorTemplates', tIdx, 'fixedSlots'],
+            message: `Template "${tpl.key}" stairs_entry (x, z) coordinates (${stairs}) do not match "${baseTpl.key}" (${baseStairs})`,
           })
         }
       })
     }
+
+    cfg.departments.forEach((d, idx) => {
+      if (!tplKeys.has(d.floorTemplate)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['departments', idx, 'floorTemplate'],
+          message: `Unknown floorTemplate "${d.floorTemplate}" on department "${d.key}"`,
+        })
+      }
+    })
+    cfg.building.stack.forEach((entry, idx) => {
+      if (entry.kind === 'fixed' && !tplKeys.has(entry.template)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['building', 'stack', idx, 'template'],
+          message: `Unknown floorTemplate "${entry.template}" in building stack`,
+        })
+      }
+    })
 
     if (cfg.palette.length > 0) {
       const swatchKeys = new Set(cfg.palette.map((s) => s.key))

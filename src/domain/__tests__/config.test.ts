@@ -8,11 +8,11 @@ import policy from '@/content/policy.json'
 import roles from '@/content/roles.json'
 import specialties from '@/content/specialties.json'
 import taskTypes from '@/content/task-types.json'
-import { makeConfig } from '../__fixtures__/builders'
+import { DEFAULT_FLOOR_TEMPLATES, makeConfig } from '../__fixtures__/builders'
 import { parseOrgConfig } from '../config'
 
 describe('parseOrgConfig', () => {
-  it('parses the full bundled src/content/*.json seed (28 core staff, 4 departments)', () => {
+  it('parses the full bundled src/content/*.json seed (28 core staff, 4 departments, 5 floor templates)', () => {
     const seedCfg = parseOrgConfig({
       departments: orgSeed.departments,
       employees: orgSeed.employees,
@@ -24,7 +24,7 @@ describe('parseOrgConfig', () => {
       policy,
       taskTypes,
       building,
-      floorTemplates: [],
+      floorTemplates: DEFAULT_FLOOR_TEMPLATES,
       palette,
     })
     expect(seedCfg.departments).toHaveLength(4)
@@ -34,6 +34,7 @@ describe('parseOrgConfig', () => {
     expect(seedCfg.platforms).toHaveLength(9)
     expect(seedCfg.shops).toHaveLength(5)
     expect(seedCfg.approvalRules).toHaveLength(5)
+    expect(seedCfg.floorTemplates).toHaveLength(5)
 
     // 1 manager, 2 owners, and 1 dept_manager + 1 lead per department
     expect(seedCfg.employees.filter((e) => e.roleKey === 'manager')).toHaveLength(1)
@@ -183,15 +184,7 @@ describe('parseOrgConfig', () => {
     expect(() =>
       parseOrgConfig({
         ...base,
-        floorTemplates: [
-          {
-            key: 'lobby_cafe',
-            size: { w: 24, d: 14 },
-            gridCell: 0.5,
-            fixedSlots: [],
-            walls: [],
-          },
-        ],
+        floorTemplates: base.floorTemplates.filter((t) => t.key !== 'department'),
       }),
     ).toThrow(/Unknown floorTemplate "department"/)
 
@@ -201,5 +194,113 @@ describe('parseOrgConfig', () => {
         departments: [{ ...base.departments[0], colorSwatch: 'unknown_swatch' }],
       }),
     ).toThrow(/Unknown colorSwatch "unknown_swatch"/)
+  })
+
+  it('enforces floorTemplate bounds, 0.4m slot spacing, 2-cell doors, and R5 vertical core alignment', () => {
+    const base = makeConfig()
+
+    // R5: moving stairs_entry in one template fails validation
+    expect(() =>
+      parseOrgConfig({
+        ...base,
+        floorTemplates: base.floorTemplates.map((tpl) =>
+          tpl.key === 'boss'
+            ? {
+                ...tpl,
+                fixedSlots: tpl.fixedSlots.map((s) =>
+                  s.type === 'stairs_entry' ? { ...s, x: s.x + 0.5 } : s,
+                ),
+              }
+            : tpl,
+        ),
+      }),
+    ).toThrow(/stairs_entry \(x, z\) coordinates .* do not match/)
+
+    // R5: moving elevator_door in one template fails validation
+    expect(() =>
+      parseOrgConfig({
+        ...base,
+        floorTemplates: base.floorTemplates.map((tpl) =>
+          tpl.key === 'lobby_cafe'
+            ? {
+                ...tpl,
+                fixedSlots: tpl.fixedSlots.map((s) =>
+                  s.id === 'elevator_door_1' ? { ...s, z: s.z + 0.5 } : s,
+                ),
+              }
+            : tpl,
+        ),
+      }),
+    ).toThrow(/elevator_door \(x, z\) coordinates .* do not match/)
+
+    // Out-of-bounds slot
+    expect(() =>
+      parseOrgConfig({
+        ...base,
+        floorTemplates: base.floorTemplates.map((tpl) =>
+          tpl.key === 'department'
+            ? {
+                ...tpl,
+                fixedSlots: [
+                  ...tpl.fixedSlots,
+                  {
+                    id: 'out_of_bounds',
+                    type: 'decor',
+                    x: 25,
+                    z: 5,
+                    rotY: 0,
+                    footprint: [[50, 10]],
+                    approach: [49, 10],
+                  },
+                ],
+              }
+            : tpl,
+        ),
+      }),
+    ).toThrow(/outside template "department" bounds/)
+
+    // Two slots within < 0.4m
+    expect(() =>
+      parseOrgConfig({
+        ...base,
+        floorTemplates: base.floorTemplates.map((tpl) =>
+          tpl.key === 'department'
+            ? {
+                ...tpl,
+                fixedSlots: [
+                  ...tpl.fixedSlots,
+                  {
+                    id: 'too_close',
+                    type: 'decor',
+                    x: tpl.fixedSlots[0]!.x + 0.2,
+                    z: tpl.fixedSlots[0]!.z,
+                    rotY: 0,
+                    footprint: [[41, 18]],
+                    approach: [40, 18],
+                  },
+                ],
+              }
+            : tpl,
+        ),
+      }),
+    ).toThrow(/is within 0.4m/)
+
+    // Door narrower than 2 grid cells (1.0m)
+    expect(() =>
+      parseOrgConfig({
+        ...base,
+        floorTemplates: base.floorTemplates.map((tpl) =>
+          tpl.key === 'department'
+            ? {
+                ...tpl,
+                walls: [
+                  ...tpl.walls,
+                  { x1: 2, z1: 0, x2: 2, z2: 4, door: { offset: 1, width: 0.5 } },
+                ],
+              }
+            : tpl,
+        ),
+      }),
+    ).toThrow(/must be at least 2 grid cells/)
   })
 })
