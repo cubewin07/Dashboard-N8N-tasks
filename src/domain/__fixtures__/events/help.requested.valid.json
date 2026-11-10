@@ -1,0 +1,25 @@
+{
+  "v": 1,
+  "id": "evt_01JTEST000000000000000001",
+  "seq": 1,
+  "at": "2026-11-10T08:00:00Z",
+  "type": "help.requested",
+  "actor": {
+    "kind": "system",
+    "id": null
+  },
+  "causedBy": null,
+  "payload": {
+    "help": {
+      "id": "help_01JTEST000000000000000001",
+      "taskId": "task_01JTEST000000000000000001",
+      "fromId": "emp_duy",
+      "specialty": "image",
+      "toId": "emp_long",
+      "round": 1,
+      "status": "open",
+      "createdAt": "2026-11-10T08:00:00Z",
+      "timeoutAt": "2026-11-10T08:30:00Z"
+    }
+  }
+}

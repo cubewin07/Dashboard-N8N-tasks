@@ -1,0 +1,16 @@
+{
+  "v": 1,
+  "id": "cmd_01JTEST000000000000000001",
+  "type": "review.decide",
+  "issuedBy": {
+    "userId": "usr_boss_1",
+    "role": "boss"
+  },
+  "issuedAt": "2026-11-10T08:00:00Z",
+  "payload": {
+    "reviewId": "rev_01JTEST000000000000000001",
+    "decision": "approved",
+    "note": "OK",
+    "unexpectedExtraField": "not_allowed_in_strict_command"
+  }
+}
