@@ -73,7 +73,7 @@ Bundle and assets:
 | P02 building | 0 | | | | | | | |
 | P04 people (capsules) | 80 | | | | | | | |
 | P05 office life | 80 | | | | | | | |
-| P06b env art | 80 | | | | | | | |
+| P06b env art | 0 (built on P02; no people yet) | 85 / 62 (headless SwiftShader, after bake; ~240 while files stream in) | 335 460 | not measured on the reference machine | | | | 1.4 |
 | P07b characters | 80 | | | | | | | |
 | P08b wardrobe | 80 (+ preview) | | | | | | | |
 | P11 polish (final) | 80 | | | | | | | |
