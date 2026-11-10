@@ -2,6 +2,7 @@
   "version": 1,
   "files": {
     "plant_monstera_01": {"file":"models/decor/plant_monstera_01.glb","tris":196,"bytes":8620,"bbox":{"min":[-0.561,0,-0.618],"max":[0.582,1.246,0.502]},"footprint":[1.5,1.5],"anchors":[],"nodes":[]},
+    "plant_snake_01": {"file":"models/decor/plant_snake_01.glb","tris":124,"bytes":6996,"bbox":{"min":[-0.17,0,-0.17],"max":[0.17,1.14,0.17]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "sculpture_01": {"file":"models/decor/sculpture_01.glb","tris":180,"bytes":7480,"bbox":{"min":[-0.439,0,-0.28],"max":[0.28,1.836,0.63]},"footprint":[1,1],"anchors":[],"nodes":[]},
     "terrace_planter_01": {"file":"models/decor/terrace_planter_01.glb","tris":260,"bytes":11404,"bbox":{"min":[-0.84,0,-0.28],"max":[0.84,1.05,0.28]},"footprint":[2,1],"anchors":[],"nodes":[]},
     "ceiling_edge_01": {"file":"models/env/ceiling_edge_01.glb","tris":56,"bytes":6884,"bbox":{"min":[-2,-0.34,-0.1],"max":[2,0.02,0.02]},"footprint":[4,0.5],"anchors":[],"nodes":["accent"]},
