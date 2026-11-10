@@ -135,6 +135,7 @@ Department swatch triplet (`dept_<key>` light/base/dark) from the palette row 3.
 - [ ] **P06b-T15** E2E and screenshots. *Files:* `e2e/office-art.spec.ts`, `e2e/__screenshots__/*`. *Steps:* replay fixture → 4 screenshots; request-interception test that the fallback route loads no `.glb`. *Acceptance:* R14.
 
 ## 6. Dependencies
+- **Status:** the renderer, furniture map, shell, street and credits page already ship in this layer (`stack/p06b-env-art`, on top of `stack/p06a-env-assets`). Only the items under "Not done in this layer yet" remain for this phase.
 - **Needs:** P06a (models, `manifest.json`, palette, credits, tooling), P05 (visual components and their props), P04 (nav grid obstacle input, blob shadows), P02 (layout, templates, blockout boxes reused as fallback, camera modes).
 - **Later phases rely on:** P07b reuses `assets/gltf.ts`, singleton materials, the AO/TINT shader patch, the load queue and the held-prop anchors; P08b uses the lighting rig for the wardrobe preview; P10 relies on R11 (new department → new floor with art); P11 tunes quality settings and may pack families.
 
