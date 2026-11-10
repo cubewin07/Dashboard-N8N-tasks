@@ -212,3 +212,37 @@ export function slotsWithModels(
   }
   return keys
 }
+
+/** Street props around the building. Always visible (they belong to no floor). */
+export function buildExteriorPlacements(
+  layout: Pick<BuildingLayout, 'totalHeight'>,
+  map: FurnitureMap,
+  manifest: AssetManifest,
+): Placement[] {
+  const exterior = map.exterior
+  if (!exterior) return []
+  const base = { floorKey: 'exterior', floorIndex: 0, slotId: null, primary: false }
+  const one: [number, number, number] = [1, 1, 1]
+  const out: Placement[] = []
+  for (const prop of exterior.props) {
+    if (!manifest.files[prop.model]) continue
+    out.push({
+      ...base,
+      model: prop.model,
+      position: [prop.x, prop.y ?? 0, prop.z],
+      rotY: slotRotationToWorld(prop.rotY ?? 0),
+      scale: one,
+    })
+  }
+  const sign = exterior.sign
+  if (sign && manifest.files[sign.model]) {
+    out.push({
+      ...base,
+      model: sign.model,
+      position: [sign.x, layout.totalHeight + sign.aboveRoof, sign.z],
+      rotY: Math.PI,
+      scale: one,
+    })
+  }
+  return out
+}
