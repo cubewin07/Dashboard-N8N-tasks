@@ -86,9 +86,11 @@ function InstancedBatchMesh({ batch }: InstancedBatchProps) {
 export interface BlockoutProps {
   floors: readonly FloorLayout[]
   activeFloorIndex: number | null
+  /** `floorKey/slotId` of slots already drawn as models; their boxes are skipped. */
+  skipSlots?: ReadonlySet<string>
 }
 
-export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
+export function Blockout({ floors, activeFloorIndex, skipSlots }: BlockoutProps) {
   const batches = useMemo(() => {
     const countsByKind = new Map<BlockoutMeshKind, number>()
     for (const floor of floors) {
@@ -137,6 +139,7 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
       for (const slot of floor.slots) {
         const spec = blockoutFor(slot)
         if (!spec.render) continue
+        if (skipSlots?.has(`${floor.key}/${slot.id}`)) continue
 
         const cos = Math.cos(slot.rotY)
         const sin = Math.sin(slot.rotY)
@@ -162,7 +165,7 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
     }
 
     return Array.from(map.values())
-  }, [floors, activeFloorIndex])
+  }, [floors, activeFloorIndex, skipSlots])
 
   return (
     <group name="building-blockout">

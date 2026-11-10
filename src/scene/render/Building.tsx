@@ -1,20 +1,28 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { floorSummary } from '@/domain/selectors'
 import { useI18n } from '@/i18n'
 import { useOfficeSelector } from '@/office/hooks'
 import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
+import { FURNITURE_MAP, listMapModels } from './assets/furnitureMap'
+import { isModelReady, requestModels } from './assets/modelStore'
+import { buildFurniturePlacements, slotsWithModels } from './assets/placements'
+import { buildShellPlacements } from './assets/shell'
+import { useAssetManifest, useModelsVersion } from './assets/useModels'
 import { Blockout } from './Blockout'
 import { ElevatorShaft } from './ElevatorShaft'
 import { Floor } from './Floor'
 import { buildFloorChips, type FloorLabelChip } from './FloorLabel'
 import { decodeFloorSummaries, encodeFloorSummaries } from './floorSummaryKey'
+import { InstancedModels } from './InstancedModels'
 import { Stairwell } from './Stairwell'
 
 export interface BuildingProps {
   layout: BuildingLayout
   reducedMotion?: boolean
 }
+
+const EMPTY: readonly never[] = []
 
 export function Building({ layout, reducedMotion = false }: BuildingProps) {
   const mode = useViewStore((s) => s.mode)
@@ -26,6 +34,8 @@ export function Building({ layout, reducedMotion = false }: BuildingProps) {
     s ? encodeFloorSummaries(layout.floors.map((f) => floorSummary(s, f.key))) : '',
   )
   const { t } = useI18n()
+  const manifest = useAssetManifest()
+  const modelsVersion = useModelsVersion()
 
   const [initialFloorKeys] = useState(
     () => new Set(layout.floors.map((f) => f.key)),
@@ -51,6 +61,32 @@ export function Building({ layout, reducedMotion = false }: BuildingProps) {
     return map
   }, [floorSummaryKey, t.office.chipWorking, t.office.chipWaiting, t.office.chipReviewPile])
 
+  const shell = useMemo(
+    () => (manifest ? buildShellPlacements(layout, FURNITURE_MAP.kit, manifest) : EMPTY),
+    [layout, manifest],
+  )
+  const furniture = useMemo(
+    () => (manifest ? buildFurniturePlacements(layout, FURNITURE_MAP, manifest) : EMPTY),
+    [layout, manifest],
+  )
+
+  // Shell first, then furniture (P06b §3.4): the building appears before it fills.
+  useEffect(() => {
+    if (!manifest) return
+    const shellModels = [...new Set(shell.map((p) => p.model))]
+    requestModels([...shellModels, ...listMapModels(FURNITURE_MAP)])
+  }, [manifest, shell])
+
+  const shellReady = useMemo(() => {
+    void modelsVersion
+    return shell.length > 0 && shell.every((p) => isModelReady(p.model))
+  }, [shell, modelsVersion])
+
+  const modelSlots = useMemo(() => {
+    void modelsVersion
+    return slotsWithModels(furniture, isModelReady)
+  }, [furniture, modelsVersion])
+
   return (
     <group name="building-root">
       {layout.floors.map((floor) => {
@@ -63,12 +99,32 @@ export function Building({ layout, reducedMotion = false }: BuildingProps) {
             animateMount={isNewlyAdded}
             reducedMotion={reducedMotion}
             chips={floorChipsMap.get(floor.key)}
+            blockoutWalls={!shellReady}
           />
         )
       })}
-      <Blockout floors={layout.floors} activeFloorIndex={activeFloorIndex} />
-      <ElevatorShaft layout={layout} />
-      <Stairwell layout={layout} />
+      <Blockout
+        floors={layout.floors}
+        activeFloorIndex={activeFloorIndex}
+        skipSlots={modelSlots}
+      />
+      <InstancedModels
+        name="building-furniture"
+        placements={furniture}
+        activeFloorIndex={activeFloorIndex}
+      />
+      {shellReady ? (
+        <InstancedModels
+          name="building-shell"
+          placements={shell}
+          activeFloorIndex={activeFloorIndex}
+        />
+      ) : (
+        <>
+          <ElevatorShaft layout={layout} />
+          <Stairwell layout={layout} />
+        </>
+      )}
     </group>
   )
 }
