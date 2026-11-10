@@ -2,7 +2,7 @@
 // MVP: listens to the in-memory store. Later: one supabase.channel(...) with postgres_changes.
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { getConnection, startSimulator, subscribe, subscribeConnection, type ConnectionState } from '@/lib/mock/store'
+import { getConnection, subscribe, subscribeConnection, type ConnectionState } from '@/lib/mock/store'
 
 const ConnectionContext = createContext<ConnectionState>('live')
 
@@ -11,7 +11,6 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [conn, setConn] = useState<ConnectionState>(getConnection)
 
   useEffect(() => {
-    startSimulator()
     const off = subscribe((table) => {
       qc.invalidateQueries({ queryKey: [table] })
     })
