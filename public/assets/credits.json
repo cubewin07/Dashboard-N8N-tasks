@@ -23,6 +23,7 @@
     {"path":"assets/models/props/printer_01.glb","title":"printer_01","author":"AI Office project","source":"art/blender/gen_tech.py","license":"own-CC0","modified":false,"sha256":"1d551a3316a0a4f22591a107c33dabdc269db5191e474406583b6aa025fba042"},
     {"path":"assets/models/props/sofa_2seat_01.glb","title":"sofa_2seat_01","author":"AI Office project","source":"art/blender/gen_seating.py","license":"own-CC0","modified":false,"sha256":"f001d351356801596b0fdbad82e9b3a5ec303d6b120a11ad567a9b8eb51e6fc2"},
     {"path":"assets/models/props/sofa_3seat_01.glb","title":"sofa_3seat_01","author":"AI Office project","source":"art/blender/gen_seating.py","license":"own-CC0","modified":false,"sha256":"cfb6c7d8534f5b9094432234badf6127b2cba838648a6f81bfa98b4a37bdd60c"},
-    {"path":"assets/models/props/stool_cafe_01.glb","title":"stool_cafe_01","author":"AI Office project","source":"art/blender/gen_seating.py","license":"own-CC0","modified":false,"sha256":"9a1ea26aeb274396646a985d02e408b46b14390bf220b50d21112ae40b52ff83"}
+    {"path":"assets/models/props/stool_cafe_01.glb","title":"stool_cafe_01","author":"AI Office project","source":"art/blender/gen_seating.py","license":"own-CC0","modified":false,"sha256":"9a1ea26aeb274396646a985d02e408b46b14390bf220b50d21112ae40b52ff83"},
+    {"path":"assets/models/props/tv_wall_01.glb","title":"tv_wall_01","author":"AI Office project","source":"art/blender/gen_tech.py","license":"own-CC0","modified":false,"sha256":"57f5df346ee32094a15f677b19c3f09664eca8ccd44b481fc3d36b4a341bd5b9"}
   ]
 }
