@@ -34,6 +34,7 @@
     "stairs_flight_01": {"file":"models/env/stairs_flight_01.glb","tris":360,"bytes":9276,"bbox":{"min":[-0.6,0,-1.52],"max":[0.6,3.125,1.517]},"footprint":[1.5,3.5],"anchors":[],"nodes":[]},
     "stairs_landing_01": {"file":"models/env/stairs_landing_01.glb","tris":116,"bytes":6264,"bbox":{"min":[-1.2,-0.24,-0.6],"max":[1.2,1.12,0.6]},"footprint":[2.5,1.5],"anchors":[],"nodes":[]},
     "terrace_rail_01": {"file":"models/env/terrace_rail_01.glb","tris":104,"bytes":7728,"bbox":{"min":[-2,0,-0.05],"max":[2,1.13,0.05]},"footprint":[4,0.5],"anchors":[],"nodes":["glass"]},
+    "tree_street_01": {"file":"models/env/tree_street_01.glb","tris":248,"bytes":10504,"bbox":{"min":[-1.421,-0.003,-1],"max":[1.566,5.3,1.2]},"footprint":[3,2.5],"anchors":[],"nodes":[]},
     "wall_glass_01": {"file":"models/env/wall_glass_01.glb","tris":120,"bytes":7820,"bbox":{"min":[-2,0,-0.05],"max":[2,3.7,0.05]},"footprint":[4,0.5],"anchors":[],"nodes":["glass"]},
     "wall_solid_01": {"file":"models/env/wall_solid_01.glb","tris":84,"bytes":5744,"bbox":{"min":[-2,0,-0.09],"max":[2,3.7,0.09]},"footprint":[4,0.5],"anchors":[],"nodes":[]},
     "wall_window_01": {"file":"models/env/wall_window_01.glb","tris":164,"bytes":8276,"bbox":{"min":[-2,0,-0.125],"max":[2,3.7,0.125]},"footprint":[4,0.5],"anchors":[],"nodes":["glass"]},
