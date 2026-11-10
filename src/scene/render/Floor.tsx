@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { WallSegment } from '@/domain/config'
@@ -19,6 +19,7 @@ const WALL_HEIGHT = 2.8
 const WALL_THICKNESS = 0.16
 const DOOR_HEIGHT = 2.15
 const SLAB_THICKNESS = 0.3
+const tempWallObj = new THREE.Object3D()
 
 function buildWallPieces(
   walls: readonly WallSegment[],
@@ -93,6 +94,7 @@ export function Floor({
 }: FloorProps) {
   const groupRef = useRef<THREE.Group>(null)
   const fadeContentRef = useRef<THREE.Group>(null)
+  const wallInstancedRef = useRef<THREE.InstancedMesh>(null)
   const pointerDownPosRef = useRef<{ x: number; y: number } | null>(null)
   const opacityRef = useRef(1)
   const scaleProgressRef = useRef(animateMount && !reducedMotion ? 0.01 : 1)
@@ -114,6 +116,20 @@ export function Floor({
   const swatchColor = getSwatchColor(floor.colorSwatch)
   const swatchSoftColor = getSwatchSoftColor(floor.colorSwatch)
   const isBoss = floor.kind === 'boss'
+
+  useLayoutEffect(() => {
+    const mesh = wallInstancedRef.current
+    if (!mesh) return
+    wallPieces.forEach((piece, idx) => {
+      tempWallObj.position.set(piece.pos[0], piece.pos[1], piece.pos[2])
+      tempWallObj.rotation.set(0, 0, 0)
+      tempWallObj.scale.set(piece.size[0], piece.size[1], piece.size[2])
+      tempWallObj.updateMatrix()
+      mesh.setMatrixAt(idx, tempWallObj.matrix)
+    })
+    mesh.instanceMatrix.needsUpdate = true
+    mesh.computeBoundingSphere()
+  }, [wallPieces])
 
   useEffect(() => {
     if (fadeContentRef.current) {
@@ -199,27 +215,15 @@ export function Floor({
               <meshStandardMaterial color={SCENE_PALETTE.slabBossTerrace} roughness={0.85} />
             </mesh>
             {/* Terrace low parapet walls */}
-            <mesh
-              position={[toWorldX(3, w), 0.45, toWorldZ(0.08, d)]}
-              castShadow
-              receiveShadow
-            >
+            <mesh position={[toWorldX(3, w), 0.45, toWorldZ(0.08, d)]} receiveShadow>
               <boxGeometry args={[6, 0.9, 0.16]} />
               <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
             </mesh>
-            <mesh
-              position={[toWorldX(0.08, w), 0.45, toWorldZ(d / 2, d)]}
-              castShadow
-              receiveShadow
-            >
+            <mesh position={[toWorldX(0.08, w), 0.45, toWorldZ(d / 2, d)]} receiveShadow>
               <boxGeometry args={[0.16, 0.9, d]} />
               <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
             </mesh>
-            <mesh
-              position={[toWorldX(3, w), 0.45, toWorldZ(d - 0.08, d)]}
-              castShadow
-              receiveShadow
-            >
+            <mesh position={[toWorldX(3, w), 0.45, toWorldZ(d - 0.08, d)]} receiveShadow>
               <boxGeometry args={[6, 0.9, 0.16]} />
               <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
             </mesh>
@@ -273,22 +277,30 @@ export function Floor({
           />
         </mesh>
 
-        {/* Interior and perimeter wall segments */}
-        {wallPieces.map((piece) => (
-          <mesh key={piece.key} position={piece.pos} castShadow receiveShadow>
-            <boxGeometry args={piece.size} />
+        {/* Instanced interior and perimeter wall segments for this floor */}
+        {wallPieces.length > 0 ? (
+          <instancedMesh
+            key={`walls_${wallPieces.length}`}
+            ref={wallInstancedRef}
+            args={[undefined, undefined, wallPieces.length]}
+            castShadow
+            receiveShadow
+          >
+            <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color={SCENE_PALETTE.wallInterior} roughness={0.8} />
-          </mesh>
-        ))}
+          </instancedMesh>
+        ) : null}
       </group>
 
-      {/* Hover / Focus perimeter highlight */}
+      {/* Hover / Focus front edge highlight bar */}
       {isHovered || isFocused ? (
-        <mesh position={[0, -SLAB_THICKNESS / 2, 0]} userData={{ ignoreFade: true }}>
-          <boxGeometry args={[w + 0.22, SLAB_THICKNESS + 0.08, d + 0.22]} />
+        <mesh
+          position={[0, -0.06, toWorldZ(-0.06, d)]}
+          userData={{ ignoreFade: true }}
+        >
+          <boxGeometry args={[w + 0.12, 0.24, 0.24]} />
           <meshBasicMaterial
             color={isFocused ? SCENE_PALETTE.focusHighlight : SCENE_PALETTE.hoverHighlight}
-            wireframe
           />
         </mesh>
       ) : null}
@@ -306,7 +318,12 @@ export function Floor({
         userData={{ ignoreFade: true }}
       >
         <boxGeometry args={[w, WALL_HEIGHT, d]} />
-        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        <meshBasicMaterial
+          transparent
+          opacity={0}
+          depthWrite={false}
+          colorWrite={false}
+        />
       </mesh>
     </group>
   )

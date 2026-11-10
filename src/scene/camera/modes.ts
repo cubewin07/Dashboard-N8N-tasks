@@ -40,12 +40,12 @@ export function computeCameraPose(
     }
   }
 
-  const fitDist = Math.max(46, totalH * 1.48)
+  const fitDist = Math.max(60, totalH * 1.9)
   const centerY = totalH * 0.48
   const overviewPos: [number, number, number] = [
-    fitDist * 0.22,
-    centerY + fitDist * 0.14,
-    fitDist * 0.96,
+    fitDist * 0.18,
+    centerY + fitDist * 0.12,
+    fitDist * 0.97,
   ]
   const overviewTarget: [number, number, number] = [0, centerY, 0]
 
@@ -58,7 +58,7 @@ export function computeCameraPose(
       minPolarAngle: 5 * DEG2RAD,
       maxPolarAngle: 88 * DEG2RAD,
       minDistance: 2,
-      maxDistance: Math.max(140, fitDist * 3),
+      maxDistance: Math.max(150, fitDist * 3),
     }
   }
 
