@@ -4,6 +4,7 @@
     "aquarium_01": {"file":"models/decor/aquarium_01.glb","tris":360,"bytes":16800,"bbox":{"min":[-0.5,0,-0.224],"max":[0.5,1.32,0.2]},"footprint":[1,0.5],"anchors":[],"nodes":["fish","glass","lamp"]},
     "clock_wall_01": {"file":"models/decor/clock_wall_01.glb","tris":276,"bytes":11072,"bbox":{"min":[-0.174,-0.174,-0.06],"max":[0.174,0.174,0]},"footprint":[0.5,0.5],"anchors":[],"nodes":["hand_hour","hand_minute"]},
     "fan_ceiling_01": {"file":"models/decor/fan_ceiling_01.glb","tris":312,"bytes":10580,"bbox":{"min":[-0.649,-0.47,-0.649],"max":[0.649,0,0.649]},"footprint":[1.5,1.5],"anchors":[],"nodes":["blades"]},
+    "light_ceiling_01": {"file":"models/decor/light_ceiling_01.glb","tris":104,"bytes":7932,"bbox":{"min":[-0.6,-0.458,-0.15],"max":[0.6,0,0.15]},"footprint":[1.5,0.5],"anchors":[],"nodes":["lamp"]},
     "plant_bamboo_01": {"file":"models/decor/plant_bamboo_01.glb","tris":572,"bytes":13976,"bbox":{"min":[-0.473,0,-0.244],"max":[0.571,1.9,0.24]},"footprint":[1.5,0.5],"anchors":[],"nodes":[]},
     "plant_desk_01": {"file":"models/decor/plant_desk_01.glb","tris":68,"bytes":6116,"bbox":{"min":[-0.057,0,-0.066],"max":[0.07,0.16,0.067]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "plant_ficus_01": {"file":"models/decor/plant_ficus_01.glb","tris":332,"bytes":11396,"bbox":{"min":[-0.379,0,-0.3],"max":[0.399,1.82,0.3]},"footprint":[1,1],"anchors":[],"nodes":[]},
