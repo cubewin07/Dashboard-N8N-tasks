@@ -19,9 +19,9 @@ export interface FloorLabelProps {
 const FONT_URL = `${import.meta.env.BASE_URL}assets/fonts/BeVietnamPro-SemiBold.ttf`
 
 export function FloorLabel({ floor, opacity = 1, chips }: FloorLabelProps) {
-  const { locale } = useI18n()
+  const { lang } = useI18n()
   const floorTitle =
-    locale === 'vi'
+    lang === 'vi'
       ? `Tầng ${floor.index + 1} · ${floor.label.vi}`
       : `F${floor.index + 1} · ${floor.label.en}`
 
