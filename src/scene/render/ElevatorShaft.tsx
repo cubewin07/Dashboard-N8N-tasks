@@ -1,4 +1,5 @@
 import type { BuildingLayout } from '@/scene/layout'
+import { toWorldX, toWorldZ } from './coords'
 import { SCENE_PALETTE } from './palette'
 
 export interface ElevatorShaftProps {
@@ -11,14 +12,15 @@ export function ElevatorShaft({ layout }: ElevatorShaftProps) {
     return null
   }
 
+  const { w, d } = firstFloor.size
   const doors = firstFloor.elevatorDoorSlots
   const avgX = doors.reduce((sum, s) => sum + s.x, 0) / doors.length
   const minZ = Math.min(...doors.map((s) => s.z))
   const maxZ = Math.max(...doors.map((s) => s.z))
-  const centerZ = (minZ + maxZ) / 2
+  const centerZ = toWorldZ((minZ + maxZ) / 2, d)
   const shaftDepth = Math.max(2.4, maxZ - minZ + 1.8)
   const shaftWidth = 1.9
-  const shaftCenterX = avgX + 0.95
+  const shaftCenterX = toWorldX(avgX + 0.95, w)
   const totalH = layout.totalHeight
 
   return (
@@ -52,7 +54,7 @@ export function ElevatorShaft({ layout }: ElevatorShaftProps) {
       {doors.slice(0, layout.elevatorCarCount).map((door, idx) => (
         <mesh
           key={`car_${door.id}_${idx}`}
-          position={[shaftCenterX, 1.15, door.z]}
+          position={[shaftCenterX, 1.15, toWorldZ(door.z, d)]}
           castShadow
           receiveShadow
         >

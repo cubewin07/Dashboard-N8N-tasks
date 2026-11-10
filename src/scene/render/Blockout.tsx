@@ -1,10 +1,8 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { FloorLayout } from '@/scene/layout'
-import {
-  SLOT_BLOCKOUT,
-  type BlockoutMeshKind,
-} from './blockoutSpec'
+import { SLOT_BLOCKOUT, type BlockoutMeshKind } from './blockoutSpec'
+import { toWorldX, toWorldZ } from './coords'
 
 interface InstanceTransform {
   position: [number, number, number]
@@ -74,6 +72,7 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
 
     for (const floor of floors) {
       const faded = activeFloorIndex !== null && floor.index > activeFloorIndex
+      const { w, d } = floor.size
 
       for (const slot of floor.slots) {
         const spec = SLOT_BLOCKOUT[slot.type]
@@ -84,9 +83,11 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
 
         for (const part of spec.parts) {
           const [lx, ly, lz] = part.localOffset
-          const wx = slot.x + lx * cos + lz * sin
+          const localX = slot.x + lx * cos + lz * sin
+          const localZ = slot.z - lx * sin + lz * cos
+          const wx = toWorldX(localX, w)
           const wy = floor.y + ly
-          const wz = slot.z - lx * sin + lz * cos
+          const wz = toWorldZ(localZ, d)
 
           const batchKey = `${part.kind}::${faded ? 'faded' : 'opaque'}`
           let batch = map.get(batchKey)
@@ -103,7 +104,7 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
           }
           batch.instances.push({
             position: [wx, wy, wz],
-            rotY: slot.rotY,
+            rotY: -slot.rotY,
           })
         }
       }

@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import type { WallSegment } from '@/domain/config'
 import { getFloorFadeTarget, useViewStore } from '@/scene/camera/viewStore'
 import type { FloorLayout } from '@/scene/layout'
+import { toWorldX, toWorldZ } from './coords'
 import { applyGroupFade, stepFadeOpacity } from './FloorFade'
 import { FloorLabel, type FloorLabelChip } from './FloorLabel'
 import { getSwatchColor, getSwatchSoftColor, SCENE_PALETTE } from './palette'
@@ -19,7 +20,11 @@ const WALL_THICKNESS = 0.16
 const DOOR_HEIGHT = 2.15
 const SLAB_THICKNESS = 0.3
 
-function buildWallPieces(walls: readonly WallSegment[]): WallBoxPiece[] {
+function buildWallPieces(
+  walls: readonly WallSegment[],
+  w: number,
+  d: number,
+): WallBoxPiece[] {
   const pieces: WallBoxPiece[] = []
 
   walls.forEach((wall, idx) => {
@@ -32,11 +37,17 @@ function buildWallPieces(walls: readonly WallSegment[]): WallBoxPiece[] {
     const ux = dx / length
     const uz = dz / length
 
-    const pushSegment = (startOffset: number, segLen: number, yBottom: number, h: number, suffix: string) => {
+    const pushSegment = (
+      startOffset: number,
+      segLen: number,
+      yBottom: number,
+      h: number,
+      suffix: string,
+    ) => {
       if (segLen <= 0.02 || h <= 0.02) return
       const midDist = startOffset + segLen / 2
-      const cx = wall.x1 + ux * midDist
-      const cz = wall.z1 + uz * midDist
+      const cx = toWorldX(wall.x1 + ux * midDist, w)
+      const cz = toWorldZ(wall.z1 + uz * midDist, d)
       const cy = yBottom + h / 2
       const size: [number, number, number] = isHorizontal
         ? [segLen, h, WALL_THICKNESS]
@@ -95,7 +106,11 @@ export function Floor({
   const isHovered = hoveredFloorKey === floor.key
   const isFocused = focusedFloorKey === floor.key
 
-  const wallPieces = useMemo(() => buildWallPieces(floor.walls), [floor.walls])
+  const { w, d } = floor.size
+  const wallPieces = useMemo(
+    () => buildWallPieces(floor.walls, w, d),
+    [floor.walls, w, d],
+  )
   const swatchColor = getSwatchColor(floor.colorSwatch)
   const swatchSoftColor = getSwatchSoftColor(floor.colorSwatch)
   const isBoss = floor.kind === 'boss'
@@ -165,8 +180,6 @@ export function Floor({
     }
   }
 
-  const { w, d } = floor.size
-
   return (
     <group
       ref={groupRef}
@@ -176,38 +189,62 @@ export function Floor({
       <group ref={fadeContentRef}>
         {isBoss ? (
           <>
-            {/* West 6m open roof terrace slab */}
-            <mesh position={[3, -SLAB_THICKNESS / 2, d / 2]} castShadow receiveShadow>
+            {/* West 6m open roof terrace slab (local x: 0..6 -> center x=3) */}
+            <mesh
+              position={[toWorldX(3, w), -SLAB_THICKNESS / 2, toWorldZ(d / 2, d)]}
+              castShadow
+              receiveShadow
+            >
               <boxGeometry args={[6, SLAB_THICKNESS, d]} />
               <meshStandardMaterial color={SCENE_PALETTE.slabBossTerrace} roughness={0.85} />
             </mesh>
             {/* Terrace low parapet walls */}
-            <mesh position={[3, 0.45, 0.08]} castShadow receiveShadow>
+            <mesh
+              position={[toWorldX(3, w), 0.45, toWorldZ(0.08, d)]}
+              castShadow
+              receiveShadow
+            >
               <boxGeometry args={[6, 0.9, 0.16]} />
               <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
             </mesh>
-            <mesh position={[0.08, 0.45, d / 2]} castShadow receiveShadow>
+            <mesh
+              position={[toWorldX(0.08, w), 0.45, toWorldZ(d / 2, d)]}
+              castShadow
+              receiveShadow
+            >
               <boxGeometry args={[0.16, 0.9, d]} />
               <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
             </mesh>
-            <mesh position={[3, 0.45, d - 0.08]} castShadow receiveShadow>
+            <mesh
+              position={[toWorldX(3, w), 0.45, toWorldZ(d - 0.08, d)]}
+              castShadow
+              receiveShadow
+            >
               <boxGeometry args={[6, 0.9, 0.16]} />
               <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
             </mesh>
 
-            {/* East 18m indoor executive wood slab */}
-            <mesh position={[15, -SLAB_THICKNESS / 2, d / 2]} castShadow receiveShadow>
+            {/* East 18m indoor executive wood slab (local x: 6..24 -> center x=15) */}
+            <mesh
+              position={[toWorldX(15, w), -SLAB_THICKNESS / 2, toWorldZ(d / 2, d)]}
+              castShadow
+              receiveShadow
+            >
               <boxGeometry args={[18, SLAB_THICKNESS, d]} />
               <meshStandardMaterial color={SCENE_PALETTE.slabBossWood} roughness={0.7} />
             </mesh>
 
             {/* Executive suite roof cap */}
-            <mesh position={[15, WALL_HEIGHT + 0.12, d / 2]} castShadow receiveShadow>
+            <mesh
+              position={[toWorldX(15, w), WALL_HEIGHT + 0.12, toWorldZ(d / 2, d)]}
+              castShadow
+              receiveShadow
+            >
               <boxGeometry args={[18.3, 0.24, d + 0.3]} />
               <meshStandardMaterial color={SCENE_PALETTE.bossRoofCap} roughness={0.75} />
             </mesh>
-            {/* Gold crown trim on roof cap */}
-            <mesh position={[15, WALL_HEIGHT + 0.12, -0.05]}>
+            {/* Gold crown trim on roof cap front edge */}
+            <mesh position={[toWorldX(15, w), WALL_HEIGHT + 0.12, toWorldZ(-0.05, d)]}>
               <boxGeometry args={[18.35, 0.12, 0.22]} />
               <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.5} />
             </mesh>
@@ -215,20 +252,20 @@ export function Floor({
         ) : (
           <>
             {/* Standard floor slab */}
-            <mesh position={[w / 2, -SLAB_THICKNESS / 2, d / 2]} castShadow receiveShadow>
+            <mesh position={[0, -SLAB_THICKNESS / 2, 0]} castShadow receiveShadow>
               <boxGeometry args={[w, SLAB_THICKNESS, d]} />
               <meshStandardMaterial color={SCENE_PALETTE.slabStandard} roughness={0.85} />
             </mesh>
             {/* Soft department floor rug/inlay */}
-            <mesh position={[w / 2, 0.005, d / 2]} receiveShadow>
+            <mesh position={[0, 0.005, 0]} receiveShadow>
               <boxGeometry args={[w - 0.6, 0.01, d - 0.6]} />
               <meshStandardMaterial color={swatchSoftColor} roughness={0.9} />
             </mesh>
           </>
         )}
 
-        {/* Front facade colour accent strip */}
-        <mesh position={[w / 2, -0.06, 0.02]}>
+        {/* Front facade colour accent strip along open front edge (local z = 0) */}
+        <mesh position={[0, -0.06, toWorldZ(0.02, d)]}>
           <boxGeometry args={[w, 0.16, 0.18]} />
           <meshStandardMaterial
             color={isBoss ? SCENE_PALETTE.bossGoldTrim : swatchColor}
@@ -247,10 +284,7 @@ export function Floor({
 
       {/* Hover / Focus perimeter highlight */}
       {isHovered || isFocused ? (
-        <mesh
-          position={[w / 2, -SLAB_THICKNESS / 2, d / 2]}
-          userData={{ ignoreFade: true }}
-        >
+        <mesh position={[0, -SLAB_THICKNESS / 2, 0]} userData={{ ignoreFade: true }}>
           <boxGeometry args={[w + 0.22, SLAB_THICKNESS + 0.08, d + 0.22]} />
           <meshBasicMaterial
             color={isFocused ? SCENE_PALETTE.focusHighlight : SCENE_PALETTE.hoverHighlight}
@@ -264,7 +298,7 @@ export function Floor({
 
       {/* Invisible pick volume for floor hover and click-to-focus */}
       <mesh
-        position={[w / 2, WALL_HEIGHT / 2, d / 2]}
+        position={[0, WALL_HEIGHT / 2, 0]}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerOver={handlePointerOver}

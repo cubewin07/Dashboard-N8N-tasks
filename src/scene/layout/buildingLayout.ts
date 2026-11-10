@@ -1,5 +1,5 @@
 import type { Department, FloorTemplate, OrgConfig, RoleDef, Slot } from '@/domain/config'
-import type { DepartmentId, Label } from '@/domain/primitives'
+import type { DepartmentId, EmployeeId, Label } from '@/domain/primitives'
 import { allocateSeats } from './allocate'
 import { buildFloorSlots } from './floorLayout'
 import { buildTemplateMap, getFloorTemplate } from './templates'
@@ -113,10 +113,11 @@ function makeFloorLayout(params: {
     })),
     elevatorDoorSlots,
     stairsEntrySlot,
+    occupants: {},
   }
 }
 
-export function computeBuildingLayout(config: OrgConfig): BuildingLayout {
+export function buildBuildingLayout(config: OrgConfig): BuildingLayout {
   const templateMap = buildTemplateMap(config.floorTemplates)
   const roleByKey = new Map<string, RoleDef>()
   for (const role of config.roles) {
@@ -218,18 +219,54 @@ export function computeBuildingLayout(config: OrgConfig): BuildingLayout {
   )
 
   const seatAssignments = allocateSeats(config, floors)
+  const byKey: Record<string, number> = {}
+  for (const f of floors) {
+    byKey[f.key] = f.index
+  }
+  for (const [empId, seat] of Object.entries(seatAssignments)) {
+    const floorIdx = byKey[seat.floorKey]
+    if (floorIdx !== undefined && floors[floorIdx]) {
+      floors[floorIdx]!.occupants[seat.slotId] = empId as EmployeeId
+    }
+  }
+
   const totalHeight = floors.length * floorHeight
   const maxW = floors.reduce((acc, f) => Math.max(acc, f.size.w), 0)
   const maxD = floors.reduce((acc, f) => Math.max(acc, f.size.d), 0)
 
+  const firstFloor = floors[0]!
+  const elevDoors = firstFloor.elevatorDoorSlots
+  const elevX =
+    elevDoors.reduce((sum, s) => sum + s.x, 0) / Math.max(1, elevDoors.length)
+  const elevZ =
+    elevDoors.reduce((sum, s) => sum + s.z, 0) / Math.max(1, elevDoors.length)
+  const stairsSlot = firstFloor.stairsEntrySlot
+
   return {
     floors,
+    floorHeight,
     totalHeight,
+    footprint: { w: maxW, d: maxD },
     bounds: {
       min: [0, 0, 0],
       max: [maxW, totalHeight, maxD],
     },
+    shafts: {
+      elevator: {
+        x: elevX,
+        z: elevZ,
+        cars: config.building.elevator.cars,
+      },
+      stairs: {
+        x: stairsSlot.x,
+        z: stairsSlot.z,
+      },
+    },
+    byKey,
+    seatOf: seatAssignments,
     seatAssignments,
     elevatorCarCount: config.building.elevator.cars,
   }
 }
+
+export const computeBuildingLayout = buildBuildingLayout
