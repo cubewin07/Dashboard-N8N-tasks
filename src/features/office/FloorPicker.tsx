@@ -32,12 +32,12 @@ export function FloorPicker({ floors, palette }: FloorPickerProps) {
     <nav
       aria-label={t.office.floorPickerAriaLabel}
       data-floor-picker
-      className="pointer-events-auto flex max-h-[calc(100%-2rem)] w-52 flex-col gap-1 overflow-y-auto rounded-[12px] border border-border bg-surface/90 p-2 shadow-sm backdrop-blur-md"
+      className="pointer-events-auto flex max-h-[calc(100dvh-15rem)] w-52 flex-col gap-1 overflow-y-auto rounded-[12px] border border-border bg-surface/90 p-2 shadow-sm backdrop-blur-md"
     >
       <p className="px-2 py-1 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
         {t.office.floorPickerTitle}
       </p>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         {topToBottomFloors.map((floor) => {
           const isFocused = mode === 'floor' && focusedFloorKey === floor.key
           const isHovered = hoveredFloorKey === floor.key
@@ -54,7 +54,7 @@ export function FloorPicker({ floors, palette }: FloorPickerProps) {
               onMouseEnter={() => setHoveredFloor(floor.key)}
               onMouseLeave={() => setHoveredFloor(null)}
               className={cn(
-                'flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                'flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1 text-left text-xs transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                 isFocused
                   ? 'bg-primary text-primary-foreground font-semibold'
                   : isHovered

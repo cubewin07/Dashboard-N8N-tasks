@@ -22,6 +22,22 @@ interface InstancedBatchProps {
   batch: MeshBatch
 }
 
+const SHADOW_CASTING_KINDS: ReadonlySet<BlockoutMeshKind> = new Set([
+  'desk',
+  'review_desk',
+  'private_office',
+  'manager_office',
+  'boss_desk',
+  'meeting_table',
+  'sofa',
+  'coffee_counter',
+  'pingpong',
+  'arcade',
+  'boardgame',
+  'karaoke',
+  'bed',
+])
+
 const tempObject = new THREE.Object3D()
 
 function InstancedBatchMesh({ batch }: InstancedBatchProps) {
@@ -46,7 +62,7 @@ function InstancedBatchMesh({ batch }: InstancedBatchProps) {
     <instancedMesh
       ref={meshRef}
       args={[undefined, undefined, batch.instances.length]}
-      castShadow={!batch.faded}
+      castShadow={!batch.faded && SHADOW_CASTING_KINDS.has(batch.kind)}
       receiveShadow
     >
       <boxGeometry args={batch.size} />
