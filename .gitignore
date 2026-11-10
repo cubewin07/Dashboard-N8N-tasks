@@ -28,3 +28,9 @@ coverage/
 playwright-report/
 test-results/
 perf-report.json
+
+# art pipeline
+art/.cache/
+art/out/*
+!art/out/contact-sheet-*.png
+__pycache__/
