@@ -2,6 +2,7 @@
   "version": 1,
   "files": {
     "aquarium_01": {"file":"models/decor/aquarium_01.glb","tris":360,"bytes":16800,"bbox":{"min":[-0.5,0,-0.224],"max":[0.5,1.32,0.2]},"footprint":[1,0.5],"anchors":[],"nodes":["fish","glass","lamp"]},
+    "bin_01": {"file":"models/decor/bin_01.glb","tris":132,"bytes":7056,"bbox":{"min":[-0.146,0,-0.146],"max":[0.146,0.34,0.146]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "calendar_wall_01": {"file":"models/decor/calendar_wall_01.glb","tris":104,"bytes":6212,"bbox":{"min":[-0.15,-0.23,-0.043],"max":[0.15,0.263,0]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "clock_wall_01": {"file":"models/decor/clock_wall_01.glb","tris":276,"bytes":11072,"bbox":{"min":[-0.174,-0.174,-0.06],"max":[0.174,0.174,0]},"footprint":[0.5,0.5],"anchors":[],"nodes":["hand_hour","hand_minute"]},
     "fan_ceiling_01": {"file":"models/decor/fan_ceiling_01.glb","tris":312,"bytes":10580,"bbox":{"min":[-0.649,-0.47,-0.649],"max":[0.649,0,0.649]},"footprint":[1.5,1.5],"anchors":[],"nodes":["blades"]},
