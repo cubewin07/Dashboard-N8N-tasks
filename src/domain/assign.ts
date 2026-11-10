@@ -7,6 +7,7 @@ function busyAssigneeIds(state: OfficeState): Set<EmployeeId> {
   for (const task of Object.values(state.tasks)) {
     if (!task.assigneeId) continue
     if (
+      task.status === 'queued' ||
       task.status === 'in_progress' ||
       task.status === 'in_review' ||
       task.status === 'waiting_help' ||
