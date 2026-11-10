@@ -1,0 +1,22 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
+# Open Questions & Decisions (dashboard repo only)
+
+Out of scope here: everything about how work gets done (platform APIs, review collection, prices, providers, Telegram). That belongs to n8n. The dashboard shows whatever n8n writes to Supabase per `docs/CONTRACT.md`.
+
+## Decided (2026-11-09)
+
+| Topic | Decision |
+|-------|----------|
+| Login | Login page using Supabase Auth (email + password), one boss account, no sign-up |
+| Language | **Vietnamese by default**, English as a secondary switch |
+| Starter data | Seeded in migrations (7 employees, 6 workflows + steps, 5 placeholder shops: Shopee ×3, Lazada ×1, TikTok Shop ×1). More added later and linked to n8n via `workflows.n8n_workflow_ref` |
+| Media | Images and videos live **only in Google Drive**. The dashboard connects to Drive with Google OAuth2 (read-only, browser token flow) |
+| Pages URL | https://cubewin07.github.io/Dashboard-N8N-tasks/ |
+| Branding | Defaults: "Shop HQ", jade accent, initial avatars |
+
+## Still open (none blocking)
+
+1. **Real shop names.** *Default:* placeholders "Shopee 1/2/3", "Lazada 1", "TikTok Shop 1" that you rename later, via SQL or n8n upsert.
+2. **Zalo / Facebook.** The first brief said 7 shops across 5 platforms. Now it is 5 shops on 3 platforms. *Default:* Zalo and Facebook are **posting channels** for the `social_post` workflow (chosen in the brief), not shops. Tell me if they also need their own entries.
+3. **Which Google account connects to Drive?** It must be able to see the folder n8n writes to. *Default:* the same Google account n8n uses (or the folder is shared with your account).

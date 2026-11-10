@@ -1,3 +1,5 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
 # Layout & Design Direction
 
 Design goal: **"a calm control room"**. In 3 seconds you should know: *Is the team working? Does anything need me?*
@@ -68,7 +70,7 @@ You only open detail when you choose to.
 │ └──────────────────────┘ └──────────────────────┘ └──────────────────────┘   │
 │  … Thu, Mai, Ha, Bao                                                         │
 ├───────────────────────────────────────────────┬──────────────────────────────┤
-│ LIVE ACTIVITY                                 │ BY SHOP (7)                  │
+│ LIVE ACTIVITY                                 │ BY SHOP (5)                  │
 │ 09:41 Linh finished "Collect reviews" (#142)  │ Shop A  ●●○  2 active        │
 │ 09:40 An passed QC on post #140               │ Shop B  ○    idle            │
 │ 09:38 You approved banner set #137 (Telegram) │ Shop C  ◆    1 waiting       │

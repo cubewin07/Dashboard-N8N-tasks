@@ -1,3 +1,5 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
 # Boss Dashboard: Implementation Plan
 
 > Scope of **this repo**: the boss dashboard (React) + the Supabase schema it reads.
@@ -44,7 +46,7 @@ Live URL: **https://cubewin07.github.io/Dashboard-N8N-tasks/** (repo `cubewin07/
 | D8 | **HashRouter** (`/#/tasks/123`) and Vite `base: '/<repo>/'`. | GitHub Pages serves from a subpath and has no SPA fallback. HashRouter avoids the 404.html workaround. |
 | D9 | **Vietnamese is the default UI language.** All text lives in `src/i18n/vi.ts` (source of truth, typed keys). `en.ts` must have the same keys, and a language switch sits in Settings. DB rows store keys (`role_key`, `step.key`). Display labels come from i18n, with a fallback to the DB `label`. Dates are stored UTC and rendered with `Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })`. | Your dad uses it. Text stays in one place, so English is a switch rather than a rewrite. |
 | D10 | **Login page with Supabase Auth (email + password).** Every route except `/login` sits behind an `AuthGuard`. **RLS:** every table is `SELECT`-only for `authenticated` users whose `auth.uid()` is listed in `app_admins`. `commands` additionally allows `INSERT` with a `WITH CHECK` on type/payload. `anon` gets nothing. Public sign-ups are **disabled**, and the boss user is created in the Supabase dashboard. Includes a "Forgot password" email flow. | One boss login. Logged-out visitors see nothing. |
-| D11 | **Starter data is seeded in the first migrations**: 7 employees, 6 workflows with their fixed steps, and 7 placeholder shops. Later additions come from new migrations or n8n upserts (same tables). Each workflow has a nullable `n8n_workflow_ref` (n8n workflow ID or webhook path), so n8n can link its implementation to it. The dashboard shows a workflow as **"Not connected yet"** until n8n fills that field and sets `enabled = true`. | Start simple and grow without changing the dashboard. |
+| D11 | **Starter data is seeded in the first migrations**: 7 employees, 6 workflows with their fixed steps, and 5 placeholder shops (Shopee ×3, Lazada ×1, TikTok Shop ×1). Later additions come from new migrations or n8n upserts (same tables). Each workflow has a nullable `n8n_workflow_ref` (n8n workflow ID or webhook path), so n8n can link its implementation to it. The dashboard shows a workflow as **"Not connected yet"** until n8n fills that field and sets `enabled = true`. | Start simple and grow without changing the dashboard. |
 
 ### Dashboard stack
 

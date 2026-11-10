@@ -9,4 +9,6 @@
   - `web-design-guidelines`: UI/accessibility review before finishing a screen
   - `react-vite-dashboard`: dashboard structure patterns (ignore its Stitch/Web3 parts)
 - Before calling a screen done, run `npm run build` and check it in the browser at desktop width and 375px.
-- If a request needs work that belongs in n8n (sending messages, calling shop APIs, generating media), don't build it here. Say so, and describe what n8n must write to Supabase per `docs/CONTRACT.md`.
+- The current plan is `docs/plan/` (start at `00-overview.md`). `docs/archive/` is history.
+- If a request needs real AI work (sending messages, calling shop APIs, generating media), don't build it here. It belongs to the future worker service; say so and point to `docs/plan/after-this-phase.md`.
+- For asset work, Blender is at `/Applications/Blender.app/Contents/MacOS/Blender` (run headless); follow `docs/plan/assets.md`.

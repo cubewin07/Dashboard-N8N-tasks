@@ -1,3 +1,5 @@
+> **Superseded by [docs/plan/](../plan/00-overview.md) on 2026-11-10.** Kept for history only. Do not implement from this file. See docs/plan/00-audit.md for what was kept.
+
 # AI Employee Specs
 
 > **Behaviour is implemented in n8n, not in this repo.** This file describes what the employees and workflows *are*, so the dashboard can seed their definitions (`employees`, `workflows`, `workflow_steps`) and display them correctly. Treat the behaviour sections as reference for the n8n side.
