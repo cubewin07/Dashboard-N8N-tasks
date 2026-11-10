@@ -22,8 +22,9 @@ describe('ESLint architectural boundaries (R7)', () => {
     expect(restricted.length).toBeGreaterThanOrEqual(6)
   })
 
-  it('rejects Date.now() and no-arg new Date() in src/domain/** and src/scene/{layout,nav,director}/**', async () => {
-    const code = 'export const a = Date.now(); export const b = new Date();\n'
+  it('rejects Date.now(), no-arg new Date(), and Math.random() in src/domain/** and src/scene/{layout,nav,director}/**', async () => {
+    const code =
+      'export const a = Date.now(); export const b = new Date(); export const c = Math.random();\n'
     const [domainRes] = await eslint.lintText(code, { filePath: 'src/domain/x.ts' })
     const [sceneRes] = await eslint.lintText(code, {
       filePath: 'src/scene/director/x.ts',
@@ -31,10 +32,10 @@ describe('ESLint architectural boundaries (R7)', () => {
 
     expect(
       domainRes?.messages.filter((m) => m.ruleId === 'no-restricted-syntax'),
-    ).toHaveLength(2)
+    ).toHaveLength(3)
     expect(
       sceneRes?.messages.filter((m) => m.ruleId === 'no-restricted-syntax'),
-    ).toHaveLength(2)
+    ).toHaveLength(3)
   })
 
   it('rejects @/adapters/** imports outside allowed files, and allows them in feedRegistry/configStore/providers', async () => {

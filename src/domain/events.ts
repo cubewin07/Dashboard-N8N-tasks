@@ -407,6 +407,11 @@ export const OfficeEventEnvelopeSchema = z
   })
   .passthrough()
 
+export const OfficeEventSchema: z.ZodType<OfficeEvent> = z.custom<OfficeEvent>(
+  (val): val is OfficeEvent => parseEvent(val).ok,
+  { message: 'Invalid OfficeEvent' },
+)
+
 export type ParseEventResult =
   | { ok: true; event: OfficeEvent }
   | { ok: false; reason: string }

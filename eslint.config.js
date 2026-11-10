@@ -104,6 +104,11 @@ export default tseslint.config(
           message:
             'Do not call new Date() without arguments in pure domain/scene modules; pass timestamps from the feed clock.',
         },
+        {
+          selector: "CallExpression[callee.object.name='Math'][callee.property.name='random']",
+          message:
+            'Do not call Math.random() in pure domain/scene modules; use a seeded RNG passed as an argument.',
+        },
       ],
     },
   },

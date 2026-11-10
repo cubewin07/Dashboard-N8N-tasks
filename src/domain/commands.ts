@@ -146,6 +146,11 @@ export const CommandEnvelopeSchema = z
   })
   .strict()
 
+export const CommandSchema: z.ZodType<Command> = z.custom<Command>(
+  (val): val is Command => parseCommand(val).ok,
+  { message: 'Invalid Command' },
+)
+
 export interface CommandAck {
   commandId: CommandId
   status: 'accepted' | 'rejected'
