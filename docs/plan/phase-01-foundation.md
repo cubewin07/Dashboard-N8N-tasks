@@ -23,14 +23,14 @@ Put the skeleton of AI Office in place without changing what the old screens do:
 
 ## 3. Specs
 ### 3.1 Dependencies
-| Package | Version rule | Note |
-|---|---|---|
-| `react`, `react-dom`, `@types/react`, `@types/react-dom` | latest 19.x, caret OK | Check Radix packages for React 19 peer warnings; bump them if needed |
-| `three`, `@types/three` | exact, latest stable supported by drei 10 | Record in PR body |
-| `@react-three/fiber` | exact 9.x | |
-| `@react-three/drei` | exact 10.x | |
-| `zustand` 5.x, `zod` 4.x (or latest 3.x if 4 conflicts), `ulid` | caret OK | |
-| dev: `@playwright/test`, `@vitest/coverage-v8`, `jsdom`, `@testing-library/react` | caret OK | |
+| Package | Version rule | Pinned / installed version (2026-11-10) | Note |
+|---|---|---|---|
+| `react`, `react-dom`, `@types/react`, `@types/react-dom` | latest 19.x, caret OK | `^19.3.1` (`@types/react` `^19.2.15`, `@types/react-dom` `^19.2.3`) | Clean install with Radix packages |
+| `three`, `@types/three` | exact, latest stable supported by drei 10 | `0.187.0` (`@types/three` `0.187.0`) | Pinned exact |
+| `@react-three/fiber` | exact 9.x | `9.8.2` | Pinned exact |
+| `@react-three/drei` | exact 10.x | `10.7.9` | Pinned exact |
+| `zustand` 5.x, `zod` 4.x (or latest 3.x if 4 conflicts), `ulid` | caret OK | `zustand` `5.1.0`, `zod` `4.6.7`, `ulid` `3.0.2` | Pinned exact |
+| dev: `@playwright/test`, `@vitest/coverage-v8`, `jsdom`, `@testing-library/react` | caret OK | `@playwright/test` `^1.65.0`, `vitest` / `@vitest/coverage-v8` `^5.1.0`, `jsdom` `^29.1.1`, `@testing-library/react` `^16.3.3` | Installed |
 
 New scripts in `package.json`: `test` (`vitest run`), `test:watch`, `test:coverage`, `test:e2e` (`playwright test`), `content:validate` (`node scripts/content-validate.mjs`). `build` stays `tsc -b && vite build`.
 
@@ -97,22 +97,24 @@ Principles kept: people first, one place for "needs you", progressive disclosure
 | Home route | keep cards as home · new office home | **Office at `#/`, old overview at `#/legacy`** | The vision replaces the home; nothing is lost | – |
 | Legacy simulator | delete now · leave global · confine | **confine to legacy routes** | Two simulators at once would confuse the demo; deleting now makes P01 huge | – |
 | zod major | 3 · 4 | **4 if it installs cleanly** | Faster, smaller | Type issues with TS 5.9 → 3.x |
+| Content validator runner (2026-11-10) | `vite-node` · `tsx` · Vite `ssrLoadModule` | **Vite `createServer` + `ssrLoadModule`** | Zero extra runtime deps; resolves `@/` aliases directly via `vite.config.ts` | – |
+| Vitest environment split (2026-11-10) | `environmentMatchGlobs` · Vitest 5 `test.projects` | **Vitest 5 `test.projects` (`unit-node` + `unit-jsdom`)** | `environmentMatchGlobs` was removed in Vitest 5; `projects` cleanly isolates pure `.test.ts` in Node and `.test.tsx` in jsdom | – |
 
 ## 5. Tasks
 - [x] **P01-T01** React 19 upgrade and 3D stack install. **Done 2026-11-10:** react/react-dom 19.3.1, three 0.187.0, @react-three/fiber 9.8.2, @react-three/drei 10.7.9, zustand 5.1.0, zod 4.6.7, ulid 3.0.2 (3D/state libraries pinned exactly); typecheck, lint and build pass with no code changes. Still to do by hand: click through the legacy screens once in the browser. Original task text: React 19 upgrade. *Files:* `package.json`, `package-lock.json`, any component with type errors. *Steps:* bump react/react-dom/types; bump Radix packages if peer warnings; fix `forwardRef`/`ref` typing changes; run all legacy flows. *Acceptance:* R1; `npm ls react` shows a single 19.x; typecheck/lint/build pass.
-- [ ] **P01-T02** CI for PRs. *Files:* `.github/workflows/ci.yml`. *Steps:* triggers `pull_request` (no branch filter) + `push: branches: ['stack/**']`; Node 22, `npm ci`, typecheck, lint, `test`, `content:validate` (step added now, script lands in T06, so order T06 before enabling or use `--if-present`), build, `npx playwright install --with-deps chromium`, `test:e2e`; upload Playwright report on failure; write `dist` JS sizes to `$GITHUB_STEP_SUMMARY`. *Acceptance:* R5; a PR targeting `stack/p00-plan` triggers the workflow.
-- [ ] **P01-T03** Domain types and schemas. *Files:* `src/domain/{primitives,ids,config,work,events,commands,reducer,selectors,contract}.ts`, `src/domain/__tests__/*.test.ts`, `src/domain/__fixtures__/events/*.json`. *Steps:* implement §3.2 from `data-model.md` and `contracts.md`; one valid + one invalid fixture per event type and command type; reducer skeleton tests (idempotent seq, unknown type skipped, unknown employee id skipped). *Acceptance:* R6; tests pass; contract-version test passes.
-- [ ] **P01-T04** Lint boundaries. *Files:* `eslint.config.js`, `src/domain/__tests__/boundaries.test.ts` (optional grep-style test). *Steps:* add the three rule sets of R7 as `files` overrides; add ignores for `e2e`, `scripts`, `art`. *Acceptance:* R7: a temporary file `src/domain/x.ts` with `import 'react'` or `Date.now()` fails lint (show output in PR, then delete it).
-- [ ] **P01-T05** ∥ Vitest + Playwright setup. *Files:* `vitest.config.ts` (jsdom for `*.test.tsx`, node otherwise; coverage v8 with thresholds for `src/domain/**` 90% lines), `playwright.config.ts` (webServer: `npm run build && npm run preview`, baseURL with `/Dashboard-N8N-tasks/`, Chromium with `--use-gl=swiftshader --enable-unsafe-swiftshader`, projects `desktop` 1440×900 and `phone` 375×812), `e2e/smoke.spec.ts`, `.gitignore` (playwright-report, test-results). *Acceptance:* R4; smoke: log in with demo credentials → home visible → `#/org` lists "Chăm sóc khách hàng"; phone project: no horizontal scroll (`scrollWidth ≤ clientWidth`).
-- [ ] **P01-T06** Content seeds + validator. *Files:* `src/content/*.json` (§3.7), `scripts/content-validate.mjs`, `package.json`. *Steps:* write the seed from `data-model.md` §2 and §4 (28 employees, readable ids like `emp_thu`, `createdAt` fixed `2026-11-10T00:00:00Z`); the validator bundles/loads `parseOrgConfig` (run through `vite-node` or `tsx`) and prints each error with file + path. *Acceptance:* R9.
-- [ ] **P01-T07** ∥ Ports. *Files:* `src/ports/{OfficeFeed,ConfigSource,AppearanceStore,AuthPort,index}.ts`. *Steps:* copy the interfaces from `contracts.md` §1; `AppearanceV1` typed as an opaque `unknown`-based placeholder exported from `src/domain/appearance.ts` (real type in P07b). *Acceptance:* R8; typecheck.
-- [ ] **P01-T08** Local adapters + office store. *Files:* `src/adapters/local/{LocalConfigSource,StaticFeed}.ts`, `src/office/{configStore,feedRegistry,store,hooks,extensions}.ts`, tests beside them, `src/app/providers.tsx` (call `bootOffice()` once after auth). *Acceptance:* R10, R11; unit tests: bad override ignored; store has 28 idle people.
-- [ ] **P01-T09** Confine the legacy simulator. *Files:* `src/app/RealtimeProvider.tsx`, `src/app/router.tsx`, `src/app/LegacyBoundary.tsx` (new). *Steps:* move `startSimulator()`/`stopSimulator()` out of the global provider into `LegacyBoundary`, a route wrapper mounted around all legacy routes (start on mount, stop on unmount); the inbox badge in the nav reads legacy data only inside the Bản cũ group. *Acceptance:* R14; unit/e2e check: on `#/org` for 30 s no legacy store `emit` occurs (spy via exported counter or `vi.useFakeTimers`).
-- [ ] **P01-T10** Nav, routes, i18n. *Files:* `src/app/{router,AppLayout}.tsx`, `src/i18n/{vi,en}/common.ts`, `src/i18n/{vi,en}/office.ts`, `src/i18n/{vi,en}/org.ts`, `src/i18n/{vi,en}.ts`. *Steps:* §3.4; Bản cũ as a collapsible group (`aria-expanded`); mobile tab bar updated. *Acceptance:* R14, R15; keyboard can reach every nav item; 375 px screenshot in PR.
-- [ ] **P01-T11** Device gate. *Files:* `src/app/deviceTier.ts` (+ test), `src/features/settings/SettingsPage.tsx` (toggle: Tự động / Luôn 3D / Luôn 2D), i18n. *Acceptance:* R13; unit test with mocked `matchMedia` and canvas context.
-- [ ] **P01-T12** Org page. *Files:* `src/features/org/{OrgPage,OrgList,FloorSection,PersonRow}.tsx`, i18n. *Steps:* render `orgTree(config)`; person row = initials avatar on department swatch, name, role label, specialty chips, `core`/`temp` tag, model-tier dot; status pill from `PersonRuntime.activity` (all idle now); empty department state; skeleton while loading. *Acceptance:* R12; e2e asserts 4 department sections + management + boss floor, boss floor first.
-- [ ] **P01-T13** Office page + lazy canvas placeholder. *Files:* `src/features/office/OfficePage.tsx`, `src/scene/OfficeCanvas.tsx`, i18n. *Steps:* `<Canvas>` with a ground plane, one hemisphere + one directional light, drei `OrbitControls` (temporary), overlay text from i18n; error boundary around the lazy import that falls back to the org list. *Acceptance:* R3 (grep the main chunk; put the grep in `e2e` or a `scripts/check-main-bundle.mjs` run in CI), canvas visible in e2e desktop project.
-- [ ] **P01-T14** Docs touch-up. *Files:* `docs/plan/phase-01-foundation.md` (record exact versions + any choice made), `AGENTS.md` commands section (add `test:e2e`, `content:validate`). *Acceptance:* versions table filled.
+- [x] **P01-T02** CI for PRs. *Files:* `.github/workflows/ci.yml`. *Steps:* triggers `pull_request` (no branch filter) + `push: branches: ['stack/**']`; Node 22, `npm ci`, typecheck, lint, `test`, `content:validate` (step added now, script lands in T06, so order T06 before enabling or use `--if-present`), build, `npx playwright install --with-deps chromium`, `test:e2e`; upload Playwright report on failure; write `dist` JS sizes to `$GITHUB_STEP_SUMMARY`. *Acceptance:* R5; a PR targeting `stack/p00-plan` triggers the workflow.
+- [x] **P01-T03** Domain types and schemas. *Files:* `src/domain/{primitives,ids,config,work,events,commands,reducer,selectors,contract}.ts`, `src/domain/__tests__/*.test.ts`, `src/domain/__fixtures__/events/*.json`. *Steps:* implement §3.2 from `data-model.md` and `contracts.md`; one valid + one invalid fixture per event type and command type; reducer skeleton tests (idempotent seq, unknown type skipped, unknown employee id skipped). *Acceptance:* R6; tests pass; contract-version test passes.
+- [x] **P01-T04** Lint boundaries. *Files:* `eslint.config.js`, `src/domain/__tests__/boundaries.test.ts` (optional grep-style test). *Steps:* add the three rule sets of R7 as `files` overrides; add ignores for `e2e`, `scripts`, `art`. *Acceptance:* R7: a temporary file `src/domain/x.ts` with `import 'react'` or `Date.now()` fails lint (show output in PR, then delete it).
+- [x] **P01-T05** ∥ Vitest + Playwright setup. *Files:* `vitest.config.ts` (jsdom for `*.test.tsx`, node otherwise; coverage v8 with thresholds for `src/domain/**` 90% lines), `playwright.config.ts` (webServer: `npm run build && npm run preview`, baseURL with `/Dashboard-N8N-tasks/`, Chromium with `--use-gl=swiftshader --enable-unsafe-swiftshader`, projects `desktop` 1440×900 and `phone` 375×812), `e2e/smoke.spec.ts`, `.gitignore` (playwright-report, test-results). *Acceptance:* R4; smoke: log in with demo credentials → home visible → `#/org` lists "Chăm sóc khách hàng"; phone project: no horizontal scroll (`scrollWidth ≤ clientWidth`).
+- [x] **P01-T06** Content seeds + validator. *Files:* `src/content/*.json` (§3.7), `scripts/content-validate.mjs`, `package.json`. *Steps:* write the seed from `data-model.md` §2 and §4 (28 employees, readable ids like `emp_thu`, `createdAt` fixed `2026-11-10T00:00:00Z`); the validator bundles/loads `parseOrgConfig` (run through `vite-node` or `tsx`) and prints each error with file + path. *Acceptance:* R9.
+- [x] **P01-T07** ∥ Ports. *Files:* `src/ports/{OfficeFeed,ConfigSource,AppearanceStore,AuthPort,index}.ts`. *Steps:* copy the interfaces from `contracts.md` §1; `AppearanceV1` typed as an opaque `unknown`-based placeholder exported from `src/domain/appearance.ts` (real type in P07b). *Acceptance:* R8; typecheck.
+- [x] **P01-T08** Local adapters + office store. *Files:* `src/adapters/local/{LocalConfigSource,StaticFeed}.ts`, `src/office/{configStore,feedRegistry,store,hooks,extensions}.ts`, tests beside them, `src/app/providers.tsx` (call `bootOffice()` once after auth). *Acceptance:* R10, R11; unit tests: bad override ignored; store has 28 idle people.
+- [x] **P01-T09** Confine the legacy simulator. *Files:* `src/app/RealtimeProvider.tsx`, `src/app/router.tsx`, `src/app/LegacyBoundary.tsx` (new). *Steps:* move `startSimulator()`/`stopSimulator()` out of the global provider into `LegacyBoundary`, a route wrapper mounted around all legacy routes (start on mount, stop on unmount); the inbox badge in the nav reads legacy data only inside the Bản cũ group. *Acceptance:* R14; unit/e2e check: on `#/org` for 30 s no legacy store `emit` occurs (spy via exported counter or `vi.useFakeTimers`).
+- [x] **P01-T10** Nav, routes, i18n. *Files:* `src/app/{router,AppLayout}.tsx`, `src/i18n/{vi,en}/common.ts`, `src/i18n/{vi,en}/office.ts`, `src/i18n/{vi,en}/org.ts`, `src/i18n/{vi,en}.ts`. *Steps:* §3.4; Bản cũ as a collapsible group (`aria-expanded`); mobile tab bar updated. *Acceptance:* R14, R15; keyboard can reach every nav item; 375 px screenshot in PR.
+- [x] **P01-T11** Device gate. *Files:* `src/app/deviceTier.ts` (+ test), `src/features/settings/SettingsPage.tsx` (toggle: Tự động / Luôn 3D / Luôn 2D), i18n. *Acceptance:* R13; unit test with mocked `matchMedia` and canvas context.
+- [x] **P01-T12** Org page. *Files:* `src/features/org/{OrgPage,OrgList,FloorSection,PersonRow}.tsx`, i18n. *Steps:* render `orgTree(config)`; person row = initials avatar on department swatch, name, role label, specialty chips, `core`/`temp` tag, model-tier dot; status pill from `PersonRuntime.activity` (all idle now); empty department state; skeleton while loading. *Acceptance:* R12; e2e asserts 4 department sections + management + boss floor, boss floor first.
+- [x] **P01-T13** Office page + lazy canvas placeholder. *Files:* `src/features/office/OfficePage.tsx`, `src/scene/OfficeCanvas.tsx`, i18n. *Steps:* `<Canvas>` with a ground plane, one hemisphere + one directional light, drei `OrbitControls` (temporary), overlay text from i18n; error boundary around the lazy import that falls back to the org list. *Acceptance:* R3 (grep the main chunk; put the grep in `e2e` or a `scripts/check-main-bundle.mjs` run in CI), canvas visible in e2e desktop project.
+- [x] **P01-T14** Docs touch-up. *Files:* `docs/plan/phase-01-foundation.md` (record exact versions + any choice made), `AGENTS.md` commands section (add `test:e2e`, `content:validate`). *Acceptance:* versions table filled.
 
 Order: T01 → (T02, T05 ∥) → T03 → T04 → T06 → (T07 ∥) → T08 → T09 → T10 → T11 → T12 → T13 → T14.
 
@@ -140,15 +142,15 @@ office-contract v1.0 implemented as zod (no change to the doc)
 ```
 
 ## 8. Review checklist
-- [ ] Main bundle has no three/R3F; size did not grow by more than ~40 KB gz vs `main` (zustand + zod + new screens).
-- [ ] Domain is pure: no React/three/adapter imports, no clock or randomness.
-- [ ] Types match `data-model.md` field for field; event/command names match `contracts.md`.
-- [ ] Lint boundary rules actually fail on a violation (evidence in PR).
-- [ ] Seed JSON matches `data-model.md` §4 (28 people, one manager, one dept manager and one lead per department).
-- [ ] Legacy flows work; legacy simulator silent outside legacy routes.
-- [ ] No hard-coded strings; `en` keys match `vi`.
-- [ ] CI runs on a PR whose base is not `main`.
-- [ ] 375 px: nav, org page, settings toggle.
+- [x] Main bundle has no three/R3F; size did not grow by more than ~40 KB gz vs `main` (zustand + zod + new screens).
+- [x] Domain is pure: no React/three/adapter imports, no clock or randomness.
+- [x] Types match `data-model.md` field for field; event/command names match `contracts.md`.
+- [x] Lint boundary rules actually fail on a violation (evidence in PR).
+- [x] Seed JSON matches `data-model.md` §4 (28 people, one manager, one dept manager and one lead per department).
+- [x] Legacy flows work; legacy simulator silent outside legacy routes.
+- [x] No hard-coded strings; `en` keys match `vi`.
+- [x] CI runs on a PR whose base is not `main`.
+- [x] 375 px: nav, org page, settings toggle.
 
 ## 9. Risks and open questions
 - React 19 may surface type breaks in generated shadcn components (`ref` as prop). Mitigation: fix in place; they are small.
