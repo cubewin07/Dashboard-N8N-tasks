@@ -205,8 +205,8 @@ def painting_02(m):
     _frame(m, 0.6, 0.8, "gold")
     z = -0.041
     m.box(0.5, 0.7, 0.003, at=(0, -0.35, z), sw="jade_900")
-    m.cyl(0.16, 0.003, at=(-0.06, -0.2, z - 0.002), sw="jade_600", seg=8, axis="z", center=True, scale=(1, 0.45))
-    m.cyl(0.12, 0.003, at=(0.1, -0.27, z - 0.002), sw="jade_700", seg=8, axis="z", center=True, scale=(1, 0.45))
+    m.cyl(0.16, 0.003, at=(-0.06, -0.2, z - 0.002), sw="jade_600", seg=6, axis="z", center=True, scale=(1, 0.45))
+    m.cyl(0.12, 0.003, at=(0.1, -0.27, z - 0.002), sw="jade_700", seg=6, axis="z", center=True, scale=(1, 0.45))
     for a, sw in ((-40, "c_pink"), (40, "c_pink"), (-18, "c_rose"), (18, "c_rose"), (0, "c_pink")):
         m.prism([(0, 0), (0.05, 0.1), (0, 0.22), (-0.05, 0.1)], 0.003, at=(0, -0.12, z - 0.004 - abs(a) * 0.00002),
                 sw=sw, rot=(0, 0, a))
