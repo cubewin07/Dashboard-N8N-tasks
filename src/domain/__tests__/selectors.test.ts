@@ -271,7 +271,7 @@ describe('domain selectors (P01 + P03-T06)', () => {
       if (!parsed.ok) continue
       const parts = activitySentenceParts(parsed.event as OfficeEvent<EventType>, s)
       expect(parts.type).toBe(type)
-      expect(parts.actorName.length).toBeGreaterThan(0)
+      expect(parts.actorName ?? parts.actorKind).toBeTruthy()
       expect(['work', 'review', 'help_question', 'staff', 'system']).toContain(
         parts.category,
       )

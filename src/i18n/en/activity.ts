@@ -23,6 +23,39 @@ export const activity: typeof viActivity = {
       system: 'System',
     },
   },
+  /** Labels for an actor that is not a known person. */
+  actors: {
+    system: 'System',
+    customer: 'Customer',
+    owner: 'Boss',
+    employee: 'Colleague',
+  },
+  fallbacks: {
+    target: 'colleague',
+    task: 'task',
+  },
+  channels: {
+    telegram: 'Telegram',
+    app: 'App',
+    schedule: 'Schedule',
+    internal: 'Internal',
+    platform: 'Marketplace',
+  },
+  archiveReasons: {
+    cap: 'Temp staff cap reached',
+    dismissed: 'Dismissed by the boss',
+  },
+  taskStatus: {
+    queued: 'Queued',
+    in_progress: 'In progress',
+    in_review: 'In review',
+    waiting_help: 'Waiting for help',
+    waiting_answer: 'Waiting for answer',
+    blocked: 'Blocked',
+    done: 'Done',
+    cancelled: 'Cancelled',
+    failed: 'Failed',
+  },
   decisions: {
     approved: 'approved',
     changes_requested: 'requested changes on',
