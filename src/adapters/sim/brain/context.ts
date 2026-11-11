@@ -169,6 +169,39 @@ export function getDeptManagerEmployeeId(
   return mgr?.id ?? getManagerEmployeeId(ctx)
 }
 
+/** A department id looked up by its config key (e.g. 'cs'), not hard-coded. */
+export function departmentIdByKey(
+  ctx: SimBrainContext,
+  key: string,
+): DepartmentId {
+  const dept =
+    ctx.state.config.departments.find((d) => d.key === key && d.active) ??
+    ctx.state.config.departments.find((d) => d.active)
+  if (!dept) throw new Error('No active department in config')
+  return dept.id
+}
+
+/**
+ * Active people in a department who do the work, in stable id order.
+ * Chosen by capability (doWork), not by role key.
+ */
+export function departmentWorkers(
+  ctx: SimBrainContext,
+  departmentId: DepartmentId,
+): EmployeeId[] {
+  const roles = new Map(ctx.state.config.roles.map((r) => [r.key, r]))
+  return ctx.state.config.employees
+    .filter(
+      (e) =>
+        e.state === 'active' &&
+        e.departmentId === departmentId &&
+        roles.get(e.roleKey)?.caps.doWork === true &&
+        Boolean(ctx.state.people[e.id]),
+    )
+    .map((e) => e.id)
+    .sort()
+}
+
 export interface CreateSimTaskOptions {
   requestedByKind?: Task['requestedBy']['kind']
   requestedById?: string | null

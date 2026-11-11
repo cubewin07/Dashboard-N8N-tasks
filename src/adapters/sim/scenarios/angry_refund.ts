@@ -6,11 +6,15 @@ import {
 import {
   createTaskInBrain,
   emitSimEvent,
+  departmentIdByKey,
+  departmentWorkers,
   getDeptManagerEmployeeId,
   type SimBrainContext,
 } from '../brain/context'
 
 export function runAngryRefundScenario(ctx: SimBrainContext): void {
+  const csDept = departmentIdByKey(ctx, 'cs')
+  const accountingDept = departmentIdByKey(ctx, 'accounting')
   emitSimEvent(ctx, 'sim.scenario', {
     key: 'angry_refund',
     label: {
@@ -23,7 +27,7 @@ export function runAngryRefundScenario(ctx: SimBrainContext): void {
     requestedByKind: 'customer',
     channel: 'platform',
     priority: 'urgent',
-    departmentId: 'dep_cs',
+    departmentId: csDept,
     platformKey: 'shopee',
     amountVnd: 2_800_000,
     extraTags: ['refund', 'money', 'angry_customer'],
@@ -32,9 +36,9 @@ export function runAngryRefundScenario(ctx: SimBrainContext): void {
     },
   })
 
-  const workerId = 'emp_mai'
-  const deptMgrId = getDeptManagerEmployeeId(ctx, 'dep_cs')
-  const acctMgrId = getDeptManagerEmployeeId(ctx, 'dep_accounting')
+  const workerId = departmentWorkers(ctx, csDept)[0]!
+  const deptMgrId = getDeptManagerEmployeeId(ctx, csDept)
+  const acctMgrId = getDeptManagerEmployeeId(ctx, accountingDept)
 
   emitSimEvent(
     ctx,
@@ -58,7 +62,7 @@ export function runAngryRefundScenario(ctx: SimBrainContext): void {
     requestedById: workerId,
     channel: 'internal',
     priority: 'urgent',
-    departmentId: 'dep_accounting',
+    departmentId: accountingDept,
     parentTaskId: refundTask.id,
     amountVnd: 2_800_000,
     crossDepartment: true,

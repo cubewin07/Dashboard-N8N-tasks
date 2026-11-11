@@ -1,9 +1,12 @@
 import { isInPerson } from '@/domain/questions'
+import { pickLeadForDepartment } from '@/domain/reviews'
 import type { Question, ReviewItem } from '@/domain/work'
 import { QUESTIONS_VI } from '../content/vi'
 import { pick, simId } from '../rng'
 import {
   createTaskInBrain,
+  departmentIdByKey,
+  departmentWorkers,
   emitSimEvent,
   getDeptManagerEmployeeId,
   type SimBrainContext,
@@ -20,7 +23,11 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
     },
   })
 
-  const targetMgrId = getDeptManagerEmployeeId(ctx, 'dep_cs') // emp_ngoc
+  const csDept = departmentIdByKey(ctx, 'cs')
+  const targetMgrId = getDeptManagerEmployeeId(ctx, csDept)
+  const workers = departmentWorkers(ctx, csDept)
+  const submitterId = workers[0]!
+  const courierId = pickLeadForDepartment(csDept, ctx.state) ?? targetMgrId
 
   // 1. Create 12 reviews onto targetMgrId
   for (let i = 0; i < 12; i += 1) {
@@ -29,14 +36,14 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
       requestedByKind: 'customer',
       channel: 'platform',
       priority,
-      departmentId: 'dep_cs',
+      departmentId: csDept,
     })
     emitSimEvent(
       ctx,
       'task.assigned',
       {
         taskId: task.id,
-        assigneeId: 'emp_mai',
+        assigneeId: submitterId,
         byId: targetMgrId,
       },
       { actor: targetMgrId },
@@ -45,13 +52,13 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
       ctx,
       'task.started',
       { taskId: task.id },
-      { actor: 'emp_mai' },
+      { actor: submitterId },
     )
     emitSimEvent(
       ctx,
       'task.progressed',
       { taskId: task.id, progress: 1 },
-      { actor: 'emp_mai' },
+      { actor: submitterId },
     )
 
     const rev: ReviewItem = {
@@ -70,7 +77,7 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
       ctx,
       'review.requested',
       { review: rev },
-      { actor: 'emp_linh' },
+      { actor: courierId },
     )
     ctx.reviewTimers.set(rev.id, {
       startedSimMs: nowMs,
@@ -78,21 +85,36 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
     })
   }
 
-  // 2. Create 5 open questions onto targetMgrId from 5 distinct people so 5 people are waiting_answer in person
+  // 2. Ask enough questions that 5 askers end up sitting in waiting seats.
+  // R8: a question is in person only once the target already has
+  // `questionSeatThreshold` open ones, so the first few are walk-ups.
+  const seatsWanted = 5
+  const walkUps = ctx.state.config.policy.approvals.questionSeatThreshold
+  // CS staff first, then people from other floors, each on a task of their own department.
+  const needed = walkUps + seatsWanted
   const askers = [
-    'emp_mai',
-    'emp_trang',
-    'emp_phuc',
-    'emp_an',
-    'emp_quan',
-  ] as const
+    ...workers,
+    ...ctx.state.config.departments
+      .filter((d) => d.active && d.id !== csDept)
+      .flatMap((d) => departmentWorkers(ctx, d.id)),
+  ].slice(0, needed)
   for (let i = 0; i < askers.length; i += 1) {
     const askerId = askers[i]!
-    const qTask = createTaskInBrain(ctx, 'cs.exchange', {
-      requestedByKind: 'customer',
-      channel: 'platform',
+    const askerDept =
+      ctx.state.config.employees.find((e) => e.id === askerId)?.departmentId ??
+      csDept
+    const askerDeptKey = ctx.state.config.departments.find(
+      (d) => d.id === askerDept,
+    )?.key
+    const askerTaskType =
+      ctx.state.config.taskTypes.find(
+        (t) => t.departmentKey === askerDeptKey && !t.key.startsWith('sys.'),
+      )?.key ?? 'cs.exchange'
+    const qTask = createTaskInBrain(ctx, askerTaskType, {
+      requestedByKind: askerDept === csDept ? 'customer' : 'manager',
+      channel: askerDept === csDept ? 'platform' : 'internal',
       priority: 'high',
-      departmentId: 'dep_cs',
+      departmentId: askerDept,
     })
     emitSimEvent(
       ctx,
@@ -113,8 +135,11 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
 
     const qa =
       QUESTIONS_VI[i % QUESTIONS_VI.length] ?? pick(ctx.rng, QUESTIONS_VI)
-    const computedInPerson =
-      isInPerson(targetMgrId, ctx.state, ctx.state.config.policy) || true
+    const computedInPerson = isInPerson(
+      targetMgrId,
+      ctx.state,
+      ctx.state.config.policy,
+    )
     const q: Question = {
       id: simId('q', ctx.rng, nowMs + 100 + i),
       taskId: qTask.id,

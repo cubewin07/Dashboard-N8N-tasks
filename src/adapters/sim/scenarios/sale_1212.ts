@@ -5,6 +5,8 @@ import { stepAssignments, stepWorkers } from '../brain/agents'
 import {
   createTaskInBrain,
   emitSimEvent,
+  departmentIdByKey,
+  departmentWorkers,
   getDeptManagerEmployeeId,
   getManagerEmployeeId,
   type SimBrainContext,
@@ -13,6 +15,9 @@ import {
 export function runSale1212Scenario(ctx: SimBrainContext): void {
   const nowMs = ctx.clock.nowMs()
   const managerId = getManagerEmployeeId(ctx)
+  const marketingDept = departmentIdByKey(ctx, 'marketing')
+  const designDept = departmentIdByKey(ctx, 'design')
+  const csDept = departmentIdByKey(ctx, 'cs')
   emitSimEvent(ctx, 'sim.scenario', {
     key: 'sale_1212',
     label: {
@@ -28,7 +33,7 @@ export function runSale1212Scenario(ctx: SimBrainContext): void {
     requestedByKind: 'manager',
     channel: 'internal',
     priority: 'urgent',
-    departmentId: 'dep_marketing',
+    departmentId: marketingDept,
     platformKey: 'shopee',
     titleCtx: { event: eventLabel, shop: 'Shopee 1' },
     actor: managerId,
@@ -42,14 +47,14 @@ export function runSale1212Scenario(ctx: SimBrainContext): void {
     'design.post_image',
   ] as const
 
-  const designMgrId = getDeptManagerEmployeeId(ctx, 'dep_design')
+  const designMgrId = getDeptManagerEmployeeId(ctx, designDept)
   for (let i = 0; i < designKeys.length; i += 1) {
     const dKey = designKeys[i]!
     const dTask = createTaskInBrain(ctx, dKey, {
       requestedByKind: i === 0 ? 'employee' : 'manager',
       channel: 'internal',
       priority: 'high',
-      departmentId: 'dep_design',
+      departmentId: designDept,
       platformKey: 'shopee',
       parentTaskId: i === 0 ? campaignTask.id : null,
       crossDepartment: i === 0,
@@ -78,7 +83,7 @@ export function runSale1212Scenario(ctx: SimBrainContext): void {
       requestedByKind: 'manager',
       channel: 'internal',
       priority: 'high',
-      departmentId: 'dep_marketing',
+      departmentId: marketingDept,
       titleCtx: { event: eventLabel, shop: 'Shopee 1' },
       actor: managerId,
     })
@@ -91,7 +96,7 @@ export function runSale1212Scenario(ctx: SimBrainContext): void {
       requestedByKind: 'customer',
       channel: 'platform',
       priority: 'high',
-      departmentId: 'dep_cs',
+      departmentId: csDept,
       titleCtx: { event: eventLabel, shop: 'Shopee 1' },
     })
   }
@@ -101,12 +106,13 @@ export function runSale1212Scenario(ctx: SimBrainContext): void {
   stepWorkers(ctx, 60_000)
 
   // Trigger a cross-department help request for campaignTask
-  const helperId = pickHelper('image', ctx.state, ['emp_bao', 'emp_duy'])
+  const requesterId = departmentWorkers(ctx, marketingDept)[0]!
+  const helperId = pickHelper('image', ctx.state, [requesterId])
   const timeoutMs = ctx.state.config.policy.help.timeoutMinutes * 60_000
   const help: HelpRequest = {
     id: simId('help', ctx.rng, nowMs),
     taskId: campaignTask.id,
-    fromId: 'emp_bao',
+    fromId: requesterId,
     specialty: 'image',
     toId: helperId,
     round: 1,
@@ -114,5 +120,5 @@ export function runSale1212Scenario(ctx: SimBrainContext): void {
     createdAt: ctx.clock.now(),
     timeoutAt: new Date(nowMs + timeoutMs).toISOString(),
   }
-  emitSimEvent(ctx, 'help.requested', { help }, { actor: 'emp_bao' })
+  emitSimEvent(ctx, 'help.requested', { help }, { actor: requesterId })
 }
