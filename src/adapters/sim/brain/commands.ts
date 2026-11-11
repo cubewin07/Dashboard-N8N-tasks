@@ -157,11 +157,13 @@ function executeCommandNow(ctx: SimBrainContext, cmd: Command): CommandAck {
           reason: 'not_found',
         }
       }
-      if (question.status === 'answered') {
+      if (question.status !== 'open') {
+        // Answered already, or expired because its task was cancelled.
         return {
           commandId: cmd.id,
           status: 'rejected',
-          reason: 'already_decided',
+          reason:
+            question.status === 'answered' ? 'already_decided' : 'invalid_state',
         }
       }
 

@@ -634,7 +634,7 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
           }
         }
       }
-      const nextPeople = releasePersonFromTask(
+      let nextPeople = releasePersonFromTask(
         state.people,
         nextTasks,
         state.config,
@@ -642,6 +642,52 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
         task.id,
         event.at,
       )
+
+      // Nobody should stay "reviewing" a task that no longer exists.
+      for (const rev of Object.values(state.reviews)) {
+        if (rev.taskId !== task.id || rev.status !== 'in_review') continue
+        const approver = nextPeople[rev.assigneeId]
+        if (!approver || approver.activity !== 'reviewing') continue
+        const hasOtherInReview = Object.values(nextReviews).some(
+          (r) =>
+            r.id !== rev.id &&
+            r.assigneeId === rev.assigneeId &&
+            r.status === 'in_review',
+        )
+        if (hasOtherInReview) continue
+        nextPeople = {
+          ...nextPeople,
+          [approver.employeeId]: {
+            ...approver,
+            activity: 'idle',
+            taskId: null,
+            carrying: null,
+            platformKey: null,
+            idleSince: event.at,
+            lastActiveAt: event.at,
+          },
+        }
+      }
+
+      // Close help requests for the task and free a helper who was mid-help.
+      let nextHelp = state.help
+      for (const h of Object.values(state.help)) {
+        if (h.taskId !== task.id) continue
+        if (h.status === 'answered' || h.status === 'escalated') continue
+        nextHelp = { ...nextHelp, [h.id]: { ...h, status: 'answered' } }
+        const helper = h.toId ? nextPeople[h.toId] : undefined
+        if (h.status === 'accepted' && helper && helper.activity === 'helping') {
+          nextPeople = releasePersonFromTask(
+            nextPeople,
+            nextTasks,
+            state.config,
+            helper.employeeId,
+            task.id,
+            event.at,
+          )
+        }
+      }
+
       return {
         ...state,
         now: event.at,
@@ -649,6 +695,7 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
         tasks: nextTasks,
         reviews: nextReviews,
         questions: nextQuestions,
+        help: nextHelp,
         people: nextPeople,
         log: appendLog(state.log, event),
       }
@@ -779,6 +826,10 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
       const review = state.reviews[p.reviewId]
       if (!review) {
         return skipWarn(state, event, `unknown reviewId "${p.reviewId}"`)
+      }
+      if (review.status !== 'pending' && review.status !== 'in_review') {
+        // A late or duplicate decision must not reopen a settled task.
+        return skipWarn(state, event, `review "${review.id}" already ${review.status}`)
       }
       const task = state.tasks[review.taskId]
       if (!task) {
@@ -1003,6 +1054,11 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
       if (!question) {
         return skipWarn(state, event, `unknown questionId "${p.questionId}"`)
       }
+      if (question.status !== 'open') {
+        // Answering an expired or already answered question must not put the
+        // asker back to work on a task that has moved on.
+        return skipWarn(state, event, `question "${question.id}" already ${question.status}`)
+      }
 
       let nextTasks = state.tasks
       const task = state.tasks[question.taskId]
@@ -1018,7 +1074,7 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
 
       let nextPeople = state.people
       const fromPerson = state.people[question.fromId]
-      if (fromPerson) {
+      if (fromPerson && task && nextTasks[task.id]?.status === 'in_progress') {
         nextPeople = {
           ...state.people,
           [fromPerson.employeeId]: {

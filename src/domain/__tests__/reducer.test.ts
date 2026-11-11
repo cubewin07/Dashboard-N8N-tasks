@@ -692,4 +692,132 @@ describe('domain reducer', () => {
     expect(s1.seq).toBe(1)
     expect(s1.log).toHaveLength(0)
   })
+  describe('late and duplicate events', () => {
+    const base = () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      return { warn }
+    }
+
+    it('ignores a decision on a review that is already settled', () => {
+      const { warn } = base()
+      const task = makeSampleTask({
+        id: 'task_01JTEST00000000000000000E',
+        assigneeId: 'emp_mai',
+        status: 'cancelled',
+      })
+      const review = {
+        id: 'rev_01JTEST00000000000000000E' as const,
+        taskId: task.id,
+        level: 'reviewer' as const,
+        assigneeId: 'emp_an' as const,
+        status: 'rejected' as const,
+        priority: 'normal' as const,
+        createdAt: t(1),
+        decidedAt: t(2),
+        decidedBy: 'emp_an' as const,
+        note: null,
+      }
+      const b = initialState(makeSeedConfig(), t(0))
+      const s0 = {
+        ...b,
+        tasks: { ...b.tasks, [task.id]: task },
+        reviews: { ...b.reviews, [review.id]: review },
+      }
+      const s1 = apply(
+        s0,
+        makeEvent(
+          'review.decided',
+          { reviewId: review.id, decision: 'changes_requested', note: 'x' },
+          { seq: 1, at: t(3), actor: { kind: 'employee', id: 'emp_an' } },
+        ),
+      )
+      // The cancelled task is not dragged back to in_progress.
+      expect(s1).toBe(s0)
+      expect(s1.tasks[task.id]?.status).toBe('cancelled')
+      warn.mockRestore()
+    })
+
+    it('ignores an answer to an expired question', () => {
+      const { warn } = base()
+      const task = makeSampleTask({
+        id: 'task_01JTEST00000000000000000F',
+        assigneeId: 'emp_mai',
+        status: 'cancelled',
+      })
+      const question = {
+        id: 'q_01JTEST00000000000000000F' as const,
+        taskId: task.id,
+        fromId: 'emp_mai' as const,
+        toId: 'emp_thu' as const,
+        text: '?',
+        status: 'expired' as const,
+        inPerson: false,
+        createdAt: t(1),
+        answeredAt: t(2),
+      }
+      const b = initialState(makeSeedConfig(), t(0))
+      const s0 = {
+        ...b,
+        tasks: { ...b.tasks, [task.id]: task },
+        questions: { ...b.questions, [question.id]: question },
+      }
+      const s1 = apply(
+        s0,
+        makeEvent('question.answered', { questionId: question.id, answer: 'ok' }, { seq: 1, at: t(3) }),
+      )
+      expect(s1).toBe(s0)
+      expect(s1.people.emp_mai?.activity).toBe('idle')
+      warn.mockRestore()
+    })
+
+    it('cancelling a task frees its approver and closes its help requests', () => {
+      const task = makeSampleTask({
+        id: 'task_01JTEST00000000000000000G',
+        assigneeId: 'emp_mai',
+        status: 'in_review',
+      })
+      const review = {
+        id: 'rev_01JTEST00000000000000000G' as const,
+        taskId: task.id,
+        level: 'reviewer' as const,
+        assigneeId: 'emp_an' as const,
+        status: 'in_review' as const,
+        priority: 'normal' as const,
+        createdAt: t(1),
+        decidedAt: null,
+        decidedBy: null,
+        note: null,
+      }
+      const help = {
+        id: 'help_01JTEST00000000000000000G' as const,
+        taskId: task.id,
+        fromId: 'emp_mai' as const,
+        specialty: 'image',
+        toId: 'emp_quan' as const,
+        round: 1,
+        status: 'accepted' as const,
+        createdAt: t(1),
+        timeoutAt: t(30),
+      }
+      const b = initialState(makeSeedConfig(), t(0))
+      const s0 = {
+        ...b,
+        tasks: { ...b.tasks, [task.id]: task },
+        reviews: { ...b.reviews, [review.id]: review },
+        help: { ...b.help, [help.id]: help },
+        people: {
+          ...b.people,
+          emp_an: { ...b.people.emp_an!, activity: 'reviewing' as const, taskId: task.id },
+          emp_quan: { ...b.people.emp_quan!, activity: 'helping' as const },
+        },
+      }
+      const s1 = apply(
+        s0,
+        makeEvent('task.cancelled', { taskId: task.id, reason: 'huỷ' }, { seq: 1, at: t(2) }),
+      )
+      expect(s1.people.emp_an?.activity).toBe('idle')
+      expect(s1.people.emp_quan?.activity).toBe('idle')
+      expect(s1.help[help.id]?.status).toBe('answered')
+    })
+  })
 })
