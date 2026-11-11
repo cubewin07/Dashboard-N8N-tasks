@@ -1,3 +1,4 @@
+import { activity } from './vi/activity'
 import { common } from './vi/common'
 import { inbox } from './vi/inbox'
 import { library } from './vi/library'
@@ -5,7 +6,9 @@ import { login } from './vi/login'
 import { office } from './vi/office'
 import { org } from './vi/org'
 import { overview } from './vi/overview'
+import { queue } from './vi/queue'
 import { settings } from './vi/settings'
+import { sim } from './vi/sim'
 import { start } from './vi/start'
 import { taskDetail } from './vi/taskDetail'
 import { tasks } from './vi/tasks'
@@ -24,6 +27,9 @@ export const vi = {
   taskDetail,
   office,
   org,
+  activity,
+  queue,
+  sim,
 }
 
 export type Messages = typeof vi

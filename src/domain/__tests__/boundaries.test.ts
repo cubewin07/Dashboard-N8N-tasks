@@ -55,4 +55,29 @@ describe('ESLint architectural boundaries (R7)', () => {
       allowedRes?.messages.filter((m) => m.ruleId === 'no-restricted-imports'),
     ).toHaveLength(0)
   })
+
+  it('rejects @/adapters/sim imports in scene and providers, and allows them only in feedRegistry (P03-T17)', async () => {
+    const code = "import * as sim from '@/adapters/sim'\nexport const s = sim\n"
+
+    const [canvasRes] = await eslint.lintText(code, {
+      filePath: 'src/scene/OfficeCanvas.tsx',
+    })
+    expect(
+      canvasRes?.messages.filter((m) => m.ruleId === 'no-restricted-imports'),
+    ).toHaveLength(1)
+
+    const [providersRes] = await eslint.lintText(code, {
+      filePath: 'src/app/providers.tsx',
+    })
+    expect(
+      providersRes?.messages.filter((m) => m.ruleId === 'no-restricted-imports'),
+    ).toHaveLength(1)
+
+    const [registryRes] = await eslint.lintText(code, {
+      filePath: 'src/office/feedRegistry.ts',
+    })
+    expect(
+      registryRes?.messages.filter((m) => m.ruleId === 'no-restricted-imports'),
+    ).toHaveLength(0)
+  })
 })

@@ -21,6 +21,7 @@ import {
 } from '../store'
 
 class FakeFeed implements OfficeFeed {
+  readonly kind = 'sim' as const
   private listeners = new Set<(batch: OfficeEvent[]) => void>()
   private connListeners = new Set<(c: ConnectionState) => void>()
   private conn: ConnectionState = 'live'
@@ -186,7 +187,6 @@ describe('office store, feedRegistry, and command tracking (P03-T12)', () => {
       {
         reviewId: 'rev_01JTEST000000000000000001',
         decision: 'approved',
-        note: null,
       },
       { id: 'cmd_01JTESTCOMMAND000000000002' },
     )

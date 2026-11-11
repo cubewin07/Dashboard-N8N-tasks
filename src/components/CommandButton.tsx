@@ -139,7 +139,7 @@ export function CommandButton<T extends CommandType = CommandType>(
   const appliedFor = useRef<string | null>(null)
 
   useEffect(() => {
-    if (isOfficeMode) {
+    if ('officeCommand' in props && props.officeCommand) {
       if (
         state === 'applied' &&
         officeCmdId &&
@@ -150,15 +150,17 @@ export function CommandButton<T extends CommandType = CommandType>(
       }
       return
     }
-    if (
-      state === 'applied' &&
-      legacyCmd.command &&
-      appliedFor.current !== legacyCmd.command.id
-    ) {
-      appliedFor.current = legacyCmd.command.id
-      props.onApplied?.(legacyCmd.command)
+    if (!('officeCommand' in props && props.officeCommand)) {
+      if (
+        state === 'applied' &&
+        legacyCmd.command &&
+        appliedFor.current !== legacyCmd.command.id
+      ) {
+        appliedFor.current = legacyCmd.command.id
+        props.onApplied?.(legacyCmd.command)
+      }
     }
-  }, [isOfficeMode, state, officeCmdId, legacyCmd.command, props])
+  }, [state, officeCmdId, legacyCmd.command, props])
 
   const busy = state === 'sending' || state === 'pending' || state === 'accepted'
   const detail =

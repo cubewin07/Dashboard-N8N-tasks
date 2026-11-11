@@ -111,8 +111,8 @@ export function emitSimEvent<T extends EventType>(
 ): OfficeEvent<T> {
   ctx.seq += 1
   const nowMs = ctx.clock.nowMs()
-  const ev: OfficeEvent<T> = {
-    v: 1,
+  const ev = {
+    v: 1 as const,
     id: simId('evt', ctx.rng, nowMs),
     seq: ctx.seq,
     at: ctx.clock.now(),
@@ -120,9 +120,9 @@ export function emitSimEvent<T extends EventType>(
     actor: resolveEventActor(ctx, opts?.actor),
     causedBy: opts?.causedBy ?? null,
     payload,
-  }
-  ctx.state = apply(ctx.state, ev)
-  ctx.pendingEvents.push(ev)
+  } as OfficeEvent<T>
+  ctx.state = apply(ctx.state, ev as OfficeEvent)
+  ctx.pendingEvents.push(ev as OfficeEvent)
   return ev
 }
 

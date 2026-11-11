@@ -383,16 +383,18 @@ export const EventActorSchema = z.object({
   id: z.string().nullable(),
 })
 
-export interface OfficeEvent<T extends EventType = EventType> {
-  v: 1
-  id: EventId
-  seq: number
-  at: Iso
-  type: T
-  actor: EventActor
-  causedBy: string | null
-  payload: EventPayloads[T]
-}
+export type OfficeEvent<T extends EventType = EventType> = {
+  [K in T]: {
+    v: 1
+    id: EventId
+    seq: number
+    at: Iso
+    type: K
+    actor: EventActor
+    causedBy: string | null
+    payload: EventPayloads[K]
+  }
+}[T]
 
 export const OfficeEventEnvelopeSchema = z
   .object({

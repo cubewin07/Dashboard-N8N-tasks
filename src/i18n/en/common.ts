@@ -5,6 +5,8 @@ export const common: typeof vi = {
   nav: {
     office: 'Office',
     org: 'Org chart',
+    queue: 'Queue',
+    activity: 'Activity',
     legacyGroup: 'Classic',
     overview: 'Overview',
     inbox: 'Needs you',
@@ -93,7 +95,7 @@ export const common: typeof vi = {
     queued: 'Sent, waiting for the team',
     queuedOffline: 'Queued: will run when the team is back online',
     accepted: 'Team picked it up…',
-    applied: 'Done',
+    applied: 'Applied',
     failed: 'Failed',
     alreadyResolved: 'Already handled on Telegram',
   },

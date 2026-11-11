@@ -824,13 +824,27 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
 
       let updatedTask = task
       if (p.decision === 'changes_requested') {
+        const workerBusyWithOther =
+          task.assigneeId !== null &&
+          Object.values(state.tasks).some(
+            (t) =>
+              t.id !== task.id &&
+              t.assigneeId === task.assigneeId &&
+              (t.status === 'in_progress' ||
+                t.status === 'waiting_help' ||
+                t.status === 'waiting_answer'),
+          )
         updatedTask = {
           ...task,
-          status: 'in_progress',
+          status: workerBusyWithOther ? 'queued' : 'in_progress',
           progress: 0.6,
           attempts: task.attempts + 1,
         }
-        if (task.assigneeId && nextPeople[task.assigneeId]) {
+        if (
+          !workerBusyWithOther &&
+          task.assigneeId &&
+          nextPeople[task.assigneeId]
+        ) {
           const worker = nextPeople[task.assigneeId]!
           nextPeople = {
             ...nextPeople,
@@ -1255,9 +1269,21 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
       if (!current) {
         return skipWarn(state, event, `unknown employeeId "${payload.employeeId}"`)
       }
+      const currentTask = current.taskId ? state.tasks[current.taskId] : null
+      const clearTaskBinding =
+        payload.activity === 'idle' &&
+        (!currentTask ||
+          currentTask.status === 'in_review' ||
+          currentTask.status === 'done' ||
+          currentTask.status === 'cancelled' ||
+          currentTask.status === 'failed')
+
       const updatedPerson: PersonRuntime = {
         ...current,
         activity: payload.activity,
+        taskId: clearTaskBinding ? null : current.taskId,
+        carrying: clearTaskBinding ? null : current.carrying,
+        platformKey: clearTaskBinding ? null : current.platformKey,
         idleSince:
           payload.activity === 'idle'
             ? current.activity === 'idle' && current.idleSince
@@ -1389,7 +1415,7 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
     }
 
     default: {
-      const _exhaustive: never = event.type
+      const _exhaustive: never = event
       void _exhaustive
       return state
     }

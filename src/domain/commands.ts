@@ -126,14 +126,16 @@ export const CommandIssuerSchema = z
   })
   .strict()
 
-export interface Command<T extends CommandType = CommandType> {
-  v: 1
-  id: CommandId
-  type: T
-  issuedBy: CommandIssuer
-  issuedAt: Iso
-  payload: CommandPayloads[T]
-}
+export type Command<T extends CommandType = CommandType> = {
+  [K in T]: {
+    v: 1
+    id: CommandId
+    type: K
+    issuedBy: CommandIssuer
+    issuedAt: Iso
+    payload: CommandPayloads[K]
+  }
+}[T]
 
 export const CommandEnvelopeSchema = z
   .object({

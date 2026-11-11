@@ -4,15 +4,24 @@ import type { OfficeState, Task } from './work'
 
 function busyAssigneeIds(state: OfficeState): Set<EmployeeId> {
   const busy = new Set<EmployeeId>()
+  const nonBossReviewTaskIds = new Set<string>()
+  for (const r of Object.values(state.reviews)) {
+    if (
+      r.level !== 'boss' &&
+      (r.status === 'pending' || r.status === 'in_review')
+    ) {
+      nonBossReviewTaskIds.add(r.taskId)
+    }
+  }
   for (const task of Object.values(state.tasks)) {
     if (!task.assigneeId) continue
     if (
       task.status === 'queued' ||
       task.status === 'in_progress' ||
-      task.status === 'in_review' ||
       task.status === 'waiting_help' ||
       task.status === 'waiting_answer' ||
-      task.status === 'blocked'
+      task.status === 'blocked' ||
+      (task.status === 'in_review' && nonBossReviewTaskIds.has(task.id))
     ) {
       busy.add(task.assigneeId)
     }
