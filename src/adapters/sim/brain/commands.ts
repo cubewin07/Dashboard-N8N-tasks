@@ -57,6 +57,14 @@ export function handleSimCommand(
   return ack
 }
 
+function departmentIdForManagerTask(ctx: SimBrainContext) {
+  const dept =
+    ctx.state.config.departments.find((d) => d.active) ??
+    ctx.state.config.departments[0]
+  if (!dept) throw new Error('No department in config')
+  return dept.id
+}
+
 function validateCommand(ctx: SimBrainContext, cmd: Command): CommandAck | null {
   // contracts.md §3: every command is boss-only (stylists touch appearance only).
   if (cmd.issuedBy.role !== 'boss') {
@@ -209,8 +217,9 @@ function executeCommandNow(ctx: SimBrainContext, cmd: Command): CommandAck {
           typeKey: 'cs.chat_faq',
           title: `Yêu cầu từ Sếp: "${cmd.payload.text.slice(0, 60)}"`,
           detail: cmd.payload.text,
-          departmentId:
-            ctx.state.config.departments[0]?.id ?? ('dep_cs' as never),
+          // The manager owns the clarification; file it on their department
+          // (the manager has none, so the first active one).
+          departmentId: departmentIdForManagerTask(ctx),
           assigneeId: managerId,
           requestedBy: {
             kind: 'boss',
