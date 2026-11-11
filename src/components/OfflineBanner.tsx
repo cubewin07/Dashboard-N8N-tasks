@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n'
 import { formatTime } from '@/lib/time'
 import { fmt } from '@/lib/utils'
 import { useIsLegacyRoute, useOffice } from '@/office'
+import { isTeamOnline } from '@/office/liveness'
 
 export function OfflineBanner() {
   const { t } = useI18n()
@@ -13,9 +14,12 @@ export function OfflineBanner() {
   const legacyTeam = useTeamOnline()
   const officeConn = useOffice((s) => s.connection)
   const officeHeartbeatAt = useOffice((s) => s.state?.lastHeartbeat?.at ?? null)
+  const officeNow = useOffice((s) => s.state?.now ?? null)
 
   const conn = isLegacy ? legacyConn : officeConn
-  const online = isLegacy ? legacyTeam.online : officeConn === 'live'
+  const online = isLegacy
+    ? legacyTeam.online
+    : isTeamOnline(officeConn, officeHeartbeatAt, officeNow)
   const heartbeatAt = isLegacy ? legacyTeam.heartbeatAt : officeHeartbeatAt
   const teamText = heartbeatAt
     ? fmt(t.common.team.offlineSince, { time: formatTime(heartbeatAt) })
