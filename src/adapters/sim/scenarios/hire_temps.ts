@@ -5,6 +5,7 @@ import {
 } from '../brain/agents'
 import {
   createTaskInBrain,
+  departmentIdByKey,
   emitSimEvent,
   getManagerEmployeeId,
   type SimBrainContext,
@@ -29,7 +30,7 @@ export function runHireTempsScenario(ctx: SimBrainContext): void {
   ).length
 
   while (activeTemps < cap) {
-    const deptId = deptIds[activeTemps % deptIds.length] ?? 'dep_cs'
+    const deptId = deptIds[activeTemps % deptIds.length]!
     hireTempEmployee(ctx, deptId, 'manager')
     activeTemps += 1
   }
@@ -43,13 +44,13 @@ export function runHireTempsScenario(ctx: SimBrainContext): void {
       { employeeId: plan.archiveId, reason: 'cap' },
       { actor: managerId },
     )
-    hireTempEmployee(ctx, 'dep_cs', 'manager')
+    hireTempEmployee(ctx, departmentIdByKey(ctx, 'cs'), 'manager')
   } else {
     const overCapTask = createTaskInBrain(ctx, 'sys.hire_over_cap', {
       requestedByKind: 'manager',
       channel: 'internal',
       priority: 'high',
-      departmentId: 'dep_cs',
+      departmentId: departmentIdByKey(ctx, 'cs'),
       extraTags: ['hire_over_cap'],
       actor: managerId,
     })

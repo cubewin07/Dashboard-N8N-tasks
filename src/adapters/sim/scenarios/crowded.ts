@@ -22,7 +22,7 @@ export function runCrowdedScenario(ctx: SimBrainContext): void {
   ).length
 
   while (activeCount < 80) {
-    const deptId = deptIds[activeCount % deptIds.length] ?? 'dep_cs'
+    const deptId = deptIds[activeCount % deptIds.length]!
     hireTempEmployee(ctx, deptId, 'boss')
     activeCount += 1
   }

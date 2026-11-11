@@ -7,12 +7,15 @@ import {
 import {
   createTaskInBrain,
   emitSimEvent,
+  departmentIdByKey,
+  departmentWorkers,
   getDeptManagerEmployeeId,
   type SimBrainContext,
 } from '../brain/context'
 
 export function runMonthEndScenario(ctx: SimBrainContext): void {
   ctx.forceMonthEnd = true
+  const accountingDept = departmentIdByKey(ctx, 'accounting')
   emitSimEvent(ctx, 'sim.scenario', {
     key: 'month_end',
     label: {
@@ -33,7 +36,7 @@ export function runMonthEndScenario(ctx: SimBrainContext): void {
       requestedByKind: 'schedule',
       channel: 'schedule',
       priority: 'high',
-      departmentId: 'dep_accounting',
+      departmentId: accountingDept,
       titleCtx: { shop, month: 11 },
     })
   }
@@ -42,7 +45,7 @@ export function runMonthEndScenario(ctx: SimBrainContext): void {
     requestedByKind: 'schedule',
     channel: 'schedule',
     priority: 'high',
-    departmentId: 'dep_accounting',
+    departmentId: accountingDept,
     titleCtx: { month: 11 },
   })
 
@@ -50,19 +53,20 @@ export function runMonthEndScenario(ctx: SimBrainContext): void {
     requestedByKind: 'schedule',
     channel: 'schedule',
     priority: 'urgent',
-    departmentId: 'dep_accounting',
+    departmentId: accountingDept,
     titleCtx: { quarter: 4 },
   })
 
   // Advance tax item (acc.vat_return) through reviewer -> dept_manager -> boss queue
-  const deptMgrId = getDeptManagerEmployeeId(ctx, 'dep_accounting')
+  const deptMgrId = getDeptManagerEmployeeId(ctx, accountingDept)
+  const workerId = departmentWorkers(ctx, accountingDept)[0]!
 
   emitSimEvent(
     ctx,
     'task.assigned',
     {
       taskId: vatTask.id,
-      assigneeId: 'emp_hanh',
+      assigneeId: workerId,
       byId: deptMgrId,
     },
     { actor: deptMgrId },
@@ -71,20 +75,20 @@ export function runMonthEndScenario(ctx: SimBrainContext): void {
     ctx,
     'task.started',
     { taskId: vatTask.id },
-    { actor: 'emp_hanh' },
+    { actor: workerId },
   )
   emitSimEvent(
     ctx,
     'task.progressed',
     { taskId: vatTask.id, progress: 1 },
-    { actor: 'emp_hanh' },
+    { actor: workerId },
   )
 
   const rev1 = requestInitialReviewOrComplete(
     ctx,
     vatTask.id,
     'reviewer',
-    'emp_hanh',
+    workerId,
   )
   if (rev1) {
     emitSimEvent(
