@@ -30,7 +30,10 @@ export interface TaskRuntimeTimer {
   handoffDone: boolean
   helpDone: boolean
   questionDone: boolean
-  willFailOnce: boolean
+  /** Failed attempts so far; each one resets progress until maxRetries is spent. */
+  failures: number
+  /** A task whose sync never works: it fails every attempt, then task.failed. */
+  doomed: boolean
 }
 
 export interface ReviewRuntimeTimer {
@@ -42,6 +45,8 @@ export interface HelpRuntimeTimer {
   requestedSimMs: number
   acceptedSimMs: number | null
   durationSimMs: number
+  /** Rolled once per round: a busy or slow helper never answers that round. */
+  willAccept: boolean
 }
 
 export interface QuestionRuntimeTimer {

@@ -34,6 +34,8 @@ export const SIM_ODDS = {
   review: REVIEW_ODDS,
   secondAttemptApproveBonus: 0.12,
   workFailureChance: 0.04,
+  /** Share of tasks that fail every attempt (e.g. platform sync keeps erroring). */
+  workDoomedChance: 0.02,
   questionChance: 0.12,
   questionAnswerMinutes: [2, 5] as const,
   helpRequestChance: 0.35,
