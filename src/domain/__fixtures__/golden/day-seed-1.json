@@ -1,4 +1,4 @@
-{"seed":1,"simDurationMs":34200000,"startIso":"2026-11-02T01:00:00.000Z","endIso":"2026-11-02T10:30:00.000Z","stateHash":"6880c5b86e3e7de2_5005","events":[
+{"seed":1,"simDurationMs":34200000,"startIso":"2026-11-02T01:00:00.000Z","endIso":"2026-11-02T10:30:00.000Z","stateHash":"2214cc9c6827652a_5005","events":[
 {"v":1,"id":"evt_01M6CWAKYCW7HCK69FVVBY6S8P","seq":1,"at":"2026-11-02T01:00:07.500Z","type":"system.heartbeat","actor":{"kind":"system","id":null},"causedBy":null,"payload":{"source":"sim","version":"1.0.0"}},
 {"v":1,"id":"evt_01M6CWCEHC3YSWK518Z2YM2GFD","seq":2,"at":"2026-11-02T01:01:07.500Z","type":"system.heartbeat","actor":{"kind":"system","id":null},"causedBy":null,"payload":{"source":"sim","version":"1.0.0"}},
 {"v":1,"id":"evt_01M6CWE94C95EBH3MFEE44MSY7","seq":3,"at":"2026-11-02T01:02:07.500Z","type":"system.heartbeat","actor":{"kind":"system","id":null},"causedBy":null,"payload":{"source":"sim","version":"1.0.0"}},

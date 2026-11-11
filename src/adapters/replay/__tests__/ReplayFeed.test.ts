@@ -74,4 +74,37 @@ describe('ReplayFeed and golden logs (P03-T11)', () => {
     },
     25_000,
   )
+
+  it('hashes intake links and staffing, not just tasks', () => {
+    const base = initialState(makeSeedConfig(), goldenBundle.startIso)
+    const h0 = hashOfficeState(base)
+
+    const withMessage = {
+      ...base,
+      messages: {
+        ...base.messages,
+        msg_01JTEST000000000000000001: {
+          id: 'msg_01JTEST000000000000000001' as const,
+          channel: 'app' as const,
+          modality: 'text' as const,
+          fromUserId: 'emp_giam_doc',
+          text: 'x',
+          at: goldenBundle.startIso,
+          taskIds: [],
+        },
+      },
+    }
+    expect(hashOfficeState(withMessage)).not.toBe(h0)
+
+    const archived = {
+      ...base,
+      config: {
+        ...base.config,
+        employees: base.config.employees.map((e, i) =>
+          i === 0 ? { ...e, state: 'archived' as const } : e,
+        ),
+      },
+    }
+    expect(hashOfficeState(archived)).not.toBe(h0)
+  })
 })
