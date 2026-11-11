@@ -74,7 +74,15 @@ try {
   }
 
   fs.mkdirSync(path.dirname(outPath), { recursive: true })
-  fs.writeFileSync(outPath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')
+  // One event per line keeps diffs reviewable and the file ~10x smaller.
+  const { events: evs, ...head } = bundle
+  const headJson = JSON.stringify(head).slice(0, -1)
+  const body = evs.map((e) => JSON.stringify(e)).join(',\n')
+  fs.writeFileSync(
+    outPath,
+    `${headJson},"events":[\n${body}\n]}\n`,
+    'utf8',
+  )
   console.log(
     `OK: Recorded golden log to src/domain/__fixtures__/golden/day-seed-1.json (${events.length} events, hash ${stateHash}).`,
   )
