@@ -14,6 +14,7 @@ import { useAuth } from '@/app/auth'
 import { CommandButton, PageHeader, TimeAgo } from '@/components'
 import type { Command } from '@/domain/commands'
 import { newId } from '@/domain/ids'
+import { wallUlid } from '@/lib/ulid'
 import type { QuestionId, ReviewId } from '@/domain/primitives'
 import { bossQueue, pileFor, type BossQueueItem } from '@/domain/selectors'
 import { IntakeBox } from '@/features/office/IntakeBox'
@@ -43,7 +44,7 @@ function BossQueueCard({ item }: { item: BossQueueItem }) {
     decision: 'approved' | 'changes_requested' | 'rejected',
   ): Command<'review.decide'> => ({
     v: 1,
-    id: newId('cmd'),
+    id: newId('cmd', wallUlid),
     type: 'review.decide',
     issuedBy: {
       userId: session?.email ?? 'usr_boss',
@@ -59,7 +60,7 @@ function BossQueueCard({ item }: { item: BossQueueItem }) {
 
   const makeAnswerCommand = (): Command<'question.answer'> => ({
     v: 1,
-    id: newId('cmd'),
+    id: newId('cmd', wallUlid),
     type: 'question.answer',
     issuedBy: {
       userId: session?.email ?? 'usr_boss',
