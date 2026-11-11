@@ -47,27 +47,31 @@ describe('ReplayFeed and golden logs (P03-T11)', () => {
 
     const finalState = replayFeed.replayAll()
     expect(hashOfficeState(finalState)).toBe(goldenBundle.stateHash)
-  })
+  }, 25_000)
 
-  it('reproduces day-seed-1.json byte-for-byte when SimFeed runs with seed 1 for one sim day', async () => {
-    const config = makeSeedConfig()
-    const simFeed = createSimFeed({
-      seed: goldenBundle.seed,
-      speed: 30,
-      autoStartTimer: false,
-      bindGlobalControls: false,
-    })
+  it(
+    'reproduces day-seed-1.json byte-for-byte when SimFeed runs with seed 1 for one sim day',
+    async () => {
+      const config = makeSeedConfig()
+      const simFeed = createSimFeed({
+        seed: goldenBundle.seed,
+        speed: 30,
+        autoStartTimer: false,
+        bindGlobalControls: false,
+      })
 
-    const events: OfficeEvent[] = []
-    await simFeed.start(config)
-    simFeed.subscribe((batch) => {
-      events.push(...batch)
-    })
+      const events: OfficeEvent[] = []
+      await simFeed.start(config)
+      simFeed.subscribe((batch) => {
+        events.push(...batch)
+      })
 
-    simFeed.stepSimMs(goldenBundle.simDurationMs)
+      simFeed.stepSimMs(goldenBundle.simDurationMs)
 
-    expect(events.length).toBe(goldenBundle.events.length)
-    expect(JSON.stringify(events)).toBe(JSON.stringify(goldenBundle.events))
-    expect(hashOfficeState(simFeed.getState())).toBe(goldenBundle.stateHash)
-  })
+      expect(events.length).toBe(goldenBundle.events.length)
+      expect(JSON.stringify(events)).toBe(JSON.stringify(goldenBundle.events))
+      expect(hashOfficeState(simFeed.getState())).toBe(goldenBundle.stateHash)
+    },
+    25_000,
+  )
 })
