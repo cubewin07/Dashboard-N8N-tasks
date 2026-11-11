@@ -433,8 +433,8 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
         handoffDone: false,
         helpDone: false,
         questionDone: false,
-        willFailOnce:
-          task.attempts <= 1 && chance(ctx.rng, SIM_ODDS.workFailureChance),
+        failures: 0,
+        doomed: chance(ctx.rng, SIM_ODDS.workDoomedChance),
       })
       continue
     }
@@ -451,7 +451,8 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
           handoffDone: false,
           helpDone: false,
           questionDone: false,
-          willFailOnce: false,
+          failures: 0,
+          doomed: false,
         }
         ctx.taskTimers.set(task.id, timer)
       }
@@ -552,6 +553,7 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
                   SIM_ODDS.helpDurationMinutes[0],
                   SIM_ODDS.helpDurationMinutes[1],
                 ) * 60_000,
+              willAccept: chance(ctx.rng, SIM_ODDS.helpAcceptChance),
             })
             continue
           }
@@ -597,9 +599,10 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
       }
 
       if (nextProgress >= 1) {
-        if (timer.willFailOnce) {
-          timer.willFailOnce = false
-          if (canRetryTask(task, policy)) {
+        if (timer.doomed || chance(ctx.rng, SIM_ODDS.workFailureChance)) {
+          timer.failures += 1
+          // maxRetries counts retries: with 2, the third failure is final.
+          if (canRetryTask({ attempts: timer.failures }, policy)) {
             emitSimEvent(
               ctx,
               'task.progressed',
@@ -609,20 +612,19 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
             timer.internalProgress = 0.2
             timer.lastProgressNotified = 2
             continue
-          } else {
-            emitSimEvent(
-              ctx,
-              'task.failed',
-              {
-                taskId: task.id,
-                reason:
-                  'Không thể đồng bộ dữ liệu lên nền tảng sau số lần thử lại tối đa.',
-              },
-              { actor: task.assigneeId },
-            )
-            ctx.taskTimers.delete(task.id)
-            continue
           }
+          emitSimEvent(
+            ctx,
+            'task.failed',
+            {
+              taskId: task.id,
+              reason:
+                'Không thể đồng bộ dữ liệu lên nền tảng sau số lần thử lại tối đa.',
+            },
+            { actor: task.assigneeId },
+          )
+          ctx.taskTimers.delete(task.id)
+          continue
         }
 
         // Work finished -> start review chain or complete
@@ -662,33 +664,34 @@ export function stepHelps(ctx: SimBrainContext): void {
         requestedSimMs: Date.parse(h.createdAt),
         acceptedSimMs: h.status === 'accepted' ? nowMs : null,
         durationSimMs: 6 * 60_000,
+        willAccept: chance(ctx.rng, SIM_ODDS.helpAcceptChance),
       }
       ctx.helpTimers.set(h.id, timer)
     }
 
-    if (h.status === 'open') {
+    // A request that is still unanswered is `open` in round 1 and
+    // `timed_out` once it has been passed to the next helper.
+    if (h.status === 'open' || h.status === 'timed_out') {
       const elapsed = nowMs - timer.requestedSimMs
       if (elapsed >= timeoutSimMs) {
         const task = ctx.state.tasks[h.taskId]
-        const action = onHelpTimeout(h, policy)
-        if (action === 'retry' && task) {
+        if (!task) continue
+        const mgrId = getDeptManagerEmployeeId(ctx, task.departmentId)
+        if (onHelpTimeout(h, policy) === 'retry') {
           const nextHelper =
             pickHelper(h.specialty, ctx.state, [
               h.fromId,
               ...(h.toId ? [h.toId] : []),
-            ]) ?? getDeptManagerEmployeeId(ctx, task.departmentId)
+            ]) ?? mgrId
           emitSimEvent(
             ctx,
             'help.timed_out',
-            {
-              helpId: h.id,
-              toId: nextHelper,
-            },
+            { helpId: h.id, toId: nextHelper },
             { actor: h.fromId },
           )
           timer.requestedSimMs = nowMs
-        } else if (task) {
-          const mgrId = getDeptManagerEmployeeId(ctx, task.departmentId)
+          timer.willAccept = chance(ctx.rng, SIM_ODDS.helpAcceptChance)
+        } else {
           emitSimEvent(
             ctx,
             'help.escalated',
@@ -699,8 +702,8 @@ export function stepHelps(ctx: SimBrainContext): void {
         continue
       }
 
-      // Accept after 1 sim-minute if a helper is assigned
-      if (h.toId && elapsed >= 60_000) {
+      // The helper accepts after 1 sim-minute, if free and willing this round.
+      if (timer.willAccept && h.toId && elapsed >= 60_000) {
         const helperRuntime = ctx.state.people[h.toId]
         if (
           helperRuntime &&
@@ -715,25 +718,6 @@ export function stepHelps(ctx: SimBrainContext): void {
           )
           timer.acceptedSimMs = nowMs
         }
-      }
-      continue
-    }
-
-    if (h.status === 'timed_out' && h.toId) {
-      const helperRuntime = ctx.state.people[h.toId]
-      if (
-        helperRuntime &&
-        helperRuntime.activity !== 'off_shift' &&
-        helperRuntime.activity !== 'helping' &&
-        nowMs - timer.requestedSimMs >= 60_000
-      ) {
-        emitSimEvent(
-          ctx,
-          'help.accepted',
-          { helpId: h.id, byId: h.toId },
-          { actor: h.toId },
-        )
-        timer.acceptedSimMs = nowMs
       }
       continue
     }
