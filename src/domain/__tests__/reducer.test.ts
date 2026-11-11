@@ -635,4 +635,44 @@ describe('domain reducer', () => {
     expect(s1.people.emp_mai?.activity).toBe('idle')
     expect(s1.people.emp_mai?.taskId).toBeNull()
   })
+  it('returns unfinished work to the queue when its assignee is archived', () => {
+    const working = makeSampleTask({
+      id: 'task_01JTEST00000000000000000C',
+      assigneeId: 'emp_mai',
+      status: 'in_progress',
+      progress: 0.5,
+      startedAt: t(1),
+    })
+    const reviewing = makeSampleTask({
+      id: 'task_01JTEST00000000000000000D',
+      assigneeId: 'emp_mai',
+      status: 'in_review',
+      progress: 1,
+    })
+    const base = makeState()
+    const s0 = {
+      ...base,
+      tasks: { ...base.tasks, [working.id]: working, [reviewing.id]: reviewing },
+    }
+    const s1 = apply(
+      s0,
+      makeEvent(
+        'staff.archived',
+        { employeeId: 'emp_mai', reason: 'dismissed' },
+        { seq: 1, at: t(2) },
+      ),
+    )
+    expect(s1.people.emp_mai).toBeUndefined()
+    expect(s1.tasks[working.id]).toMatchObject({
+      status: 'queued',
+      assigneeId: null,
+      progress: 0,
+      startedAt: null,
+    })
+    // Already handed in: only approvals remain, the assignee stays on record.
+    expect(s1.tasks[reviewing.id]).toMatchObject({
+      status: 'in_review',
+      assigneeId: 'emp_mai',
+    })
+  })
 })
