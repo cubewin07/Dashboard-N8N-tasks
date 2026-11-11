@@ -25,7 +25,7 @@ import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
 import { bootOffice } from '@/office/store'
-import { formatActivitySentence } from './formatActivity'
+import { actorLabel, formatActivitySentence } from './formatActivity'
 
 const ROW_HEIGHT = 68
 const VIEWPORT_DEFAULT_HEIGHT = 640
@@ -246,7 +246,7 @@ export function ActivityPage() {
                         {sentence}
                       </p>
                       <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="truncate">{item.actorName}</span>
+                        <span className="truncate">{actorLabel(item, t)}</span>
                         {item.shopName && (
                           <span className="rounded bg-surface-muted px-1.5 py-0.2 text-[11px] font-medium">
                             {item.shopName}
@@ -287,7 +287,7 @@ export function ActivityPage() {
             <dl className="grid grid-cols-3 gap-x-3 gap-y-2.5 text-sm">
               <dt className="text-muted-foreground">{t.activity.detail.actor}</dt>
               <dd className="col-span-2 font-medium text-foreground">
-                {selectedItem.actorName}
+                {actorLabel(selectedItem, t)}
               </dd>
 
               {selectedItem.targetName && (
@@ -312,11 +312,11 @@ export function ActivityPage() {
                 <>
                   <dt className="text-muted-foreground">{t.activity.detail.status}</dt>
                   <dd className="col-span-2 font-medium text-foreground">
-                    {selectedTask.status}
+                    {t.activity.taskStatus[selectedTask.status]}
                   </dd>
                   <dt className="text-muted-foreground">{t.activity.detail.priority}</dt>
                   <dd className="col-span-2 font-medium text-foreground">
-                    {selectedTask.priority}
+                    {t.queue.priority[selectedTask.priority]}
                   </dd>
                 </>
               )}

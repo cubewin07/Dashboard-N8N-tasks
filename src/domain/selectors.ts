@@ -263,7 +263,9 @@ export interface ActivitySentenceParts {
   departmentId: DepartmentId | null
   floorKey: string | null
   actorId: EmployeeId | null
-  actorName: string
+  /** null when the actor is not a known person (system, customer). */
+  actorName: string | null
+  actorKind: 'employee' | 'owner' | 'customer' | 'system'
   targetId: EmployeeId | null
   targetName: string | null
   taskId: TaskId | null
@@ -735,8 +737,9 @@ export function activitySentenceParts(
   const deptMap = new Map(state.config.departments.map((d) => [d.id, d]))
   const shopMap = new Map(state.config.shops.map((s) => [s.id, s]))
 
-  const nameOf = (id: string | null | undefined, fallback = 'Hệ thống'): string => {
-    if (!id) return fallback
+  // null when there is no person: the UI supplies the localized label.
+  const nameOf = (id: string | null | undefined): string | null => {
+    if (!id) return null
     const emp = empMap.get(id as EmployeeId)
     return emp ? emp.name : id
   }
@@ -759,12 +762,9 @@ export function activitySentenceParts(
     event.actor.kind === 'employee' || event.actor.kind === 'owner'
       ? (event.actor.id as EmployeeId | null)
       : null
-  let actorName =
-    event.actor.kind === 'customer'
-      ? 'Khách hàng'
-      : event.actor.kind === 'owner'
-        ? nameOf(event.actor.id, 'Sếp')
-        : nameOf(event.actor.id, 'Hệ thống')
+  const actorKind = event.actor.kind
+  let actorName: string | null =
+    actorKind === 'customer' ? null : nameOf(event.actor.id)
   let targetId: EmployeeId | null = null
   let targetName: string | null = null
   let taskId: TaskId | null = null
@@ -795,7 +795,7 @@ export function activitySentenceParts(
       const p = event.payload as OfficeEvent<'intake.received'>['payload']
       category = 'work'
       floorKey = 'management'
-      actorName = 'Sếp'
+      actorName = null // the boss: label comes from i18n via actorKind
       taskTitle = p.text
       channelKey = p.channel
       break
@@ -1049,9 +1049,9 @@ export function activitySentenceParts(
   }
 
   const slots: Record<string, string | number> = {
-    actor: actorName,
-    target: targetName ?? 'đồng nghiệp',
-    task: taskTitle ?? 'công việc',
+    actor: actorName ?? '',
+    target: targetName ?? '',
+    task: taskTitle ?? '',
     note: reason ?? '',
     reason: reason ?? '',
     level: level ?? '',
@@ -1072,6 +1072,7 @@ export function activitySentenceParts(
     floorKey,
     actorId,
     actorName,
+    actorKind,
     targetId,
     targetName,
     taskId,

@@ -23,6 +23,39 @@ export const activity = {
       system: 'Hệ thống',
     },
   },
+  /** Labels for an actor that is not a known person. */
+  actors: {
+    system: 'Hệ thống',
+    customer: 'Khách hàng',
+    owner: 'Sếp',
+    employee: 'Đồng nghiệp',
+  },
+  fallbacks: {
+    target: 'đồng nghiệp',
+    task: 'công việc',
+  },
+  channels: {
+    telegram: 'Telegram',
+    app: 'Ứng dụng',
+    schedule: 'Lịch tự động',
+    internal: 'Nội bộ',
+    platform: 'Sàn TMĐT',
+  },
+  archiveReasons: {
+    cap: 'Đạt giới hạn nhân sự tạm',
+    dismissed: 'Sếp cho nghỉ',
+  },
+  taskStatus: {
+    queued: 'Đang chờ',
+    in_progress: 'Đang làm',
+    in_review: 'Chờ duyệt',
+    waiting_help: 'Chờ hỗ trợ',
+    waiting_answer: 'Chờ trả lời',
+    blocked: 'Bị kẹt',
+    done: 'Hoàn thành',
+    cancelled: 'Đã huỷ',
+    failed: 'Thất bại',
+  },
   decisions: {
     approved: 'đã duyệt',
     changes_requested: 'yêu cầu chỉnh sửa',

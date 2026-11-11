@@ -3,12 +3,12 @@ import type { OfficeState, PersonActivity } from '@/domain/work'
 import type { Lang, Messages } from '@/i18n'
 import { fmt } from '@/lib/utils'
 
-function localizeSystemActor(name: string, lang: Lang): string {
-  if (lang === 'vi') return name
-  if (name === 'Hệ thống') return 'System'
-  if (name === 'Khách hàng') return 'Customer'
-  if (name === 'Sếp') return 'Boss'
-  return name
+/** The actor's name, or the localized label for system / customer / boss. */
+export function actorLabel(
+  parts: Pick<ActivitySentenceParts, 'actorName' | 'actorKind'>,
+  t: Messages,
+): string {
+  return parts.actorName ?? t.activity.actors[parts.actorKind]
 }
 
 export function formatActivitySentence(
@@ -18,13 +18,9 @@ export function formatActivitySentence(
   state?: OfficeState | null,
 ): string {
   const template = t.activity.templates[parts.type]
-  const actor = localizeSystemActor(parts.actorName, lang)
-  const target = parts.targetName
-    ? localizeSystemActor(parts.targetName, lang)
-    : lang === 'en'
-      ? 'colleague'
-      : 'đồng nghiệp'
-  const task = parts.taskTitle ?? (lang === 'en' ? 'task' : 'công việc')
+  const actor = actorLabel(parts, t)
+  const target = parts.targetName ?? t.activity.fallbacks.target
+  const task = parts.taskTitle ?? t.activity.fallbacks.task
 
   const decision = parts.decision ? t.activity.decisions[parts.decision] : ''
   const level = parts.level ? t.activity.levels[parts.level] : ''
@@ -43,8 +39,16 @@ export function formatActivitySentence(
     ? parts.scenarioLabel[lang]
     : String(parts.slots.scenario ?? '')
 
-  const reason = parts.reason ?? ''
-  const channel = String(parts.slots.channel ?? '')
+  const rawReason = parts.reason ?? ''
+  const reason =
+    parts.type === 'staff.archived' && rawReason in t.activity.archiveReasons
+      ? t.activity.archiveReasons[rawReason as keyof typeof t.activity.archiveReasons]
+      : rawReason
+  const rawChannel = String(parts.slots.channel ?? '')
+  const channel =
+    rawChannel in t.activity.channels
+      ? t.activity.channels[rawChannel as keyof typeof t.activity.channels]
+      : rawChannel
   const progress = parts.progressPercent ?? 0
 
   return fmt(template, {
