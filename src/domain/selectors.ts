@@ -6,6 +6,7 @@ import type {
   RoleDef,
   Specialty,
 } from './config'
+import { openReviewsByAssignee } from './indexes'
 import type { EventType, OfficeEvent } from './events'
 import type {
   ApprovalLevel,
@@ -345,11 +346,7 @@ export function pileFor(
   const cached = cache.piles.get(employeeId)
   if (cached) return cached
 
-  const pending = Object.values(state.reviews).filter(
-    (r) =>
-      r.assigneeId === employeeId &&
-      (r.status === 'pending' || r.status === 'in_review'),
-  )
+  const pending = openReviewsByAssignee(state.reviews).get(employeeId) ?? []
   const sorted = sortQueue(pending, state.now, state.config.policy)
   cache.piles.set(employeeId, sorted)
   return sorted

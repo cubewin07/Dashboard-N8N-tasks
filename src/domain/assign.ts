@@ -1,33 +1,7 @@
 import type { Employee, Policy, TaskType } from './config'
+import { busyAssigneeIds } from './indexes'
 import type { DepartmentId, EmployeeId } from './primitives'
 import type { OfficeState, Task } from './work'
-
-function busyAssigneeIds(state: OfficeState): Set<EmployeeId> {
-  const busy = new Set<EmployeeId>()
-  const nonBossReviewTaskIds = new Set<string>()
-  for (const r of Object.values(state.reviews)) {
-    if (
-      r.level !== 'boss' &&
-      (r.status === 'pending' || r.status === 'in_review')
-    ) {
-      nonBossReviewTaskIds.add(r.taskId)
-    }
-  }
-  for (const task of Object.values(state.tasks)) {
-    if (!task.assigneeId) continue
-    if (
-      task.status === 'queued' ||
-      task.status === 'in_progress' ||
-      task.status === 'waiting_help' ||
-      task.status === 'waiting_answer' ||
-      task.status === 'blocked' ||
-      (task.status === 'in_review' && nonBossReviewTaskIds.has(task.id))
-    ) {
-      busy.add(task.assigneeId)
-    }
-  }
-  return busy
-}
 
 export function pickWorker(
   taskType: Pick<TaskType, 'specialty'> | string,
@@ -42,7 +16,7 @@ export function pickWorker(
 
   const roleMap = new Map(state.config.roles.map((r) => [r.key, r]))
   const busyIds = state.config.policy.work.oneActiveTaskPerWorker
-    ? busyAssigneeIds(state)
+    ? busyAssigneeIds(state.tasks, state.reviews)
     : new Set<EmployeeId>()
 
   const candidates: Array<{

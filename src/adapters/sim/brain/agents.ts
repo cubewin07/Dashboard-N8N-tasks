@@ -1,6 +1,7 @@
 import { canRetryTask, pickWorker } from '@/domain/assign'
 import type { ApprovalLevel, Employee } from '@/domain/config'
 import { onHelpTimeout, pickHelper } from '@/domain/help'
+import { openReviewsByAssignee } from '@/domain/indexes'
 import type { DepartmentId, EmployeeId, ReviewId } from '@/domain/primitives'
 import { canAsk, isInPerson } from '@/domain/questions'
 import { sortQueue } from '@/domain/queue'
@@ -831,9 +832,9 @@ export function stepReviews(ctx: SimBrainContext): void {
       continue
     }
 
-    const empReviews = Object.values(ctx.state.reviews)
-      .filter((r) => r.assigneeId === emp.id)
-      .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    const empReviews = [
+      ...(openReviewsByAssignee(ctx.state.reviews).get(emp.id) ?? []),
+    ].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 
     const activeReview = empReviews.find((r) => r.status === 'in_review')
     if (activeReview) {
