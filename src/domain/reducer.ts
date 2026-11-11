@@ -1360,12 +1360,50 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
       const nextPeople = { ...state.people }
       delete nextPeople[p.employeeId]
 
+      // Work the person had not handed in goes back to the queue, so nobody
+      // who no longer exists is left "doing" a task. Tasks already in review
+      // keep their assignee: the work is done and only approvals remain.
+      let nextTasks = state.tasks
+      let nextQuestions = state.questions
+      for (const task of Object.values(state.tasks)) {
+        if (task.assigneeId !== p.employeeId) continue
+        if (
+          task.status !== 'queued' &&
+          task.status !== 'in_progress' &&
+          task.status !== 'waiting_help' &&
+          task.status !== 'waiting_answer' &&
+          task.status !== 'blocked'
+        ) {
+          continue
+        }
+        nextTasks = {
+          ...nextTasks,
+          [task.id]: {
+            ...task,
+            status: 'queued',
+            assigneeId: null,
+            progress: 0,
+            startedAt: null,
+          },
+        }
+        for (const q of Object.values(nextQuestions)) {
+          if (q.taskId === task.id && q.status === 'open') {
+            nextQuestions = {
+              ...nextQuestions,
+              [q.id]: { ...q, status: 'expired', answeredAt: event.at },
+            }
+          }
+        }
+      }
+
       return {
         ...state,
         now: event.at,
         seq: event.seq,
         config: nextConfig,
         people: nextPeople,
+        tasks: nextTasks,
+        questions: nextQuestions,
         log: appendLog(state.log, event),
       }
     }
