@@ -2,15 +2,13 @@ import type { Id, IdPrefix } from './primitives'
 
 export type UlidFactory = () => string
 
-let fallbackSeq = 0
-function defaultUlidFactory(): string {
-  fallbackSeq += 1
-  return `01JCMD${String(fallbackSeq).padStart(20, '0')}`
-}
-
+/**
+ * The domain holds no clock, randomness or counter, so the caller supplies
+ * the ULID source: the simulator uses its seeded rng, the UI `wallUlid`.
+ */
 export function newId<P extends IdPrefix>(
   prefix: P,
-  ulidFactory: UlidFactory = defaultUlidFactory,
+  ulidFactory: UlidFactory,
 ): Id<P> {
   const ulid = ulidFactory()
   if (typeof ulid !== 'string' || ulid.trim().length === 0) {

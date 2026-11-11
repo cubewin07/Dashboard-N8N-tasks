@@ -4,6 +4,7 @@ import { useAuth } from '@/app/auth'
 import { CommandStatusText } from '@/components/CommandButton'
 import { Button } from '@/components/ui/button'
 import { newId } from '@/domain/ids'
+import { wallUlid } from '@/lib/ulid'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { useCommandStatus, useOffice } from '@/office'
@@ -27,7 +28,7 @@ export function IntakeBox({
     const trimmed = text.trim()
     if (!trimmed) return
 
-    const cmdId = newId('cmd')
+    const cmdId = newId('cmd', wallUlid)
     setLastCmdId(cmdId)
     setText('')
     void send({
