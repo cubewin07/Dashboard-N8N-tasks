@@ -33,33 +33,42 @@ export function sortQueue<T extends QueueableItem>(
     return [...items]
   }
 
+  const n = items.length
   const nowMs = Date.parse(now)
   const weights = policy.priority.weights
   const agingRate = policy.priority.agingPointsPerHour
   const agingCap = policy.priority.agingCapPoints
 
-  const decorated = items.map((item) => {
+  const decorated = new Array(n)
+  for (let i = 0; i < n; i += 1) {
+    const item = items[i]!
     const createdMs = Date.parse(item.createdAt)
-    const hoursWaiting = Math.max(0, (nowMs - createdMs) / MS_PER_HOUR)
-    const aging = Math.min(agingCap, agingRate * hoursWaiting)
-    const score = weights[item.priority] + aging
-    return {
+    const hoursWaiting = (nowMs - createdMs) / MS_PER_HOUR
+    const aging =
+      hoursWaiting <= 0
+        ? 0
+        : agingRate * hoursWaiting > agingCap
+          ? agingCap
+          : agingRate * hoursWaiting
+    decorated[i] = {
       item,
-      score,
+      score: weights[item.priority] + aging,
       createdMs,
       id: item.id,
     }
-  })
+  }
 
   decorated.sort((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score
-    }
-    if (a.createdMs !== b.createdMs) {
-      return a.createdMs - b.createdMs
-    }
+    const scoreDiff = b.score - a.score
+    if (scoreDiff !== 0) return scoreDiff
+    const timeDiff = a.createdMs - b.createdMs
+    if (timeDiff !== 0) return timeDiff
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
   })
 
-  return decorated.map((d) => d.item)
+  const result = new Array(n)
+  for (let i = 0; i < n; i += 1) {
+    result[i] = decorated[i]!.item
+  }
+  return result
 }
