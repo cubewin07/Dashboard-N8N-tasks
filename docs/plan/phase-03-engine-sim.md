@@ -187,6 +187,16 @@ An eighth, **"Đông người"** (perf reference, shown in the panel under "Ki�
 | Intake parsing | keyword matcher · LLM call | **Keyword matcher (sim only)** | No keys in the browser; real intake is after this phase | – |
 | Task titles | i18n · sim content data | **Sim content (vi only)** | It is fake business data, like the MVP seed; real titles will come from real work | English demo needed → add `content/en` |
 | Batching | per event · per frame | **Per animation frame** | 120× can emit dozens of events per tick | – |
+| Sim start date | current real month · fixed date | **Fixed Monday 2026-11-02 08:00 ICT** | Deterministic golden logs; month-end rules fire at fixed sim dates | A demo needs "today" → derive it from a seed-independent `startIso` option |
+| System requests (`sys.*`) | normal chain · straight to boss | **Straight to a boss review**; "request changes" cancels | R6: a hire over cap has no worker to rework it, and a department reviewer must not bounce it | Boss wants to negotiate a hire → add a comment thread, not a rework loop |
+| Boss answers to unclear intake | ignore · re-parse with the answer | **Re-parse request + answer; fall back to a department named in the answer** | The question exists so the answer can route the work | Real intake (after this phase) replaces the keyword matcher |
+| Worker on a boss review | held until decided · freed | **Freed** | Boss review is a human wait; holding workers stalled the company (CS lost 9 of 10 workers by hour 6) | Boss wants workers to stay on call → add a policy flag |
+| Heartbeats in the log | logged · state only | **State only** (`lastHeartbeat`) | One per sim minute filled the 500-event activity ring (56% over five days) | A debug view needs them → read them from the feed, not the ring |
+| Demo auto-approve delay | 2 sim minutes · 2 real minutes | **2 real minutes** at the current speed | 2 sim minutes is 4 s at 30×: the boss never sees the queue | – |
+| Team online | connection only · connection + heartbeat | **Both** (stale after 3 min of feed time) | R15 | – |
+| Command ids from the UI | counter · ULID | **Wall-clock ULID with crypto randomness**, outside the domain | A counter restarts on reload and collides with idempotency | – |
+| Command permissions in the sim | trust the caller · enforce contract roles | **Enforce**: all commands boss-only, `forbidden` otherwise | Same behaviour the real worker will have (`contracts.md` §3) | – |
+| Scenario `long_queue` seats | force `inPerson` · obey R8 | **Obey R8**: ask threshold + 5 questions so 5 sit | A scripted flag contradicted the domain rule | – |
 
 ## 5. Tasks
 - [x] **P03-T01** Complete event/command schemas and the reducer. *Files:* `src/domain/{events,commands,reducer}.ts`, `src/domain/__tests__/reducer.test.ts`, `src/domain/__fixtures__/events/*.json`. *Steps:* zod payload schema for every type in `contracts.md` §2.2 and §3; `apply` case per type with the state effects listed there and the activity transitions in §3.1; skip-and-warn for unknown ids/types; ignore `seq ≤ state.seq`; ring buffer 500. *Acceptance:* one test per event type (fixture in → expected state slice); test "unknown id skipped", "duplicate seq ignored", "exhaustive switch" (`never` check compiles); `contracts.test.ts` version check passes.
