@@ -401,10 +401,14 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
 
     // System tasks (like sys.hire_over_cap or sys.connect_account) go straight to review
     if (task.typeKey.startsWith('sys.') && task.status === 'queued') {
-      const mgrId = getManagerEmployeeId(ctx)
-      const chain = effectiveReviewChain(task, undefined, policy)
-      const firstLevel = chain[0] ?? 'boss'
-      requestInitialReviewOrComplete(ctx, task.id, firstLevel, mgrId)
+      // R6: a system request has no worker to review; it goes straight to
+      // the boss (hire over cap, connect account).
+      requestInitialReviewOrComplete(
+        ctx,
+        task.id,
+        'boss',
+        getManagerEmployeeId(ctx),
+      )
       continue
     }
 
@@ -923,6 +927,19 @@ export function decideReviewInBrain(
         causedBy,
       )
     }
+  } else if (decision === 'changes_requested' && task.typeKey.startsWith('sys.')) {
+    // There is no worker to rework a system request: close it so the
+    // department can ask again, instead of leaving it in progress unassigned.
+    ctx.taskTimers.delete(task.id)
+    emitSimEvent(
+      ctx,
+      'task.cancelled',
+      {
+        taskId: task.id,
+        reason: note ?? 'Sếp chưa đồng ý yêu cầu này.',
+      },
+      { actor: byId, causedBy },
+    )
   } else if (decision === 'changes_requested') {
     const timer = ctx.taskTimers.get(task.id)
     if (timer) {
