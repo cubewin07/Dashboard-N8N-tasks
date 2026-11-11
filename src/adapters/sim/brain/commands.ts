@@ -37,6 +37,14 @@ export function handleSimCommand(
     return existingAck
   }
 
+  // Checks that do not depend on timing run first, so a bad command is
+  // refused now instead of "accepted" and silently dropped when it runs.
+  const refusal = validateCommand(ctx, cmd)
+  if (refusal) {
+    ctx.processedCommands.set(cmd.id, refusal)
+    return refusal
+  }
+
   if (!ctx.teamOnline) {
     ctx.queuedOfflineCommands.push(cmd)
     const ack: CommandAck = { commandId: cmd.id, status: 'accepted' }
@@ -47,6 +55,29 @@ export function handleSimCommand(
   const ack = executeCommandNow(ctx, cmd)
   ctx.processedCommands.set(cmd.id, ack)
   return ack
+}
+
+function validateCommand(ctx: SimBrainContext, cmd: Command): CommandAck | null {
+  // contracts.md §3: every command is boss-only (stylists touch appearance only).
+  if (cmd.issuedBy.role !== 'boss') {
+    return { commandId: cmd.id, status: 'rejected', reason: 'forbidden' }
+  }
+  if (cmd.type === 'staff.hire') {
+    const { departmentId, roleKey } = cmd.payload
+    if (!ctx.state.config.departments.some((d) => d.id === departmentId && d.active)) {
+      return { commandId: cmd.id, status: 'rejected', reason: 'not_found' }
+    }
+    const role = ctx.state.config.roles.find((r) => r.key === roleKey)
+    if (!role) {
+      return { commandId: cmd.id, status: 'rejected', reason: 'not_found' }
+    }
+    // Temps do the work or review it; owner, manager and dept_manager seats are not for hire.
+    const hireable = role.caps.doWork || role.caps.approveLevel === 'reviewer'
+    if (role.caps.humanOwner || !hireable) {
+      return { commandId: cmd.id, status: 'rejected', reason: 'invalid_state' }
+    }
+  }
+  return null
 }
 
 export function flushOfflineCommands(ctx: SimBrainContext): void {
@@ -320,6 +351,7 @@ function executeCommandNow(ctx: SimBrainContext, cmd: Command): CommandAck {
         cmd.payload.specialties,
         cmd.id,
         cmd.payload.name,
+        cmd.payload.roleKey,
       )
       return { commandId: cmd.id, status: 'accepted' }
     }
