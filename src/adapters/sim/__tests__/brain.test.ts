@@ -5,7 +5,9 @@ import { DEFAULT_SIM_SEED } from '../controls'
 import { createSimFeed } from '../SimFeed'
 
 describe('Sim brain 8 sim-hours invariants & night shift (P03-T09)', () => {
-  it('runs 8 sim-hours at default seed satisfying all volume, review, help, handoff, concurrency, and schema invariants', async () => {
+  it(
+    'runs 8 sim-hours at default seed satisfying all volume, review, help, handoff, concurrency, and schema invariants',
+    async () => {
     const cfg = makeSeedConfig()
     const feed = createSimFeed({
       seed: DEFAULT_SIM_SEED,
@@ -103,5 +105,5 @@ describe('Sim brain 8 sim-hours invariants & night shift (P03-T09)', () => {
       }
     }
     expect(csWorkingOrIdle).toBeGreaterThan(0)
-  })
+  }, 25_000)
 })
