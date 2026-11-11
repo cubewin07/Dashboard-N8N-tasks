@@ -52,8 +52,13 @@ export function parseViewSearch(
 export function serializeViewSearch(
   mode: CameraMode,
   focusedFloorKey: string | null,
+  baseSearch = '',
 ): string {
-  const params = new URLSearchParams()
+  const params = new URLSearchParams(
+    baseSearch.startsWith('?') ? baseSearch.slice(1) : baseSearch,
+  )
+  params.delete('cam')
+  params.delete('floor')
   if (mode === 'floor' && focusedFloorKey) {
     params.set('cam', 'floor')
     params.set('floor', focusedFloorKey)
