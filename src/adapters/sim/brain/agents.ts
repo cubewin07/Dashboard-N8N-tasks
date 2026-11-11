@@ -33,7 +33,11 @@ import {
   roleCaps,
   type SimBrainContext,
 } from './context'
-import { sampleReviewDecision, SIM_ODDS } from './odds'
+import {
+  autoApproveBossDelaySimMs,
+  sampleReviewDecision,
+  SIM_ODDS,
+} from './odds'
 import {
   computeNextProgress,
   HANDOFF_BY_TASK_TYPE,
@@ -286,10 +290,8 @@ export function stepPersonShifts(ctx: SimBrainContext): void {
         emitSimEvent(ctx, 'person.activity', {
           employeeId: emp.id,
           activity: 'resting',
-          locationHint: {
-            floorKey: dept?.id ?? 'lobby',
-            target: 'other',
-          },
+          // Lunch is spent on the rest floor (a fixed floor key, not a department id).
+          locationHint: { floorKey: 'games_rest', target: 'other' },
         })
       }
       continue
@@ -317,6 +319,9 @@ export function stepPersonShifts(ctx: SimBrainContext): void {
       emitSimEvent(ctx, 'person.activity', {
         employeeId: emp.id,
         activity: nextActivity,
+        // Back from lunch or off shift: the hint points at the desk again
+        // instead of staying on the rest floor.
+        ...(dept ? { locationHint: { floorKey: dept.key, target: 'desk' as const } } : {}),
       })
     }
   }
@@ -782,7 +787,7 @@ export function stepQuestions(ctx: SimBrainContext): void {
     if (isOwner) {
       if (
         !ctx.autoApproveBoss ||
-        nowMs - timer.askedSimMs < SIM_ODDS.autoApproveBossDelaySimMs
+        nowMs - timer.askedSimMs < autoApproveBossDelaySimMs(ctx.clock.speed)
       ) {
         continue
       }
@@ -886,7 +891,7 @@ export function stepReviews(ctx: SimBrainContext): void {
     if (
       isOwner &&
       nowMs - Date.parse(nextPending.createdAt) <
-        SIM_ODDS.autoApproveBossDelaySimMs
+        autoApproveBossDelaySimMs(ctx.clock.speed)
     ) {
       continue
     }
