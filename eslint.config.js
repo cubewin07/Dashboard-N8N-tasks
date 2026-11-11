@@ -34,9 +34,39 @@ export default tseslint.config(
   {
     files: ['src/**/*.{ts,tsx}'],
     ignores: [
+      'src/adapters/sim/**/*.{ts,tsx}',
+      'src/adapters/replay/__tests__/**/*.{ts,tsx}',
+      'src/office/feedRegistry.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@/adapters/sim',
+                '@/adapters/sim/*',
+                '@/adapters/sim/**',
+                '**/adapters/sim',
+                '**/adapters/sim/*',
+                '**/adapters/sim/**',
+              ],
+              message:
+                'Only src/office/feedRegistry.ts may import from src/adapters/sim.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
       'src/adapters/**/*.{ts,tsx}',
       'src/office/feedRegistry.ts',
       'src/office/configStore.ts',
+      'src/office/__tests__/**/*.{ts,tsx}',
       'src/app/providers.tsx',
     ],
     rules: {

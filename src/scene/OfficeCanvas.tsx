@@ -4,6 +4,7 @@ import { PerformanceMonitor } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import type { Department } from '@/domain/config'
 import type { DepartmentId } from '@/domain/primitives'
+import { ActivityTicker } from '@/features/activity/ActivityTicker'
 import { CameraModeBar } from '@/features/office/CameraModeBar'
 import { FloorPicker } from '@/features/office/FloorPicker'
 import { ShortcutHint } from '@/features/office/ShortcutHint'
@@ -275,7 +276,8 @@ export function OfficeCanvas() {
           <div className="hidden w-52 lg:block" aria-hidden="true" />
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex items-end justify-between gap-4">
+          <ActivityTicker />
           <ShortcutHint />
         </div>
       </div>

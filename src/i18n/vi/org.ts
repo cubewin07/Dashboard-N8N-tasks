@@ -27,4 +27,8 @@ export const org = {
   },
   emptyDepartment: 'Phòng ban này chưa có nhân sự đang hoạt động.',
   loading: 'Đang tải sơ đồ tổ chức…',
+  pileBadge: '{n} chờ duyệt',
+  currentTaskPrefix: 'Đang xử lý: {title}',
+  archivedSectionTitle: 'Nhân sự tạm đã nghỉ ({n})',
+  archivedBadge: 'Đã lưu trữ',
 }

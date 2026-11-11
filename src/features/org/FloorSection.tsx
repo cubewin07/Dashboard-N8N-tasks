@@ -1,23 +1,27 @@
 import type { CSSProperties } from 'react'
 import type { PaletteSwatch } from '@/domain/config'
 import type { OrgFloorNode } from '@/domain/selectors'
-import type { PersonRuntime } from '@/domain/work'
+import type { OfficeState, PersonRuntime } from '@/domain/work'
 import { useI18n } from '@/i18n'
 import { fmt } from '@/lib/utils'
 import { useLabel } from '@/office/hooks'
 import { PersonRow } from './PersonRow'
 
+export interface FloorSectionProps {
+  floor: OrgFloorNode
+  swatch?: PaletteSwatch
+  state?: OfficeState | null
+  peopleRuntime?: Record<string, PersonRuntime>
+  compact?: boolean
+}
+
 export function FloorSection({
   floor,
   swatch,
+  state,
   peopleRuntime,
   compact = false,
-}: {
-  floor: OrgFloorNode
-  swatch?: PaletteSwatch
-  peopleRuntime?: Record<string, PersonRuntime>
-  compact?: boolean
-}) {
+}: FloorSectionProps) {
   const { t } = useI18n()
   const label = useLabel()
 
@@ -73,12 +77,16 @@ export function FloorSection({
           </p>
         ) : (
           floor.people.map((node) => {
-            const runtime = peopleRuntime?.[node.employee.id]
+            const runtime =
+              peopleRuntime?.[node.employee.id] ??
+              (state ? state.people[node.employee.id] : undefined)
             return (
               <PersonRow
                 key={node.employee.id}
                 node={node}
                 activity={runtime?.activity ?? 'idle'}
+                runtime={runtime}
+                state={state}
                 compact={compact}
               />
             )

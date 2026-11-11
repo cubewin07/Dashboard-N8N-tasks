@@ -173,11 +173,13 @@ export function requestInitialReviewOrComplete(
     { actor: leadId, causedBy },
   )
 
-  // Restore courier/lead to idle if they have no active task of their own
+  // Restore courier/lead to idle if they have no active in-progress task of their own
   for (const cid of [leadId, task.assigneeId]) {
     if (!cid) continue
     const rt = ctx.state.people[cid]
-    if (rt && rt.activity === 'delivering' && rt.taskId === null) {
+    if (!rt || rt.activity !== 'delivering') continue
+    const boundTask = rt.taskId ? ctx.state.tasks[rt.taskId] : null
+    if (!boundTask || boundTask.status !== 'in_progress') {
       emitSimEvent(ctx, 'person.activity', {
         employeeId: cid,
         activity: 'idle',
@@ -407,6 +409,15 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
     }
 
     if (task.status === 'queued' && task.assigneeId !== null) {
+      const workerAlreadyBusy = Object.values(ctx.state.tasks).some(
+        (other) =>
+          other.id !== task.id &&
+          other.assigneeId === task.assigneeId &&
+          (other.status === 'in_progress' ||
+            other.status === 'waiting_help' ||
+            other.status === 'waiting_answer'),
+      )
+      if (workerAlreadyBusy) continue
       const tt = taskTypeMap.get(task.typeKey)
       emitSimEvent(
         ctx,

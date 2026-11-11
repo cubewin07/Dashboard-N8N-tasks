@@ -6,3 +6,7 @@ export {
   type SimControlsSnapshot,
 } from './controls'
 export { createSimFeed, SimFeed, type SimFeedOptions } from './SimFeed'
+export {
+  SimControlPanel,
+  type SimControlPanelProps,
+} from './ui/SimControlPanel'

@@ -3,6 +3,7 @@ import { vi, type Messages } from './vi'
 import { en } from './en'
 
 export type Lang = 'vi' | 'en'
+export type { Messages }
 const dictionaries: Record<Lang, Messages> = { vi, en }
 const STORAGE_KEY = 'shophq.lang'
 

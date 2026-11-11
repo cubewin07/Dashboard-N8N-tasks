@@ -24,4 +24,7 @@ export const office = {
   shortcutStep: '↑↓ Đổi tầng',
   shortcutEsc: 'Esc Về toàn cảnh',
   shortcutWasd: 'WASD/QE Di chuyển',
+  chipWorking: 'đang làm {n}',
+  chipWaiting: 'đang chờ {n}',
+  chipReviewPile: 'chờ duyệt {n}',
 }

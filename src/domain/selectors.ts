@@ -205,9 +205,7 @@ export function orgTree(config: OrgConfig): OrgFloorNode[] {
 // Runtime Selectors (with slice-keyed memoisation)
 // ============================================================================
 
-export interface BossQueueItem {
-  id: ReviewId | QuestionId
-  kind: 'review' | 'question'
+interface BossQueueItemBase {
   priority: Priority
   effectivePriority: number
   createdAt: Iso
@@ -216,10 +214,22 @@ export interface BossQueueItem {
   department: Department | null
   requester: Employee | null
   assignee: Employee | null
-  review: ReviewItem | null
-  question: Question | null
   matchedRules: ApprovalRule[]
 }
+
+export type BossQueueItem =
+  | (BossQueueItemBase & {
+      id: ReviewId
+      kind: 'review'
+      review: ReviewItem
+      question: null
+    })
+  | (BossQueueItemBase & {
+      id: QuestionId
+      kind: 'question'
+      review: null
+      question: Question
+    })
 
 export interface FloorSummary {
   floorKey: string

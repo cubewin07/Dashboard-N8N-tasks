@@ -1,5 +1,7 @@
 import {
+  Activity,
   Building2,
+  CheckSquare,
   ChevronDown,
   ChevronRight,
   Images,
@@ -25,21 +27,28 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { bossQueue } from '@/domain/selectors'
+import { IntakeBox } from '@/features/office/IntakeBox'
 import { StartWorkSheet } from '@/features/start/StartWorkSheet'
 import { useInboxCount } from '@/hooks/queries'
 import { useNow } from '@/hooks/useNow'
 import { useI18n } from '@/i18n'
 import { formatHeaderDate, ictHour } from '@/lib/time'
 import { cn } from '@/lib/utils'
+import { useOffice } from '@/office'
+import { officeExtensions } from '@/office/extensions'
+import { useOfficeSelector } from '@/office/hooks'
 import { useAuth } from './auth'
 import { useStartWork } from './startWork'
 
-type MainNavKey = 'office' | 'org'
+type MainNavKey = 'office' | 'org' | 'queue' | 'activity'
 type LegacyNavKey = 'overview' | 'inbox' | 'tasks' | 'start' | 'library' | 'team'
 
 const MAIN_NAV: { key: MainNavKey; to: string; icon: typeof Building2 }[] = [
   { key: 'office', to: '/', icon: Building2 },
   { key: 'org', to: '/org', icon: Network },
+  { key: 'queue', to: '/queue', icon: CheckSquare },
+  { key: 'activity', to: '/activity', icon: Activity },
 ]
 
 const LEGACY_NAV: { key: LegacyNavKey; to: string; icon: typeof Inbox }[] = [
@@ -84,6 +93,22 @@ function InboxBadge({ className }: { className?: string }) {
   )
 }
 
+function BossQueueBadge({ className }: { className?: string }) {
+  const count = useOfficeSelector((s) => (s ? bossQueue(s).length : 0))
+  if (count <= 0) return null
+  return (
+    <span
+      data-nav-boss-queue-badge
+      className={cn(
+        'tabular min-w-5 rounded-full bg-blocked px-1.5 text-center text-[11px] font-semibold leading-5 text-primary-foreground',
+        className,
+      )}
+    >
+      {count}
+    </span>
+  )
+}
+
 function Sidebar() {
   const { t } = useI18n()
   const { signOut } = useAuth()
@@ -110,6 +135,7 @@ function Sidebar() {
           <NavLink key={key} to={to} end={to === '/'} className={navCls}>
             <Icon className="size-[18px]" aria-hidden />
             <span className="flex-1">{t.common.nav[key]}</span>
+            {key === 'queue' && <BossQueueBadge />}
           </NavLink>
         ))}
 
@@ -192,6 +218,9 @@ function TopBar() {
             {formatHeaderDate(now, lang)} ICT
           </p>
         </div>
+        <div className="hidden flex-1 justify-center px-4 lg:flex">
+          <IntakeBox compact />
+        </div>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <span
             className="hidden rounded-full border border-dashed border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground sm:inline"
@@ -213,6 +242,8 @@ function MobileTabBar() {
   const [moreOpen, setMoreOpen] = useState(false)
   const location = useLocation()
   const [legacyOpen, setLegacyOpen] = useState(() => isLegacyPath(location.pathname))
+  useOffice((s) => Boolean(s.state))
+  const ControlPanel = officeExtensions.controlPanel
 
   const moreActive =
     location.pathname.startsWith('/settings') || isLegacyPath(location.pathname)
@@ -226,6 +257,8 @@ function MobileTabBar() {
   const items: { key: MainNavKey; to: string; icon: typeof Building2; label: string }[] = [
     { key: 'office', to: '/', icon: Building2, label: t.common.nav.office },
     { key: 'org', to: '/org', icon: Network, label: t.common.nav.org },
+    { key: 'queue', to: '/queue', icon: CheckSquare, label: t.common.nav.queue },
+    { key: 'activity', to: '/activity', icon: Activity, label: t.common.nav.activity },
   ]
 
   return (
@@ -236,7 +269,12 @@ function MobileTabBar() {
       >
         {items.map(({ key, to, icon: Icon, label }) => (
           <NavLink key={key} to={to} end={to === '/'} className={({ isActive }) => tab(isActive)}>
-            <Icon className="size-5" aria-hidden />
+            <div className="relative flex items-center justify-center">
+              <Icon className="size-5" aria-hidden />
+              {key === 'queue' && (
+                <BossQueueBadge className="absolute -right-3 -top-1.5 min-w-4 px-1 text-[10px] leading-4" />
+              )}
+            </div>
             {label}
           </NavLink>
         ))}
@@ -269,6 +307,12 @@ function MobileTabBar() {
               <Settings className="size-5 text-muted-foreground" aria-hidden />
               {t.common.nav.settings}
             </NavLink>
+
+            {ControlPanel && (
+              <div className="my-2 border-t border-border pt-3">
+                <ControlPanel />
+              </div>
+            )}
 
             <div className="my-2 border-t border-border pt-2">
               <button

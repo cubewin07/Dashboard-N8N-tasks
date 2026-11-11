@@ -1,6 +1,8 @@
 import type { Iso } from '@/domain/primitives'
 import { DEFAULT_SIM_START_ISO, type SimSpeed } from './clock'
 
+export type { SimSpeed }
+
 export type ScenarioKey =
   | 'angry_refund'
   | 'sale_1212'

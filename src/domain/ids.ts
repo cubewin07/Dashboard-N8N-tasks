@@ -2,7 +2,16 @@ import type { Id, IdPrefix } from './primitives'
 
 export type UlidFactory = () => string
 
-export function newId<P extends IdPrefix>(prefix: P, ulidFactory: UlidFactory): Id<P> {
+let fallbackSeq = 0
+function defaultUlidFactory(): string {
+  fallbackSeq += 1
+  return `01JCMD${String(fallbackSeq).padStart(20, '0')}`
+}
+
+export function newId<P extends IdPrefix>(
+  prefix: P,
+  ulidFactory: UlidFactory = defaultUlidFactory,
+): Id<P> {
   const ulid = ulidFactory()
   if (typeof ulid !== 'string' || ulid.trim().length === 0) {
     throw new Error(`Invalid ULID generated for prefix "${prefix}"`)

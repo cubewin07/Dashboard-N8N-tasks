@@ -171,7 +171,7 @@ export async function sendCommand(cmd: Command): Promise<CommandAck> {
           [cmd.id]: {
             id: cmd.id,
             status: 'failed',
-            reason: ack.reason,
+            reason: ack.reason ?? null,
           },
         },
       }
