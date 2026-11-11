@@ -23,10 +23,13 @@ import { chance, intRange, pick, simId } from '../rng'
 import { routeClarifiedIntake } from './clarify'
 import {
   createTaskInBrain,
+  departmentIdByKey,
   emitSimEvent,
   getDeptManagerEmployeeId,
   getManagerEmployeeId,
   getPrimaryOwnerEmployeeId,
+  isOwnerRole,
+  roleCaps,
   type SimBrainContext,
 } from './context'
 import { sampleReviewDecision, SIM_ODDS } from './odds'
@@ -258,7 +261,7 @@ export function stepPersonShifts(ctx: SimBrainContext): void {
   )
 
   for (const emp of employees) {
-    if (emp.state !== 'active' || emp.roleKey === 'owner') continue
+    if (emp.state !== 'active' || isOwnerRole(ctx, emp.roleKey)) continue
     const runtime = ctx.state.people[emp.id]
     if (!runtime) continue
 
@@ -575,11 +578,15 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
         if (!timer.handoffDone && handoffSpec && !task.parentTaskId) {
           timer.handoffDone = true
           if (chance(ctx.rng, SIM_ODDS.handoffChance)) {
+            const handoffDeptId = departmentIdByKey(
+              ctx,
+              handoffSpec.targetDepartmentKey,
+            )
             const childTask = createTaskInBrain(ctx, handoffSpec.childTypeKey, {
               requestedByKind: 'employee',
               requestedById: task.assigneeId,
               channel: 'internal',
-              departmentId: handoffSpec.targetDepartmentId,
+              departmentId: handoffDeptId,
               platformKey: task.platformKey,
               parentTaskId: task.id,
               priority: task.priority,
@@ -588,7 +595,7 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
             })
             const targetMgrId = getDeptManagerEmployeeId(
               ctx,
-              handoffSpec.targetDepartmentId,
+              handoffDeptId,
             )
             emitSimEvent(
               ctx,
@@ -757,7 +764,7 @@ export function stepQuestions(ctx: SimBrainContext): void {
   for (const q of questions) {
     if (q.status !== 'open') continue
     const targetEmp = empMap.get(q.toId)
-    const isOwner = targetEmp?.roleKey === 'owner'
+    const isOwner = targetEmp ? isOwnerRole(ctx, targetEmp.roleKey) : false
 
     let timer = ctx.questionTimers.get(q.id)
     if (!timer) {
@@ -810,15 +817,12 @@ export function stepReviews(ctx: SimBrainContext): void {
 
   for (const emp of employees) {
     if (emp.state !== 'active') continue
-    if (
-      emp.roleKey !== 'reviewer' &&
-      emp.roleKey !== 'dept_manager' &&
-      emp.roleKey !== 'owner'
-    ) {
+    // Anyone with an approval seat reviews (reviewer, dept manager, boss).
+    if (roleCaps(ctx, emp.roleKey)?.approveLevel == null) {
       continue
     }
 
-    const isOwner = emp.roleKey === 'owner'
+    const isOwner = isOwnerRole(ctx, emp.roleKey)
     if (isOwner && !ctx.autoApproveBoss) {
       continue
     }

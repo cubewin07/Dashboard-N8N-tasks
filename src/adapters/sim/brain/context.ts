@@ -100,7 +100,7 @@ export function resolveEventActor(
     return actor
   }
   const emp = ctx.state.config.employees.find((e) => e.id === actor)
-  if (emp?.roleKey === 'owner') {
+  if (emp && isOwnerRole(ctx, emp.roleKey)) {
     return { kind: 'owner', id: actor }
   }
   return { kind: 'employee', id: actor }
@@ -142,18 +142,40 @@ export function departmentIdForTaskType(
   return dept?.id ?? (`dep_${taskType.departmentKey}` as DepartmentId)
 }
 
-export function getManagerEmployeeId(ctx: SimBrainContext): EmployeeId {
-  const mgr = ctx.state.config.employees.find(
-    (e) => e.state === 'active' && e.roleKey === 'manager',
-  )
-  return mgr?.id ?? ('emp_thu' as EmployeeId)
+/** What a role may do, from config; the sim reasons about caps, not role keys. */
+export function roleCaps(ctx: SimBrainContext, roleKey: string) {
+  return ctx.state.config.roles.find((r) => r.key === roleKey)?.caps
+}
+
+export function isOwnerRole(ctx: SimBrainContext, roleKey: string): boolean {
+  return roleCaps(ctx, roleKey)?.humanOwner === true
+}
+
+function firstActiveEmployeeId(ctx: SimBrainContext): EmployeeId {
+  const emp = ctx.state.config.employees.find((e) => e.state === 'active')
+  if (!emp) throw new Error('No active employee in config')
+  return emp.id
 }
 
 export function getPrimaryOwnerEmployeeId(ctx: SimBrainContext): EmployeeId {
   const owner = ctx.state.config.employees.find(
-    (e) => e.state === 'active' && e.roleKey === 'owner',
+    (e) => e.state === 'active' && isOwnerRole(ctx, e.roleKey),
   )
-  return owner?.id ?? ('emp_giam_doc' as EmployeeId)
+  return owner?.id ?? firstActiveEmployeeId(ctx)
+}
+
+/** The office manager: assigns work across departments, no approval seat, no desk work. */
+export function getManagerEmployeeId(ctx: SimBrainContext): EmployeeId {
+  const mgr = ctx.state.config.employees.find((e) => {
+    const caps = e.state === 'active' ? roleCaps(ctx, e.roleKey) : undefined
+    return (
+      caps?.assignTasks === true &&
+      caps.approveLevel === null &&
+      !caps.humanOwner &&
+      !caps.doWork
+    )
+  })
+  return mgr?.id ?? getPrimaryOwnerEmployeeId(ctx)
 }
 
 export function getDeptManagerEmployeeId(
@@ -164,7 +186,7 @@ export function getDeptManagerEmployeeId(
     (e) =>
       e.state === 'active' &&
       e.departmentId === departmentId &&
-      e.roleKey === 'dept_manager',
+      roleCaps(ctx, e.roleKey)?.approveLevel === 'dept_manager',
   )
   return mgr?.id ?? getManagerEmployeeId(ctx)
 }

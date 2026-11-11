@@ -1,44 +1,43 @@
 import type { ApprovalLevel, Employee, Policy, TaskType } from '@/domain/config'
-import type { DepartmentId } from '@/domain/primitives'
 import { chainFor } from '@/domain/reviews'
 import type { Task } from '@/domain/work'
 import { intRange, type RandomFn } from '../rng'
 import { REVIEW_ODDS } from './odds'
 
 export interface HandoffSpec {
-  targetDepartmentId: DepartmentId
+  targetDepartmentKey: string
   childTypeKey: string
   reason: string
 }
 
 export const HANDOFF_BY_TASK_TYPE: Record<string, HandoffSpec> = {
   'mkt.post_fb': {
-    targetDepartmentId: 'dep_design',
+    targetDepartmentKey: 'design',
     childTypeKey: 'design.post_image',
     reason: 'Cần bộ ảnh minh hoạ cho bài đăng Facebook',
   },
   'mkt.post_zalo': {
-    targetDepartmentId: 'dep_design',
+    targetDepartmentKey: 'design',
     childTypeKey: 'design.post_image',
     reason: 'Cần ảnh banner cho tin nhắn Zalo OA',
   },
   'mkt.caption_tiktok': {
-    targetDepartmentId: 'dep_design',
+    targetDepartmentKey: 'design',
     childTypeKey: 'design.short_video',
     reason: 'Chuyển kịch bản sang dựng video ngắn TikTok',
   },
   'mkt.campaign_plan': {
-    targetDepartmentId: 'dep_design',
+    targetDepartmentKey: 'design',
     childTypeKey: 'design.banner_set',
     reason: 'Phối hợp thiết kế bộ banner chủ đạo chiến dịch sale',
   },
   'cs.refund_request': {
-    targetDepartmentId: 'dep_accounting',
+    targetDepartmentKey: 'accounting',
     childTypeKey: 'acc.refund_payout',
     reason: 'Chuyển phiếu hoàn tiền sang Kế toán chi trả cho khách',
   },
   'design.packaging_label': {
-    targetDepartmentId: 'dep_marketing',
+    targetDepartmentKey: 'marketing',
     childTypeKey: 'mkt.product_desc',
     reason: 'Phối hợp kiểm tra nội dung thông tin sản phẩm trên tem hộp',
   },
