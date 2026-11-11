@@ -1,6 +1,5 @@
 import { planHire } from '@/domain/staffing'
 import {
-  decideReviewInBrain,
   hireTempEmployee,
   requestInitialReviewOrComplete,
 } from '../brain/agents'
@@ -55,48 +54,7 @@ export function runHireTempsScenario(ctx: SimBrainContext): void {
       actor: managerId,
     })
 
-    const rev1 = requestInitialReviewOrComplete(
-      ctx,
-      overCapTask.id,
-      'reviewer',
-      managerId,
-    )
-    if (rev1) {
-      emitSimEvent(
-        ctx,
-        'review.started',
-        { reviewId: rev1.id },
-        { actor: rev1.assigneeId },
-      )
-      decideReviewInBrain(
-        ctx,
-        rev1,
-        'approved',
-        'Xác nhận hàng chờ CSKH đang vượt tải, chuyển Trưởng phòng.',
-        rev1.assigneeId,
-      )
-    }
-
-    const rev2 = Object.values(ctx.state.reviews).find(
-      (r) =>
-        r.taskId === overCapTask.id &&
-        r.level === 'dept_manager' &&
-        r.status === 'pending',
-    )
-    if (rev2) {
-      emitSimEvent(
-        ctx,
-        'review.started',
-        { reviewId: rev2.id },
-        { actor: rev2.assigneeId },
-      )
-      decideReviewInBrain(
-        ctx,
-        rev2,
-        'approved',
-        'Trình Sếp duyệt tuyển thêm nhân viên tạm vượt trần.',
-        rev2.assigneeId,
-      )
-    }
+    // R6: an over-cap request goes straight to the boss.
+    requestInitialReviewOrComplete(ctx, overCapTask.id, 'boss', managerId)
   }
 }
