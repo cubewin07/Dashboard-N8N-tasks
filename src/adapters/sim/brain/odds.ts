@@ -42,7 +42,8 @@ export const SIM_ODDS = {
   helpAcceptChance: 0.85,
   helpDurationMinutes: [5, 12] as const,
   handoffChance: 0.35,
-  autoApproveBossDelaySimMs: 2 * 60_000,
+  /** Demo toggle: the boss "approves" after 2 real minutes (plan §3.2). */
+  autoApproveBossRealMs: 2 * 60_000,
   queueOverloadThreshold: 6,
   queueOverloadWindowSimMs: 20 * 60_000,
   hourlyTaskRates: {
@@ -74,4 +75,12 @@ export function sampleReviewDecision(
   if (r < approveThreshold) return 'approved'
   if (r < changesThreshold) return 'changes_requested'
   return 'rejected'
+}
+
+/**
+ * Real-time wait converted to sim time at the current speed, so "2 minutes"
+ * stays 2 minutes you can watch at 30× instead of 4 seconds.
+ */
+export function autoApproveBossDelaySimMs(speed: number): number {
+  return SIM_ODDS.autoApproveBossRealMs * Math.max(speed, 1)
 }
