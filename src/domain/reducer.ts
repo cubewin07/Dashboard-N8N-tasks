@@ -176,11 +176,11 @@ function findOtherActiveTask(
     if (t.id === excludeTaskId || t.assigneeId !== employeeId) continue
     if (
       t.status === 'in_progress' ||
-      t.status === 'in_review' ||
       t.status === 'waiting_help' ||
       t.status === 'waiting_answer' ||
       t.status === 'blocked'
     ) {
+      // A task in review is waiting on someone else; the worker is not on it.
       return t
     }
   }

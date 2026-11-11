@@ -606,4 +606,33 @@ describe('domain reducer', () => {
     const c16 = applyConfigChange(c15, { kind: 'config.replace', config: cfg })
     expect(c16).toBe(cfg)
   })
+  it('frees a worker who finishes a task while an earlier task waits in review', () => {
+    const reviewing = makeSampleTask({
+      id: 'task_01JTEST00000000000000000A',
+      assigneeId: 'emp_mai',
+      status: 'in_review',
+      progress: 1,
+    })
+    const active = makeSampleTask({
+      id: 'task_01JTEST00000000000000000B',
+      assigneeId: 'emp_mai',
+      status: 'in_progress',
+    })
+    const base = makeState()
+    const s0 = {
+      ...base,
+      tasks: { ...base.tasks, [reviewing.id]: reviewing, [active.id]: active },
+      people: {
+        ...base.people,
+        emp_mai: { ...base.people.emp_mai!, activity: 'working' as const, taskId: active.id },
+      },
+    }
+    const s1 = apply(
+      s0,
+      makeEvent('task.completed', { taskId: active.id }, { seq: 1, at: t(1) }),
+    )
+    // Not re-bound to the task sitting in review: she can take new work.
+    expect(s1.people.emp_mai?.activity).toBe('idle')
+    expect(s1.people.emp_mai?.taskId).toBeNull()
+  })
 })
