@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n'
 import { formatTime } from '@/lib/time'
 import { cn, fmt } from '@/lib/utils'
 import { useIsLegacyRoute, useOffice } from '@/office'
+import { isTeamOnline } from '@/office/liveness'
 
 export function TeamOnlineIndicator({
   compact,
@@ -16,8 +17,11 @@ export function TeamOnlineIndicator({
   const legacyTeam = useTeamOnline()
   const officeConn = useOffice((s) => s.connection)
   const officeHeartbeatAt = useOffice((s) => s.state?.lastHeartbeat?.at ?? null)
+  const officeNow = useOffice((s) => s.state?.now ?? null)
 
-  const online = isLegacy ? legacyTeam.online : officeConn === 'live'
+  const online = isLegacy
+    ? legacyTeam.online
+    : isTeamOnline(officeConn, officeHeartbeatAt, officeNow)
   const heartbeatAt = isLegacy ? legacyTeam.heartbeatAt : officeHeartbeatAt
 
   const label = online
