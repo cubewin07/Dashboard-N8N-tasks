@@ -8,6 +8,7 @@ import { Blockout } from './Blockout'
 import { ElevatorShaft } from './ElevatorShaft'
 import { Floor } from './Floor'
 import { buildFloorChips, type FloorLabelChip } from './FloorLabel'
+import { decodeFloorSummaries, encodeFloorSummaries } from './floorSummaryKey'
 import { Stairwell } from './Stairwell'
 
 export interface BuildingProps {
@@ -18,7 +19,12 @@ export interface BuildingProps {
 export function Building({ layout, reducedMotion = false }: BuildingProps) {
   const mode = useViewStore((s) => s.mode)
   const focusedFloorKey = useViewStore((s) => s.focusedFloorKey)
-  const state = useOfficeSelector((s) => s)
+  // Select a compact per-floor summary, not the whole state: the scene root
+  // would otherwise re-render on every feed batch. Strings compare by value,
+  // so it only re-renders when a chip's numbers change.
+  const floorSummaryKey = useOfficeSelector((s) =>
+    s ? encodeFloorSummaries(layout.floors.map((f) => floorSummary(s, f.key))) : '',
+  )
   const { t } = useI18n()
 
   const [initialFloorKeys] = useState(
@@ -32,19 +38,18 @@ export function Building({ layout, reducedMotion = false }: BuildingProps) {
   }, [mode, focusedFloorKey, layout.floors])
 
   const floorChipsMap = useMemo(() => {
-    if (!state) return new Map<string, FloorLabelChip[]>()
+    const map = new Map<string, FloorLabelChip[]>()
+    if (!floorSummaryKey) return map
     const labels = {
       chipWorking: t.office.chipWorking,
       chipWaiting: t.office.chipWaiting,
       chipReviewPile: t.office.chipReviewPile,
     }
-    const map = new Map<string, FloorLabelChip[]>()
-    for (const floor of layout.floors) {
-      const summary = floorSummary(state, floor.key)
-      map.set(floor.key, buildFloorChips(summary, labels))
+    for (const summary of decodeFloorSummaries(floorSummaryKey)) {
+      map.set(summary.floorKey, buildFloorChips(summary, labels))
     }
     return map
-  }, [state, layout.floors, t.office.chipWorking, t.office.chipWaiting, t.office.chipReviewPile])
+  }, [floorSummaryKey, t.office.chipWorking, t.office.chipWaiting, t.office.chipReviewPile])
 
   return (
     <group name="building-root">
