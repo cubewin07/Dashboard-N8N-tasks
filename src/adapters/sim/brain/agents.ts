@@ -19,6 +19,7 @@ import {
   REVIEW_NOTES_REJECT_VI,
 } from '../content/vi'
 import { chance, intRange, pick, simId } from '../rng'
+import { routeClarifiedIntake } from './clarify'
 import {
   createTaskInBrain,
   emitSimEvent,
@@ -787,6 +788,7 @@ export function stepQuestions(ctx: SimBrainContext): void {
       },
       { actor: q.toId },
     )
+    routeClarifiedIntake(ctx, q, answerText)
   }
 }
 
