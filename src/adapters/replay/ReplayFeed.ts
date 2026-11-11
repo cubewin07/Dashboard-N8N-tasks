@@ -41,6 +41,12 @@ export function hashOfficeState(state: OfficeState): string {
     help: Object.keys(state.help)
       .sort()
       .map((id) => state.help[id as keyof typeof state.help]),
+    // Hires, archives and intake links are behaviour too: a regression there
+    // must change the hash.
+    messages: Object.keys(state.messages)
+      .sort()
+      .map((id) => state.messages[id as keyof typeof state.messages]),
+    employees: state.config.employees.map((e) => [e.id, e.roleKey, e.state, e.archivedAt]),
     logIds: state.log.map((e) => e.id),
   })
 
