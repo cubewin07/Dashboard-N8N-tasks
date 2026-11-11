@@ -73,10 +73,15 @@ export function hireTempEmployee(
   specialtiesOverride?: readonly string[],
   causedBy?: string,
   nameOverride?: string,
+  roleKey = 'worker',
 ): Employee {
   const dept = ctx.state.config.departments.find((d) => d.id === departmentId)
+  // Skip sys.* types: their specialties (e.g. qc) are not real worker skills.
   const deptSpecs = ctx.state.config.taskTypes
-    .filter((tt) => tt.departmentKey === (dept?.key ?? 'cs'))
+    .filter(
+      (tt) =>
+        tt.departmentKey === (dept?.key ?? 'cs') && !tt.key.startsWith('sys.'),
+    )
     .map((tt) => tt.specialty)
   const uniqueSpecs = Array.from(new Set(deptSpecs))
   const specialties =
@@ -93,7 +98,7 @@ export function hireTempEmployee(
     id: simId('emp', ctx.rng, ctx.clock.nowMs()),
     name: nameOverride ?? `${baseName} (Tạm ${tempIndex})`,
     departmentId,
-    roleKey: 'worker',
+    roleKey,
     specialties,
     kind: 'temp',
     state: 'active',
