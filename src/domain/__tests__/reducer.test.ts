@@ -379,9 +379,12 @@ describe('domain reducer', () => {
     s = apply(s, next('sim.scenario'))
     expect(s.log.at(-1)?.type).toBe('sim.scenario')
 
-    // Confirm all 28 EVENT_TYPES were exercised
+    // Confirm all 28 EVENT_TYPES were exercised. Heartbeats update
+    // `lastHeartbeat` instead of the log (covered by its own test below).
+    expect(s.lastHeartbeat).not.toBeNull()
     const loggedTypes = new Set(s.log.map((e) => e.type))
     for (const type of EVENT_TYPES) {
+      if (type === 'system.heartbeat') continue
       expect(loggedTypes.has(type)).toBe(true)
     }
   })
@@ -674,5 +677,19 @@ describe('domain reducer', () => {
       status: 'in_review',
       assigneeId: 'emp_mai',
     })
+  })
+  it('records heartbeats as liveness without filling the activity log', () => {
+    const s0 = makeState()
+    const s1 = apply(
+      s0,
+      makeEvent(
+        'system.heartbeat',
+        { source: 'sim', version: '1.0.0' },
+        { seq: 1, at: t(1) },
+      ),
+    )
+    expect(s1.lastHeartbeat?.at).toBe(t(1))
+    expect(s1.seq).toBe(1)
+    expect(s1.log).toHaveLength(0)
   })
 })

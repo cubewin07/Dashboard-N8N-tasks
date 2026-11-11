@@ -1439,7 +1439,9 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
           source: payload.source,
           version: payload.version,
         },
-        log: appendLog(state.log, event),
+        // Not logged: one per sim minute would fill the 500-event activity
+        // ring with noise (56% of it over a few days). Liveness is read from
+        // `lastHeartbeat`.
       }
     }
 
