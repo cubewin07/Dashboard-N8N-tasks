@@ -29,10 +29,6 @@ export interface OfficeStoreValue {
   send: (cmd: Command) => Promise<CommandAck>
 }
 
-interface ResettableFeed extends OfficeFeed {
-  onReset?: (cb: (state: OfficeState) => void) => () => void
-}
-
 let activeFeed: OfficeFeed | null = null
 let unsubscribeEvents: (() => void) | null = null
 let unsubscribeConn: (() => void) | null = null
@@ -252,9 +248,8 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
 
     syncDebugWindow()
 
-    const resettable = feed as ResettableFeed
-    if (typeof resettable.onReset === 'function') {
-      unsubscribeReset = resettable.onReset((resetState) => {
+    if (feed.onReset) {
+      unsubscribeReset = feed.onReset((resetState) => {
         cancelScheduledFlush()
         pendingEvents = []
         useOffice.setState({
@@ -278,6 +273,10 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
   }
 
   bootPromise = run()
+  // A failed boot (e.g. an unreadable replay log) must not be cached forever.
+  bootPromise.catch(() => {
+    bootPromise = null
+  })
   return bootPromise
 }
 
