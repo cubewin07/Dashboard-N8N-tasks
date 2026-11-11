@@ -66,9 +66,12 @@ export function computeNextProgress(
   totalDurationSimMs: number,
 ): number {
   if (totalDurationSimMs <= 0) return 1
+  // Keep full precision: a 7.5 s tick on a 40-minute task adds ~0.003, which
+  // rounds to 0 at two decimals and froze every long task at 0% forever.
   const delta = elapsedSimMs / totalDurationSimMs
-  const next = Math.min(1, currentProgress + delta)
-  return Math.round(next * 100) / 100
+  const next = currentProgress + delta
+  // Snap float drift (e.g. 0.9999999999999968) so a task can always finish.
+  return next >= 1 - 1e-9 ? 1 : next
 }
 
 export function effectiveReviewChain(
