@@ -92,7 +92,18 @@ export class ReplayFeed implements OfficeFeed {
 
     if (this.events.length === 0 && this.logUrl) {
       const resp = await fetch(this.logUrl)
-      const data = (await resp.json()) as ReplayLogBundle | OfficeEvent[]
+      if (!resp.ok) {
+        throw new Error(`Replay log ${this.logUrl}: HTTP ${resp.status}`)
+      }
+      let data: ReplayLogBundle | OfficeEvent[]
+      try {
+        data = (await resp.json()) as ReplayLogBundle | OfficeEvent[]
+      } catch {
+        throw new Error(`Replay log ${this.logUrl} is not valid JSON`)
+      }
+      if (!Array.isArray(data) && !Array.isArray(data?.events)) {
+        throw new Error(`Replay log ${this.logUrl} has no events`)
+      }
       if (!Array.isArray(data) && data.startIso) {
         this.startIso = data.startIso
       }

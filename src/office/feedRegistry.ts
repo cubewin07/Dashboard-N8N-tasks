@@ -26,6 +26,22 @@ export function getUrlParam(name: string): string | null {
   return null
 }
 
+/**
+ * `?log=` is typed into the address bar, so only fetch logs served from this
+ * origin (the app's own /replay files); never an arbitrary third-party URL.
+ */
+export function sameOriginLogUrl(raw: string | null): string | undefined {
+  if (!raw) return undefined
+  try {
+    const url = new URL(raw, window.location.href)
+    if (url.origin === window.location.origin) return url.href
+  } catch {
+    // fall through
+  }
+  console.warn(`[feed] Ignoring replay log outside this origin: ${raw}`)
+  return undefined
+}
+
 interface SimModuleExports {
   SimFeed?: new (options?: { seed?: string | number }) => OfficeFeed
   simControls?: SimControlsDebugApi
@@ -40,8 +56,7 @@ export function createFeed(kind?: FeedKind): OfficeFeed {
   if (resolved === 'replay') {
     officeExtensions.controlPanel = null
     officeExtensions.simControls = null
-    const logUrl = getUrlParam('log') ?? undefined
-    return new ReplayFeed({ logUrl })
+    return new ReplayFeed({ logUrl: sameOriginLogUrl(getUrlParam('log')) })
   }
 
   if (resolved === 'sim') {
