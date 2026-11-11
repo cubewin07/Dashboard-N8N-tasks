@@ -5,6 +5,7 @@ import { planHire } from '@/domain/staffing'
 import type { Question, Task } from '@/domain/work'
 import { simId } from '../rng'
 import { decideReviewInBrain, hireTempEmployee } from './agents'
+import { routeClarifiedIntake } from './clarify'
 import {
   createTaskInBrain,
   emitSimEvent,
@@ -134,15 +135,17 @@ function executeCommandNow(ctx: SimBrainContext, cmd: Command): CommandAck {
         },
         { actor: question.toId, causedBy: cmd.id },
       )
+      routeClarifiedIntake(ctx, question, cmd.payload.answer, cmd.id)
       return { commandId: cmd.id, status: 'accepted' }
     }
 
     case 'intake.submit': {
+      const messageId = simId('msg', ctx.rng, nowMs)
       emitSimEvent(
         ctx,
         'intake.received',
         {
-          messageId: simId('msg', ctx.rng, nowMs),
+          messageId,
           channel: 'app',
           modality: cmd.payload.modality,
           fromUserId: cmd.issuedBy.userId,
@@ -165,7 +168,7 @@ function executeCommandNow(ctx: SimBrainContext, cmd: Command): CommandAck {
               event: details.event,
             },
             actor: managerId,
-            causedBy: cmd.id,
+            causedBy: messageId,
           })
         }
       } else {
@@ -232,6 +235,7 @@ function executeCommandNow(ctx: SimBrainContext, cmd: Command): CommandAck {
           answerDurationSimMs: 5 * 60_000,
           isBossTarget: true,
           pendingIntakeText: cmd.payload.text,
+          pendingIntakeMessageId: messageId,
         })
       }
 

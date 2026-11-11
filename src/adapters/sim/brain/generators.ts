@@ -156,11 +156,12 @@ export function runGenerators(ctx: SimBrainContext): void {
     const msg = pick(ctx.rng, BOSS_MESSAGES_VI)
     const managerId = getManagerEmployeeId(ctx)
     const ownerId = getPrimaryOwnerEmployeeId(ctx)
+    const messageId = simId('msg', ctx.rng, nowMs)
     emitSimEvent(
       ctx,
       'intake.received',
       {
-        messageId: simId('msg', ctx.rng, nowMs),
+        messageId,
         channel: chance(ctx.rng, 0.7) ? 'telegram' : 'app',
         modality: chance(ctx.rng, 0.35) ? 'voice' : 'text',
         fromUserId: ownerId,
@@ -176,6 +177,7 @@ export function runGenerators(ctx: SimBrainContext): void {
       departmentId: msg.departmentId,
       platformKey: msg.platformKey,
       actor: managerId,
+      causedBy: messageId,
     })
     ctx.generators.bossIntake.nextFireSimMs += nextIntervalFromHourlyRange(
       ctx,

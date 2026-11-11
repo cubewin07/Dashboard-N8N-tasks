@@ -54,6 +54,7 @@ export interface QuestionRuntimeTimer {
   answerDurationSimMs: number
   isBossTarget: boolean
   pendingIntakeText?: string
+  pendingIntakeMessageId?: string
 }
 
 export interface GeneratorSlotState {
