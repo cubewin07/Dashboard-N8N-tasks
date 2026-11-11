@@ -7,7 +7,7 @@ import type {
   ConnectionState,
   OfficeFeed,
   OfficeSnapshot,
-} from '@/ports/officeFeed'
+} from '@/ports/OfficeFeed'
 import {
   flushOfflineCommands,
   handleSimCommand,
@@ -52,6 +52,7 @@ export class SimFeed implements OfficeFeed, SimControllerDriver {
 
   private eventListeners = new Set<(batch: OfficeEvent[]) => void>()
   private connectionListeners = new Set<(c: ConnectionState) => void>()
+  private resetListeners = new Set<(state: OfficeState) => void>()
 
   constructor(options: SimFeedOptions = {}) {
     const controlSnap = simControls.getSnapshot()
@@ -130,6 +131,13 @@ export class SimFeed implements OfficeFeed, SimControllerDriver {
     }
   }
 
+  onReset(cb: (state: OfficeState) => void): () => void {
+    this.resetListeners.add(cb)
+    return () => {
+      this.resetListeners.delete(cb)
+    }
+  }
+
   stop(): void {
     this.stopTimer()
     if (this.bindGlobalControls) {
@@ -195,6 +203,9 @@ export class SimFeed implements OfficeFeed, SimControllerDriver {
     if (this.config) {
       this.simAccumMs = 0
       this.ctx = createBrainContext(this.config, this.seed, this.speed)
+      for (const cb of this.resetListeners) {
+        cb(this.ctx.state)
+      }
       if (this.autoStartTimer && this.speed > 0) {
         this.step(1)
       }

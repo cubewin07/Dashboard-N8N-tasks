@@ -29,6 +29,8 @@ export interface OfficeDebugInfo {
   floorKeys: string[]
   addDepartment: (key?: string, labelVi?: string, labelEn?: string) => void
   removeDepartment: (key: string) => void
+  getState?: () => unknown
+  sim?: unknown
 }
 
 declare global {
@@ -116,6 +118,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
     }
 
     window.__office_debug = {
+      ...window.__office_debug,
       drawCalls: gl.info.render.calls,
       triangles: gl.info.render.triangles,
       geometries: gl.info.memory.geometries,
@@ -126,14 +129,6 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       removeDepartment: removeDepartmentFromStore,
     }
   })
-
-  useEffect(() => {
-    return () => {
-      if (IS_DEBUG_ENABLED) {
-        delete window.__office_debug
-      }
-    }
-  }, [])
 
   return null
 }
@@ -196,7 +191,11 @@ export function OfficeCanvas() {
         mode: parsed.mode,
         focusedFloorKey: parsed.focusedFloorKey,
       })
-      const canonical = serializeViewSearch(parsed.mode, parsed.focusedFloorKey)
+      const canonical = serializeViewSearch(
+        parsed.mode,
+        parsed.focusedFloorKey,
+        location.search,
+      )
       lastWrittenSearchRef.current = canonical
       initializedUrlRef.current = true
       if (location.search !== canonical) {
@@ -218,7 +217,11 @@ export function OfficeCanvas() {
     if (mode !== latest.mode || focusedFloorKey !== latest.focusedFloorKey) {
       return
     }
-    const nextSearch = serializeViewSearch(mode, focusedFloorKey)
+    const nextSearch = serializeViewSearch(
+      mode,
+      focusedFloorKey,
+      location.search,
+    )
     if (location.search !== nextSearch) {
       lastWrittenSearchRef.current = nextSearch
       setSearchParams(nextSearch.slice(1), { replace: true })

@@ -8,7 +8,7 @@ import type {
   ConnectionState,
   OfficeFeed,
   OfficeSnapshot,
-} from '@/ports/officeFeed'
+} from '@/ports/OfficeFeed'
 
 const DEFAULT_START_ISO: Iso = '2026-11-02T01:00:00.000Z'
 
