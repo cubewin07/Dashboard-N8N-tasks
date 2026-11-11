@@ -6,6 +6,7 @@ import type { DepartmentId, EmployeeId, ReviewId } from '@/domain/primitives'
 import { canAsk, isInPerson } from '@/domain/questions'
 import { sortQueue } from '@/domain/queue'
 import {
+  chainFor,
   nextInChain,
   pickApprover,
   pickLeadForDepartment,
@@ -35,7 +36,6 @@ import {
 import { sampleReviewDecision, SIM_ODDS } from './odds'
 import {
   computeNextProgress,
-  effectiveReviewChain,
   HANDOFF_BY_TASK_TYPE,
   sampleReviewDurationSimMs,
   sampleTaskDurationSimMs,
@@ -653,7 +653,10 @@ export function stepWorkers(ctx: SimBrainContext, simDtMs: number): void {
           { actor: task.assigneeId },
         )
         const worker = empMap.get(task.assigneeId)
-        const chain = effectiveReviewChain(task, worker, policy)
+        const chain = chainFor(task.requiredLevel, policy, {
+          workerReviewMode: worker?.reviewMode,
+          taskTags: task.tags,
+        })
         const firstLevel = chain[0] ?? null
         requestInitialReviewOrComplete(
           ctx,
