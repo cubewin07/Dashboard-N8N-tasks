@@ -1,6 +1,4 @@
-import type { ApprovalLevel, Employee, Policy, TaskType } from '@/domain/config'
-import { chainFor } from '@/domain/reviews'
-import type { Task } from '@/domain/work'
+import type { ApprovalLevel, TaskType } from '@/domain/config'
 import { intRange, type RandomFn } from '../rng'
 import { REVIEW_ODDS } from './odds'
 
@@ -71,22 +69,4 @@ export function computeNextProgress(
   const next = currentProgress + delta
   // Snap float drift (e.g. 0.9999999999999968) so a task can always finish.
   return next >= 1 - 1e-9 ? 1 : next
-}
-
-export function effectiveReviewChain(
-  task: Pick<Task, 'requiredLevel' | 'tags'>,
-  worker: Pick<Employee, 'reviewMode'> | undefined,
-  policy: Policy,
-): ApprovalLevel[] {
-  const fullChain = chainFor(task.requiredLevel, policy)
-  if (
-    worker?.reviewMode === 'when_important' &&
-    task.tags.includes('routine_draft')
-  ) {
-    if (task.requiredLevel === 'reviewer') {
-      return []
-    }
-    return fullChain.filter((lvl) => lvl !== 'reviewer')
-  }
-  return fullChain
 }

@@ -42,6 +42,15 @@ describe('review chain and approver picking (P03-T04)', () => {
         taskTags: ['routine_draft'],
       }),
     ).toEqual([])
+
+    // The skip applies only when the required level is reviewer: a routine
+    // draft that needs the boss still goes through every level.
+    expect(
+      chainFor('boss', DEFAULT_POLICY, {
+        workerReviewMode: 'when_important',
+        taskTags: ['routine_draft'],
+      }),
+    ).toEqual(['reviewer', 'dept_manager', 'boss'])
   })
 
   it('picks least-loaded reviewer in department, department manager, and least-loaded boss', () => {
