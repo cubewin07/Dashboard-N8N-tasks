@@ -31,4 +31,7 @@ export const org = {
   currentTaskPrefix: 'Đang xử lý: {title}',
   archivedSectionTitle: 'Nhân sự tạm đã nghỉ ({n})',
   archivedBadge: 'Đã lưu trữ',
+  tabsAriaLabel: 'Cách xem tổ chức',
+  tabOrg: 'Sơ đồ',
+  tabPeople: 'Nhân sự',
 }
