@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { usePeopleUi } from '@/office/uiStore'
 import { useViewStore } from './viewStore'
 
 function shouldIgnoreShortcut(target: EventTarget | null): boolean {
@@ -57,7 +58,11 @@ export function useKeyboardShortcuts(floorKeys: readonly string[]): void {
 
       if (e.key === 'Escape') {
         e.preventDefault()
-        state.setOverview()
+        // One step back at a time: stop following, close the drawer, zoom out.
+        const people = usePeopleUi.getState()
+        if (people.followedId) people.follow(null)
+        else if (people.selectedId) people.select(null)
+        else state.setOverview()
       }
     }
 
