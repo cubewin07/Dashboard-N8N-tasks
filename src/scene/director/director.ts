@@ -26,7 +26,7 @@ import {
   type PersonMemory,
 } from './intents'
 import { entrancePoint, plan, type PlanContext } from './planner'
-import type { PoseKey } from './poses'
+import { isSeatedPose, type PoseKey } from './poses'
 import { makeRng, type Rng } from './rng'
 import { SlotLedger } from './slots'
 import { deskStationOf, headingTo } from './stations'
@@ -189,6 +189,7 @@ export class Director {
         if (agent.station) {
           // A shared spot may have moved with the template: stand up in place.
           agent.station = null
+          agent.sim.seated = false
         }
       }
       this.clearPlan(agent)
@@ -401,6 +402,7 @@ export class Director {
       pose: desk.pose,
       speed01: 0,
       carrying: null,
+      seated: isSeatedPose(desk.pose),
       opacity: 1,
       visible: true,
       inCar: -1,
@@ -447,6 +449,7 @@ export class Director {
       this.place(agent, door.floor, door.point)
       sim.opacity = 0
       sim.pose = 'stand'
+      sim.seated = false
       sim.heading = Math.PI / 2
     }
     this.agents.set(id, agent)
@@ -465,6 +468,7 @@ export class Director {
     agent.station = desk
     agent.sim.heading = desk.heading
     agent.sim.pose = desk.pose
+    agent.sim.seated = isSeatedPose(desk.pose)
     agent.sim.visible = true
     agent.sim.opacity = 1
     agent.opacityTarget = 1
@@ -880,6 +884,7 @@ export class Director {
         if (k < 1) return false
         sim.heading = station.heading
         sim.pose = station.pose
+        sim.seated = isSeatedPose(station.pose)
         if (station.isDesk) {
           agent.memory.atDesk = true
           agent.memory.awayOnWork = false
@@ -895,6 +900,7 @@ export class Director {
           agent.fromX = agent.bx
           agent.fromZ = agent.bz
           sim.pose = 'stand'
+          sim.seated = false
           if (station.isDesk) {
             agent.memory.atDesk = false
             if (!isLeisureIntent(agent.intent)) agent.memory.awayOnWork = true

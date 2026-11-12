@@ -40,3 +40,20 @@ const POSE_SET: ReadonlySet<string> = new Set(POSE_KEYS)
 export function toPoseKey(key: string): PoseKey {
   return POSE_SET.has(key) ? (key as PoseKey) : 'stand'
 }
+
+const SEATED: ReadonlySet<PoseKey> = new Set<PoseKey>([
+  'sit',
+  'sit_work',
+  'sit_read',
+  'sit_phone',
+  'wait_seat',
+  'sofa',
+  'nap_desk',
+  'tea',
+  'play_boardgame',
+])
+
+/** Poses a station puts a body on a seat for (the bed is lying, not sitting). */
+export function isSeatedPose(key: PoseKey): boolean {
+  return SEATED.has(key)
+}

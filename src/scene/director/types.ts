@@ -65,6 +65,8 @@ export interface PersonSim {
   /** 0 standing … 1 full walking speed (drives the walk bob). */
   speed01: number
   carrying: Carry | null
+  /** On a chair or sofa: the pose may change (talk, stuck) while the body stays seated. */
+  seated: boolean
   opacity: number
   /** False while in the stairwell or before spawning. */
   visible: boolean
