@@ -14,6 +14,7 @@ import {
 } from '@/scene/nav/routeGraph'
 import { stairsTime } from '@/scene/nav/stairs'
 import type { NavGrid, Vec2 } from '@/scene/nav/types'
+import { heldItemFor } from './held'
 import { chooseIdleIntent, chooseRestIntent, type IdleContext } from './idleBrain'
 import {
   deriveIntent,
@@ -62,6 +63,8 @@ export interface PersonDebug {
   z: number
   pose: PoseKey
   visible: boolean
+  /** Index of the running action in the plan. */
+  step: number
 }
 
 interface Agent {
@@ -100,6 +103,8 @@ interface Agent {
   restFor: PersonRuntime['activity'] | null
   car: number
   gone: boolean
+  /** A courier's paper is in hand (between the plan's `pick` and `drop`). */
+  paper: boolean
 }
 
 const TWO_PI = Math.PI * 2
@@ -272,7 +277,13 @@ export class Director {
       z: agent.sim.z,
       pose: agent.sim.pose,
       visible: agent.sim.visible,
+      step: agent.step,
     }))
+  }
+
+  /** The person's current plan (tests, debug overlay). */
+  planOf(id: EmployeeId): readonly Action[] {
+    return this.agents.get(id)?.plan ?? []
   }
 
   gridOf(floorIndex: number): NavGrid {
@@ -301,6 +312,7 @@ export class Director {
     }
     for (const agent of this.order) {
       this.act(agent, dt)
+      this.dress(agent)
       this.fade(agent, dt)
     }
     this.separate(dt)
@@ -447,6 +459,7 @@ export class Director {
       restFor: null,
       car: -1,
       gone: false,
+      paper: false,
     }
     if (arriving) {
       const door = entrancePoint(this.layout)
@@ -735,6 +748,8 @@ export class Director {
     agent.path = null
     agent.teleporting = false
     agent.intentKey = ''
+    // An interrupted trip puts the paper back (the errand stays queued).
+    agent.paper = false
     if (agent.sim.visible) agent.opacityTarget = 1
   }
 
@@ -922,10 +937,12 @@ export class Director {
       }
 
       case 'pick':
+        agent.paper = true
         sim.carrying = action.item
         return agent.fast > 1 || agent.t >= TUNING.pickSeconds
 
       case 'drop': {
+        agent.paper = false
         sim.carrying = null
         if (action.errandId) {
           const errands = agent.memory.errands
@@ -977,6 +994,17 @@ export class Director {
         return exhaustive
       }
     }
+  }
+
+  /** P05-T04/T06: what is in the hand. The courier's paper wins; otherwise the desk work decides. */
+  private dress(agent: Agent): void {
+    if (agent.paper) return
+    const runtime = this.state?.people[agent.id]
+    agent.sim.carrying = heldItemFor(
+      runtime?.activity ?? 'idle',
+      runtime?.carrying ?? null,
+      agent.intent.kind,
+    )
   }
 
   private walkPose(agent: Agent): PoseKey {

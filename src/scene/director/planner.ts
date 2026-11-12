@@ -180,10 +180,15 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
       out.push({ k: 'pick', item: 'document' })
       travel(out, cursor, ctx, target.floorIndex, visitorPoint(ctx, target, me.id), mode)
       out.push({ k: 'face', toward: { x: target.slot.x, z: target.slot.z } })
+      // R6: review papers join the approver's pile; handed-off / assigned
+      // work is put on the new owner's desk.
       out.push({
         k: 'drop',
         item: 'document',
-        at: SlotLedger.key(target.floorKey, `${target.slot.id}.pile`),
+        at: SlotLedger.key(
+          target.floorKey,
+          intent.reviewId ? `${target.slot.id}.pile` : target.slot.id,
+        ),
         errandId: intent.errandId,
       })
       out.push({ k: 'wait', seconds: TUNING.dropWaitSeconds })
