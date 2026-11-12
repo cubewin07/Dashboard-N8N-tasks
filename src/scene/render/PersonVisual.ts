@@ -1,9 +1,8 @@
 import type * as THREE from 'three'
 import type { EmployeeId } from '@/domain/primitives'
+import type { EmoteKey, VisualStatusKey } from '@/domain/visual'
 import type { PoseKey } from '@/scene/director/poses'
 import type { Carry } from '@/scene/director/types'
-
-export type PersonTone = 'working' | 'waiting' | 'blocked'
 
 /**
  * One person, one frame, in world space. This is the seam between "where
@@ -27,8 +26,16 @@ export interface PersonVisualInput {
   carrying: Carry | null
   /** Palette swatch key (department colour). */
   tintSwatch: string
-  /** Status dot; null = no dot (idle). */
-  tone: PersonTone | null
+  /** Status look (`visual-language.json`); null = idle / resting / off shift (R2). */
+  status: VisualStatusKey | null
+  /** Platform of the current task (badge, R3), or null. */
+  platformKey: string | null
+  /** Emote bubble the director asks for, or null. */
+  emote: EmoteKey | null
+  /** Colour saturation, 0 grey … 1 full (idle people are greyer, R2). */
+  saturation: number
+  /** Floor index (LOD band, `lodRuntime`). */
+  floorIndex: number
   hovered: boolean
   selected: boolean
   followed: boolean
@@ -51,6 +58,8 @@ export interface PersonVisualSystem {
   pick(ray: THREE.Ray): EmployeeId | null
   /** World position just above a person's head (labels). False when not drawn. */
   headOf(id: EmployeeId, out: THREE.Vector3): boolean
+  /** Same, by index into the inputs of the last `sync` (indicator layers). */
+  headAt(index: number, out: THREE.Vector3): boolean
   setReducedMotion(reduced: boolean): void
   dispose(): void
 }

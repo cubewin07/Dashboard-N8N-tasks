@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { EmployeeId } from '@/domain/primitives'
+import { visualLanguage } from '@/office/visualConfig'
 import { hashString } from '@/scene/director/rng'
 import {
   blendPose,
@@ -13,8 +14,6 @@ import {
 import { getSwatchColor, SCENE_PALETTE } from './palette'
 import type { PersonVisualInput, PersonVisualSystem } from './PersonVisual'
 
-const DOT_RADIUS = 0.075
-const DOT_GAP = 0.18
 const PICK_RADIUS = 0.3
 /** Walk cycle: radians per metre covered (two steps ≈ 1.3 m). */
 const GAIT_PER_METRE = (Math.PI * 2) / 1.3
@@ -27,7 +26,14 @@ interface Anim {
   lastZ: number
   fade: number
   ring: number
+  sat: number
   seen: number
+}
+
+/** Held item box size (m) per kind, from `visual-language.json` (R16). */
+const DEFAULT_ITEM: readonly [number, number, number] = [0.2, 0.1, 0.2]
+function itemSize(kind: string): readonly [number, number, number] {
+  return visualLanguage.heldItems.sizes[kind] ?? DEFAULT_ITEM
 }
 
 function paint(geometry: THREE.BufferGeometry, color: (y: number) => THREE.Color): THREE.BufferGeometry {
@@ -76,12 +82,34 @@ function headGeometry(): THREE.BufferGeometry {
 /**
  * Screen-door fade: instead of blending, a faded person keeps only some of
  * its pixels. Stays in the opaque pass (no sorting, shadows keep working).
+ * With `saturate`, a per-instance `aSat` also greys the colour (idle people,
+ * P05 R2).
  */
-function withFade<T extends THREE.Material>(material: T): T {
+function withFade<T extends THREE.Material>(material: T, saturate = false): T {
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aFade;\nvarying float vFade;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFade = aFade;')
+      .replace(
+        '#include <common>',
+        saturate
+          ? '#include <common>\nattribute float aFade;\nvarying float vFade;\nattribute float aSat;\nvarying float vSat;'
+          : '#include <common>\nattribute float aFade;\nvarying float vFade;',
+      )
+      .replace(
+        '#include <begin_vertex>',
+        saturate ? '#include <begin_vertex>\nvFade = aFade;\nvSat = aSat;' : '#include <begin_vertex>\nvFade = aFade;',
+      )
+    if (saturate) {
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vSat;')
+        .replace(
+          '#include <color_fragment>',
+          [
+            '#include <color_fragment>',
+            'float satLuma = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));',
+            'diffuseColor.rgb = mix(vec3(satLuma), diffuseColor.rgb, vSat);',
+          ].join('\n'),
+        )
+    }
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
@@ -97,7 +125,7 @@ function withFade<T extends THREE.Material>(material: T): T {
         '#include <clipping_planes_fragment>\nif (vFade < 0.995 && vFade <= fadeBayer4(gl_FragCoord.xy)) discard;',
       )
   }
-  material.customProgramCacheKey = () => 'people-fade'
+  material.customProgramCacheKey = () => (saturate ? 'people-fade-sat' : 'people-fade')
   return material
 }
 
@@ -110,7 +138,6 @@ const tmpPos = new THREE.Vector3()
 const tmpScale = new THREE.Vector3()
 const tmpA = new THREE.Vector3()
 const tmpB = new THREE.Vector3()
-const tmpColor = new THREE.Color()
 const tmpTarget: CapsulePose = restPose({} as CapsulePose)
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
 const ONE = new THREE.Vector3(1, 1, 1)
@@ -118,8 +145,10 @@ const FLAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0
 
 /**
  * The P04 placeholder look: every person is a capsule with a head, drawn
- * with five instanced meshes for the whole building (body, head, carried
- * item, ground ring, status dot). Poses are transforms only.
+ * with four instanced meshes for the whole building (body, head, held item,
+ * selection ring). Poses are transforms only. Status rings, icons, badges
+ * and emotes are separate layers (`PersonIndicators`), so they survive the
+ * P07b swap.
  */
 export class CapsulePeople implements PersonVisualSystem {
   readonly object = new THREE.Group()
@@ -129,9 +158,9 @@ export class CapsulePeople implements PersonVisualSystem {
   private readonly head: THREE.InstancedMesh
   private readonly carry: THREE.InstancedMesh
   private readonly ring: THREE.InstancedMesh
-  private readonly dot: THREE.InstancedMesh
   private readonly meshes: THREE.InstancedMesh[]
   private readonly fade: THREE.InstancedBufferAttribute
+  private readonly sat: THREE.InstancedBufferAttribute
   private readonly depthMaterial: THREE.MeshDepthMaterial
 
   private readonly anims = new Map<EmployeeId, Anim>()
@@ -155,13 +184,15 @@ export class CapsulePeople implements PersonVisualSystem {
     this.top = new Float32Array(capacity)
     this.fade = new THREE.InstancedBufferAttribute(new Float32Array(capacity).fill(1), 1)
     this.fade.setUsage(THREE.DynamicDrawUsage)
+    this.sat = new THREE.InstancedBufferAttribute(new Float32Array(capacity).fill(1), 1)
+    this.sat.setUsage(THREE.DynamicDrawUsage)
 
     this.depthMaterial = withFade(
       new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }),
     )
 
     const lit = () =>
-      withFade(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0 }))
+      withFade(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0 }), true)
     const flat = () => withFade(new THREE.MeshBasicMaterial({ toneMapped: false }))
 
     this.body = this.make('people-body', bodyGeometry(), lit(), true)
@@ -169,13 +200,12 @@ export class CapsulePeople implements PersonVisualSystem {
     this.carry = this.make(
       'people-carry',
       new THREE.BoxGeometry(1, 1, 1),
-      withFade(new THREE.MeshStandardMaterial({ roughness: 0.6 })),
+      withFade(new THREE.MeshStandardMaterial({ roughness: 0.6 }), true),
       false,
     )
     const ringGeometry = new THREE.RingGeometry(0.34, 0.44, 28)
     this.ring = this.make('people-ring', ringGeometry, flat(), false)
-    this.dot = this.make('people-dot', new THREE.SphereGeometry(DOT_RADIUS, 10, 8), flat(), false)
-    this.meshes = [this.body, this.head, this.carry, this.ring, this.dot]
+    this.meshes = [this.body, this.head, this.carry, this.ring]
   }
 
   private make(
@@ -185,6 +215,7 @@ export class CapsulePeople implements PersonVisualSystem {
     castShadow: boolean,
   ): THREE.InstancedMesh {
     geometry.setAttribute('aFade', this.fade)
+    geometry.setAttribute('aSat', this.sat)
     const mesh = new THREE.InstancedMesh(geometry, material, this.capacity)
     mesh.name = name
     mesh.count = 0
@@ -213,6 +244,7 @@ export class CapsulePeople implements PersonVisualSystem {
     const blend = dt > 0 ? 1 - Math.exp(-14 * dt) : 0
     const fadeStep = dt > 0 ? 1 - Math.exp(-9 * dt) : 1
     const fades = this.fade.array as Float32Array
+    const sats = this.sat.array as Float32Array
 
     for (let i = 0; i < n; i += 1) {
       const p = inputs[i]!
@@ -226,6 +258,7 @@ export class CapsulePeople implements PersonVisualSystem {
           lastZ: p.z,
           fade: p.opacity,
           ring: 0,
+          sat: p.saturation,
           seen: this.frame,
         }
         this.anims.set(p.id, anim)
@@ -245,6 +278,8 @@ export class CapsulePeople implements PersonVisualSystem {
       anim.fade += (p.opacity - anim.fade) * fadeStep
       const fade = anim.fade < 0.02 ? 0 : anim.fade > 0.98 ? 1 : anim.fade
       fades[i] = fade
+      anim.sat += (p.saturation - anim.sat) * fadeStep
+      sats[i] = anim.sat
 
       this.ids[i] = p.id
       this.px[i] = p.x
@@ -286,10 +321,11 @@ export class CapsulePeople implements PersonVisualSystem {
       this.head.setMatrixAt(i, tmpLocal)
 
       if (p.carrying) {
-        const big = p.carrying === 'box' || p.carrying === 'laptop'
-        tmpA.set(0, CAPSULE.carryY * pose.squash, CAPSULE.carryZ)
-        tmpScale.set(big ? 0.3 : 0.24, big ? 0.2 : 0.035, big ? 0.22 : 0.3)
-        if (p.carrying === 'phone' || p.carrying === 'camera') tmpScale.set(0.1, 0.14, 0.05)
+        // Hand anchor (P07b: a bone). Seated, the hands rest further forward,
+        // over the desk or the lap.
+        const [w, h, d] = itemSize(p.carrying)
+        tmpA.set(0, CAPSULE.carryY * pose.squash + h * 0.25, CAPSULE.carryZ + (p.seated ? CAPSULE.seatedReach : 0))
+        tmpScale.set(w, h, d)
         tmpQuat2.identity()
         tmpLocal.compose(tmpA, tmpQuat2, tmpScale)
         tmpLocal.premultiply(tmpMatrix)
@@ -324,20 +360,6 @@ export class CapsulePeople implements PersonVisualSystem {
       } else {
         this.ring.setMatrixAt(i, ZERO)
       }
-
-      // Status dot above the head; idle people have none.
-      if (p.tone) {
-        const bob = Math.sin(this.time * 2.2 + anim.phase * 6) * 0.02 * this.motion
-        tmpPos.set(p.x, p.y + top + DOT_GAP + bob, p.z)
-        const s = p.tone === 'blocked' ? 1 + Math.abs(Math.sin(this.time * 3.5)) * 0.25 * this.motion : 1
-        tmpScale.setScalar(s)
-        tmpQuat2.identity()
-        tmpMatrix.compose(tmpPos, tmpQuat2, tmpScale)
-        this.dot.setMatrixAt(i, tmpMatrix)
-        this.dot.setColorAt(i, tmpColor.copy(SCENE_PALETTE.status[p.tone]))
-      } else {
-        this.dot.setMatrixAt(i, ZERO)
-      }
     }
 
     this.count = n
@@ -348,6 +370,7 @@ export class CapsulePeople implements PersonVisualSystem {
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
     this.fade.needsUpdate = true
+    this.sat.needsUpdate = true
 
     // Forget people who left (kept a little while, so a re-layout does not reset poses).
     if (this.frame % 120 === 0) {
@@ -378,9 +401,12 @@ export class CapsulePeople implements PersonVisualSystem {
   }
 
   headOf(id: EmployeeId, out: THREE.Vector3): boolean {
-    const i = this.ids.indexOf(id)
-    if (i < 0 || (this.fade.array as Float32Array)[i]! < 0.5) return false
-    out.set(this.px[i]!, this.py[i]! + this.top[i]!, this.pz[i]!)
+    return this.headAt(this.ids.indexOf(id), out)
+  }
+
+  headAt(index: number, out: THREE.Vector3): boolean {
+    if (index < 0 || index >= this.count || (this.fade.array as Float32Array)[index]! < 0.5) return false
+    out.set(this.px[index]!, this.py[index]! + this.top[index]!, this.pz[index]!)
     return true
   }
 

@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { describe, expect, it } from 'vitest'
 import type { EmployeeId } from '@/domain/primitives'
+import { visualLanguage } from '@/office/visualConfig'
 import { POSE_KEYS, isSeatedPose } from '@/scene/director/poses'
 import { CapsulePeople } from '../CapsulePeople'
 import { CAPSULE, capsulePose, poseTop, restPose, type CapsulePose } from '../capsulePose'
@@ -18,7 +19,11 @@ function person(id: string, x: number, z: number, over: Partial<PersonVisualInpu
     speed01: 0,
     carrying: null,
     tintSwatch: 'cs',
-    tone: null,
+    status: null,
+    platformKey: null,
+    emote: null,
+    saturation: 1,
+    floorIndex: 0,
     hovered: false,
     selected: false,
     followed: false,
@@ -68,13 +73,13 @@ describe('capsulePose', () => {
 })
 
 describe('CapsulePeople', () => {
-  it('draws any number of people with five instanced meshes', () => {
+  it('draws any number of people with four instanced meshes (status lives in PersonIndicators)', () => {
     const people = new CapsulePeople(256)
     const inputs = Array.from({ length: 200 }, (_, i) => person(`emp_${i}`, i % 20, Math.floor(i / 20)))
     people.sync(inputs, inputs.length, 0.016)
     const meshes = people.object.children.filter((c) => (c as THREE.InstancedMesh).isInstancedMesh)
-    expect(meshes).toHaveLength(5)
-    expect(people.object.children).toHaveLength(5)
+    expect(meshes).toHaveLength(4)
+    expect(people.object.children).toHaveLength(4)
     for (const mesh of meshes) expect((mesh as THREE.InstancedMesh).count).toBe(200)
     people.dispose()
   })
@@ -100,6 +105,44 @@ describe('CapsulePeople', () => {
     expect(people.headOf('emp_near' as EmployeeId, head)).toBe(true)
     expect(head.y).toBeCloseTo(CAPSULE.standTop, 1)
     expect(people.headOf('emp_hidden' as EmployeeId, head)).toBe(false)
+    people.dispose()
+  })
+
+  it('greys idle people through a per-instance saturation (R2)', () => {
+    const people = new CapsulePeople()
+    const inputs = [person('emp_work', 0, 0, { saturation: 1 }), person('emp_idle', 1, 0, { saturation: 0.55 })]
+    people.sync(inputs, inputs.length, 0)
+    const body = people.object.children.find((c) => c.name === 'people-body') as THREE.InstancedMesh
+    const sat = body.geometry.getAttribute('aSat')
+    expect(sat.getX(0)).toBe(1)
+    expect(sat.getX(1)).toBeCloseTo(0.55)
+    people.dispose()
+  })
+
+  it('sizes the held item from visual-language.json and keeps it at the hands when seated', () => {
+    const people = new CapsulePeople()
+    const inputs = [
+      person('emp_box', 0, 0, { carrying: 'box' }),
+      person('emp_doc', 2, 0, { carrying: 'document', pose: 'sit_work', seated: true }),
+    ]
+    people.sync(inputs, inputs.length, 0)
+    const carry = people.object.children.find((c) => c.name === 'people-carry') as THREE.InstancedMesh
+    const m = new THREE.Matrix4()
+    const pos = new THREE.Vector3()
+    const quat = new THREE.Quaternion()
+    const scale = new THREE.Vector3()
+    carry.getMatrixAt(0, m)
+    m.decompose(pos, quat, scale)
+    const [w, h, d] = visualLanguage.heldItems.sizes.box!
+    expect(scale.x).toBeCloseTo(w)
+    expect(scale.y).toBeCloseTo(h)
+    expect(scale.z).toBeCloseTo(d)
+    carry.getMatrixAt(1, m)
+    m.decompose(pos, quat, scale)
+    expect(scale.y).toBeCloseTo(visualLanguage.heldItems.sizes.document![1])
+    expect(pos.y).toBeGreaterThan(0.3)
+    expect(pos.y).toBeLessThan(CAPSULE.carryY)
+    expect(pos.z).toBeGreaterThan(CAPSULE.carryZ)
     people.dispose()
   })
 })
