@@ -5,6 +5,7 @@ import { useOfficeSelector } from '@/office/hooks'
 import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
 import { FURNITURE_MAP, listMapModels } from './assets/furnitureMap'
+import { orderModelLoads } from './assets/loadQueue'
 import { isModelReady, requestModels } from './assets/modelStore'
 import { buildFurniturePlacements, slotsWithModels } from './assets/placements'
 import { buildShellPlacements } from './assets/shell'
@@ -71,12 +72,20 @@ export function Building({ layout, reducedMotion = false }: BuildingProps) {
     [layout, manifest],
   )
 
-  // Shell first, then furniture (P06b §3.4): the building appears before it fills.
+  // Shell first, then the floor in view, then the rest bottom to top (P06b §3.4,
+  // T12). A change of floor re-orders the files that have not started yet.
+  const loadFocusKey = mode === 'floor' ? focusedFloorKey : null
   useEffect(() => {
     if (!manifest) return
-    const shellModels = [...new Set(shell.map((p) => p.model))]
-    requestModels([...shellModels, ...listMapModels(FURNITURE_MAP)])
-  }, [manifest, shell])
+    requestModels(
+      orderModelLoads({
+        kit: shell.map((p) => p.model),
+        uses: furniture,
+        focusedFloorKey: loadFocusKey,
+        rest: listMapModels(FURNITURE_MAP),
+      }),
+    )
+  }, [manifest, shell, furniture, loadFocusKey])
 
   const shellReady = useMemo(() => {
     void modelsVersion
