@@ -34,6 +34,7 @@ import { buildBuildingLayout, type BuildingLayout } from '@/scene/layout'
 import { Building } from '@/scene/render/Building'
 import { Environment } from '@/scene/render/Environment'
 import { Lights } from '@/scene/render/Lights'
+import { OfficeLife } from '@/scene/render/OfficeLife'
 import { People } from '@/scene/render/People'
 
 export interface OfficeDebugInfo {
@@ -327,6 +328,7 @@ export function OfficeCanvas() {
           elevator={config.building.elevator}
           reducedMotion={reducedMotion}
         />
+        <OfficeLife layout={layout} reducedMotion={reducedMotion} />
         <CameraRig layout={layout} reducedMotion={reducedMotion} />
         <SceneTelemetry
           floorKeys={floorKeys}
