@@ -2,13 +2,20 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { PerformanceMonitor } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import type { Department } from '@/domain/config'
+import type CameraControlsImpl from 'camera-controls'
+import * as THREE from 'three'
+import type { Department, OrgConfig } from '@/domain/config'
 import type { DepartmentId } from '@/domain/primitives'
 import { ActivityTicker } from '@/features/activity/ActivityTicker'
 import { CameraModeBar } from '@/features/office/CameraModeBar'
 import { FloorPicker } from '@/features/office/FloorPicker'
+import { PeopleList } from '@/features/office/PeopleList'
+import { PersonDrawer } from '@/features/office/PersonDrawer'
 import { ShortcutHint } from '@/features/office/ShortcutHint'
+import { useFollowUrlSync } from '@/features/office/useFollowUrlSync'
 import { useConfigStore } from '@/office/configStore'
+import { useOfficeSelector } from '@/office/hooks'
+import { usePeopleUi } from '@/office/uiStore'
 import { CameraRig } from '@/scene/camera/CameraRig'
 import { useKeyboardShortcuts } from '@/scene/camera/useKeyboardShortcuts'
 import {
@@ -16,10 +23,17 @@ import {
   serializeViewSearch,
   useViewStore,
 } from '@/scene/camera/viewStore'
-import { buildBuildingLayout } from '@/scene/layout'
+import {
+  directorDebug,
+  makeCameraDebug,
+  type CameraDebug,
+  type DirectorDebug,
+} from '@/scene/debug'
+import { buildBuildingLayout, type BuildingLayout } from '@/scene/layout'
 import { Building } from '@/scene/render/Building'
 import { Environment } from '@/scene/render/Environment'
 import { Lights } from '@/scene/render/Lights'
+import { People } from '@/scene/render/People'
 
 export interface OfficeDebugInfo {
   drawCalls: number
@@ -30,6 +44,8 @@ export interface OfficeDebugInfo {
   floorKeys: string[]
   addDepartment: (key?: string, labelVi?: string, labelEn?: string) => void
   removeDepartment: (key: string) => void
+  director?: DirectorDebug
+  camera?: CameraDebug
   getState?: () => unknown
   sim?: unknown
 }
@@ -41,7 +57,8 @@ declare global {
 }
 
 const IS_E2E = Boolean(import.meta.env.VITE_E2E)
-const IS_DEBUG_ENABLED = import.meta.env.DEV || IS_E2E
+const IS_DEBUG_ENABLED =
+  import.meta.env.DEV || IS_E2E || Boolean(import.meta.env.VITE_DEBUG)
 
 function addDepartmentToStore(
   key = 'logistics',
@@ -85,13 +102,43 @@ function removeDepartmentFromStore(key: string): void {
   })
 }
 
+/** The view's own share of the URL: other keys (`follow`, …) belong to others. */
+function viewPart(search: string): string {
+  const parsed = parseViewSearch(search)
+  return `${parsed.mode}:${parsed.focusedFloorKey ?? ''}`
+}
+
 interface SceneTelemetryProps {
   floorKeys: readonly string[]
   onFirstFrame: () => void
 }
 
+const debugTarget = new THREE.Vector3()
+
 function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   const { gl } = useThree()
+  const getThree = useThree((s) => s.get)
+  const cameraDebug = useMemo(
+    () =>
+      makeCameraDebug(
+        () => {
+          const controls = getThree().controls as CameraControlsImpl | null
+          if (!controls || typeof controls.getTarget !== 'function') return null
+          controls.getTarget(debugTarget)
+          return [debugTarget.x, debugTarget.y, debugTarget.z]
+        },
+        (x, y, z) => {
+          const { camera, gl: renderer } = getThree()
+          const rect = renderer.domElement.getBoundingClientRect()
+          debugTarget.set(x, y, z).project(camera)
+          return [
+            rect.left + ((debugTarget.x + 1) / 2) * rect.width,
+            rect.top + ((1 - debugTarget.y) / 2) * rect.height,
+          ]
+        },
+      ),
+    [getThree],
+  )
   const reportedReadyRef = useRef(false)
   const frameCountRef = useRef(0)
   const elapsedRef = useRef(0)
@@ -128,6 +175,8 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       floorKeys: [...floorKeysRef.current],
       addDepartment: addDepartmentToStore,
       removeDepartment: removeDepartmentFromStore,
+      director: directorDebug,
+      camera: cameraDebug,
     }
   })
 
@@ -151,6 +200,21 @@ function useReducedMotion(): boolean {
   return reduced
 }
 
+/**
+ * Layouts for a changing staff list: each one keeps the seats of the one
+ * before it, so a hire gets a free desk and nobody else moves.
+ */
+function createLayoutBuilder(): (config: OrgConfig) => BuildingLayout {
+  let previous: BuildingLayout | null = null
+  let previousConfig: OrgConfig | null = null
+  return (config) => {
+    if (previous && previousConfig === config) return previous
+    previous = buildBuildingLayout(config, previous)
+    previousConfig = config
+    return previous
+  }
+}
+
 export function OfficeCanvas() {
   const config = useConfigStore((s) => s.config)
   const [ready, setReady] = useState(false)
@@ -162,9 +226,22 @@ export function OfficeCanvas() {
   const lastWrittenSearchRef = useRef<string | null>(null)
   const initializedUrlRef = useRef(false)
 
+  // The building comes from the config; who sits in it from the live staff
+  // list, so hires and leavers get and give up desks without a reload.
+  const liveEmployees = useOfficeSelector((s) => s?.config.employees ?? null)
+  const [buildLayout] = useState(createLayoutBuilder)
+  const layoutConfig = useMemo(
+    () =>
+      config
+        ? liveEmployees && liveEmployees !== config.employees
+          ? { ...config, employees: liveEmployees }
+          : config
+        : null,
+    [config, liveEmployees],
+  )
   const layout = useMemo(
-    () => (config ? buildBuildingLayout(config) : null),
-    [config],
+    () => (layoutConfig ? buildLayout(layoutConfig) : null),
+    [layoutConfig, buildLayout],
   )
 
   const floorKeys = useMemo(
@@ -175,8 +252,10 @@ export function OfficeCanvas() {
   const mode = useViewStore((s) => s.mode)
   const focusedFloorKey = useViewStore((s) => s.focusedFloorKey)
   const hoveredFloorKey = useViewStore((s) => s.hoveredFloorKey)
+  const personHovered = usePeopleUi((s) => s.hoveredId !== null)
 
   useKeyboardShortcuts(floorKeys)
+  useFollowUrlSync()
 
   // 1. Sync URL -> viewStore on initial load and external URL changes (e.g. Back/Forward or direct link)
   useEffect(() => {
@@ -185,7 +264,7 @@ export function OfficeCanvas() {
     if (
       !initializedUrlRef.current ||
       (lastWrittenSearchRef.current !== null &&
-        location.search !== lastWrittenSearchRef.current)
+        viewPart(location.search) !== viewPart(lastWrittenSearchRef.current))
     ) {
       const parsed = parseViewSearch(location.search, floorKeys)
       useViewStore.setState({
@@ -239,7 +318,7 @@ export function OfficeCanvas() {
       data-ready={ready ? 'true' : 'false'}
       data-camera-mode-state={mode}
       data-focused-floor={focusedFloorKey ?? ''}
-      style={{ cursor: hoveredFloorKey ? 'pointer' : 'default' }}
+      style={{ cursor: hoveredFloorKey || personHovered ? 'pointer' : 'default' }}
       className="relative h-[calc(100dvh-11rem)] min-h-[460px] w-full overflow-hidden rounded-[14px] border border-border bg-surface"
     >
       <Canvas
@@ -259,6 +338,11 @@ export function OfficeCanvas() {
         <Environment />
         <Lights layout={layout} />
         <Building layout={layout} reducedMotion={reducedMotion} />
+        <People
+          layout={layout}
+          elevator={config.building.elevator}
+          reducedMotion={reducedMotion}
+        />
         <CameraRig layout={layout} reducedMotion={reducedMotion} />
         <SceneTelemetry
           floorKeys={floorKeys}
@@ -266,10 +350,19 @@ export function OfficeCanvas() {
         />
       </Canvas>
 
-      {/* HTML overlays: Tab order FloorPicker -> CameraModeBar */}
-      <div className="pointer-events-none absolute inset-4 flex flex-col justify-between">
-        <div className="flex items-start justify-between gap-4">
-          <FloorPicker floors={layout.floors} palette={config.palette} />
+      {/* HTML overlays: Tab order FloorPicker -> PeopleList -> CameraModeBar */}
+      <div className="pointer-events-none absolute inset-4 flex flex-col justify-between gap-3">
+        <div className="flex min-h-0 flex-1 items-start justify-between gap-4">
+          <div className="flex max-h-full min-h-0 flex-col items-start gap-2">
+            <div className="shrink-0">
+              <FloorPicker floors={layout.floors} palette={config.palette} />
+            </div>
+            <PeopleList
+              variant="panel"
+              defaultCollapsed
+              className="hidden min-h-0 shrink md:flex"
+            />
+          </div>
           <div className="flex flex-1 justify-center">
             <CameraModeBar floorKeys={floorKeys} />
           </div>
@@ -281,6 +374,8 @@ export function OfficeCanvas() {
           <ShortcutHint />
         </div>
       </div>
+
+      <PersonDrawer placement="canvas" />
     </div>
   )
 }

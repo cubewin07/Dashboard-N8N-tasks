@@ -47,6 +47,17 @@ export const router = createHashRouter([
           Component: (await import('@/features/settings/SettingsPage')).SettingsPage,
         }),
       },
+      // Dev and debug builds only: every pose of the placeholder people.
+      ...(import.meta.env.DEV || import.meta.env.VITE_DEBUG
+        ? [
+            {
+              path: '/dev/people',
+              lazy: async () => ({
+                Component: (await import('@/scene/dev/PosePage')).PosePage,
+              }),
+            },
+          ]
+        : []),
       {
         element: <LegacyBoundary />,
         children: [

@@ -1,0 +1,46 @@
+import type * as THREE from 'three'
+import type { EmployeeId } from '@/domain/primitives'
+import type { Director } from '@/scene/director/director'
+
+/**
+ * What the rest of the scene may ask about people this frame (the follow
+ * camera, debug hooks). Written by `<People>`, read by anyone in the canvas.
+ * Not React state: it changes every frame.
+ */
+export interface PersonSight {
+  /** Feet, world metres (interpolated). */
+  x: number
+  y: number
+  z: number
+  floorKey: string
+  /** Riding an elevator car right now. */
+  riding: boolean
+  visible: boolean
+}
+
+export interface PeopleRuntime {
+  director: Director | null
+  /** Interpolated position of one person; false when they are not in the building. */
+  sightOf: (id: EmployeeId, out: PersonSight) => boolean
+  pick: (ray: THREE.Ray) => EmployeeId | null
+  /** Average director tick cost in ms (debug / perf check). */
+  tickMs: number
+  /** Movement factor in use (0 = paused). */
+  moveFactor: number
+}
+
+export const peopleRuntime: PeopleRuntime = {
+  director: null,
+  sightOf: () => false,
+  pick: () => null,
+  tickMs: 0,
+  moveFactor: 0,
+}
+
+export function resetPeopleRuntime(): void {
+  peopleRuntime.director = null
+  peopleRuntime.sightOf = () => false
+  peopleRuntime.pick = () => null
+  peopleRuntime.tickMs = 0
+  peopleRuntime.moveFactor = 0
+}

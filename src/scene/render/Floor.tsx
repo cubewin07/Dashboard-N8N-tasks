@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { WallSegment } from '@/domain/config'
+import { usePeopleUi } from '@/office/uiStore'
 import { getFloorFadeTarget, useViewStore } from '@/scene/camera/viewStore'
 import type { FloorLayout } from '@/scene/layout'
 import { toWorldX, toWorldZ } from './coords'
@@ -180,7 +181,8 @@ export function Floor({
       e.nativeEvent.clientX - down.x,
       e.nativeEvent.clientY - down.y,
     )
-    if (travel < 4) {
+    // A click on a person selects the person, not the floor behind them.
+    if (travel < 4 && usePeopleUi.getState().hoveredId === null) {
       focusFloor(floor.key)
     }
   }

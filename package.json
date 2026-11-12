@@ -15,7 +15,9 @@
     "test:e2e": "playwright test",
     "content:validate": "node scripts/content-validate.mjs",
     "golden:update": "node scripts/record-golden.mjs",
-    "check:sim-removable": "node scripts/check-sim-removable.mjs"
+    "check:sim-removable": "node scripts/check-sim-removable.mjs",
+    "perf:check": "node scripts/perf-check.mjs",
+    "director:stats": "node scripts/director-stats.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.4.1",

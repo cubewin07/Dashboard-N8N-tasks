@@ -18,9 +18,15 @@ function compareEmployees(
   return a.id.localeCompare(b.id)
 }
 
+/**
+ * Gives every active employee a seat. With `previous`, people keep the seat
+ * they already had (as long as it still exists), so a hire never makes the
+ * rest of the office swap desks.
+ */
 export function allocateSeats(
   config: OrgConfig,
   floors: readonly FloorLayout[],
+  previous?: Readonly<Record<EmployeeId, SeatAssignment>>,
 ): Record<EmployeeId, SeatAssignment> {
   const roleByKey = new Map<string, RoleDef>()
   for (const role of config.roles) {
@@ -60,10 +66,25 @@ export function allocateSeats(
     return false
   }
 
+  if (previous) {
+    const floorByKey = new Map(floors.map((f) => [f.key, f]))
+    for (const emp of activeEmployees) {
+      const prev = previous[emp.id]
+      if (!prev) continue
+      const key = `${prev.floorKey}::${prev.slotId}`
+      const floor = floorByKey.get(prev.floorKey)
+      if (!floor || takenSlotKeys.has(key)) continue
+      if (!floor.slots.some((s) => s.id === prev.slotId)) continue
+      takenSlotKeys.add(key)
+      assignments[emp.id] = { employeeId: emp.id, floorKey: prev.floorKey, slotId: prev.slotId }
+    }
+  }
+
   const bossFloors = floors.filter((f) => f.kind === 'boss')
   const managementFloors = floors.filter((f) => f.kind === 'management')
 
   for (const emp of activeEmployees) {
+    if (assignments[emp.id]) continue
     const role = roleByKey.get(emp.roleKey)
     if (!role) {
       continue

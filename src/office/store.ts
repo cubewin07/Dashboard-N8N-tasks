@@ -284,3 +284,23 @@ export function getOfficeState(): OfficeState | null {
   flushOfficeEvents()
   return useOffice.getState().state
 }
+
+export interface FeedClock {
+  /** Feed time now (sim time for the simulator, wall time for the real system). */
+  nowMs: number
+  /**
+   * Feed seconds per real second when the feed can say so (0 = paused);
+   * null when it has to be measured from `nowMs`.
+   */
+  rate: number | null
+}
+
+/** The feed clock, for the scene's movement speed. Null before boot. */
+export function getFeedClock(): FeedClock | null {
+  if (!activeFeed) return null
+  const controls = activeFeed.kind === 'sim' ? officeExtensions.simControls : null
+  return {
+    nowMs: Date.parse(activeFeed.now()),
+    rate: controls ? controls.getSnapshot().speed : null,
+  }
+}

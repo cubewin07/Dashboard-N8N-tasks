@@ -65,6 +65,41 @@ export const SCENE_PALETTE = {
   hemiSky: new THREE.Color('#f8fafc'),
   hemiGround: new THREE.Color('#cbd5e1'),
   sunLight: new THREE.Color('#fffbeb'),
+  /** Mirrors the status tokens in `src/index.css` (--status-*). */
+  status: {
+    working: new THREE.Color('#2563eb'),
+    waiting: new THREE.Color('#d97706'),
+    blocked: new THREE.Color('#dc2626'),
+  },
+  people: {
+    skin: [
+      new THREE.Color('#f6d7b8'),
+      new THREE.Color('#eec39a'),
+      new THREE.Color('#d9a57b'),
+      new THREE.Color('#c68d62'),
+    ],
+    eyes: new THREE.Color('#1e293b'),
+    trousers: new THREE.Color('#5b6474'),
+    ringHover: new THREE.Color('#f8fafc'),
+    ringSelected: new THREE.Color('#38bdf8'),
+    ringFollowed: new THREE.Color('#f59e0b'),
+    carry: {
+      document: new THREE.Color('#f8fafc'),
+      laptop: new THREE.Color('#475569'),
+      phone: new THREE.Color('#1e293b'),
+      tablet: new THREE.Color('#334155'),
+      box: new THREE.Color('#b45309'),
+      camera: new THREE.Color('#0f172a'),
+    },
+    label: '#0f172a',
+    labelOutline: '#ffffff',
+  },
+  elevator: {
+    carFloor: new THREE.Color('#475569'),
+    carShell: new THREE.Color('#e2e8f0'),
+    carDoor: new THREE.Color('#94a3b8'),
+    carLight: new THREE.Color('#fef3c7'),
+  },
   blockout: {
     deskWood: new THREE.Color('#d97706'),
     reviewDesk: new THREE.Color('#0284c7'),
