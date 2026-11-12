@@ -32,6 +32,8 @@ export interface CameraDebug {
   followedId: () => string | null
   /** Where the camera looks (world metres), or null before the controls exist. */
   target: () => [number, number, number] | null
+  /** Where a person's chest is on the page (client pixels), for click tests. */
+  screenOf: (id: string) => [number, number] | null
 }
 
 const sight: PersonSight = { x: 0, y: 0, z: 0, floorKey: '', riding: false, visible: false }
@@ -71,8 +73,13 @@ export const directorDebug: DirectorDebug = {
 
 export function makeCameraDebug(
   getTarget: () => [number, number, number] | null,
+  project: (x: number, y: number, z: number) => [number, number] | null,
 ): CameraDebug {
   return {
+    screenOf: (id) =>
+      peopleRuntime.sightOf(id as EmployeeId, sight)
+        ? project(sight.x, sight.y + 0.7, sight.z)
+        : null,
     follow: (id) => usePeopleUi.getState().follow(id as EmployeeId | null),
     followedId: () => usePeopleUi.getState().followedId,
     target: getTarget,
