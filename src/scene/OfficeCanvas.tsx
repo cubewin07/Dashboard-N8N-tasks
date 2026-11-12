@@ -4,6 +4,7 @@ import { PerformanceMonitor } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import type { Department } from '@/domain/config'
 import type { DepartmentId } from '@/domain/primitives'
+import { ActivityTicker } from '@/features/activity/ActivityTicker'
 import { CameraModeBar } from '@/features/office/CameraModeBar'
 import { FloorPicker } from '@/features/office/FloorPicker'
 import { ShortcutHint } from '@/features/office/ShortcutHint'
@@ -29,6 +30,8 @@ export interface OfficeDebugInfo {
   floorKeys: string[]
   addDepartment: (key?: string, labelVi?: string, labelEn?: string) => void
   removeDepartment: (key: string) => void
+  getState?: () => unknown
+  sim?: unknown
 }
 
 declare global {
@@ -116,6 +119,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
     }
 
     window.__office_debug = {
+      ...window.__office_debug,
       drawCalls: gl.info.render.calls,
       triangles: gl.info.render.triangles,
       geometries: gl.info.memory.geometries,
@@ -126,14 +130,6 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       removeDepartment: removeDepartmentFromStore,
     }
   })
-
-  useEffect(() => {
-    return () => {
-      if (IS_DEBUG_ENABLED) {
-        delete window.__office_debug
-      }
-    }
-  }, [])
 
   return null
 }
@@ -196,7 +192,11 @@ export function OfficeCanvas() {
         mode: parsed.mode,
         focusedFloorKey: parsed.focusedFloorKey,
       })
-      const canonical = serializeViewSearch(parsed.mode, parsed.focusedFloorKey)
+      const canonical = serializeViewSearch(
+        parsed.mode,
+        parsed.focusedFloorKey,
+        location.search,
+      )
       lastWrittenSearchRef.current = canonical
       initializedUrlRef.current = true
       if (location.search !== canonical) {
@@ -218,7 +218,11 @@ export function OfficeCanvas() {
     if (mode !== latest.mode || focusedFloorKey !== latest.focusedFloorKey) {
       return
     }
-    const nextSearch = serializeViewSearch(mode, focusedFloorKey)
+    const nextSearch = serializeViewSearch(
+      mode,
+      focusedFloorKey,
+      location.search,
+    )
     if (location.search !== nextSearch) {
       lastWrittenSearchRef.current = nextSearch
       setSearchParams(nextSearch.slice(1), { replace: true })
@@ -272,7 +276,8 @@ export function OfficeCanvas() {
           <div className="hidden w-52 lg:block" aria-hidden="true" />
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex items-end justify-between gap-4">
+          <ActivityTicker />
           <ShortcutHint />
         </div>
       </div>

@@ -36,6 +36,17 @@ export const PaletteSwatchSchema = z.object({
   softHex: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Expected #RRGGBB hex color'),
 })
 
+export type {
+  ApprovalLevel,
+  DepartmentId,
+  EmployeeId,
+  Iso,
+  Label,
+  ModelTier,
+  Priority,
+  ShopId,
+} from './primitives'
+
 export interface Department {
   id: DepartmentId
   key: string

@@ -2,7 +2,14 @@ import type { Id, IdPrefix } from './primitives'
 
 export type UlidFactory = () => string
 
-export function newId<P extends IdPrefix>(prefix: P, ulidFactory: UlidFactory): Id<P> {
+/**
+ * The domain holds no clock, randomness or counter, so the caller supplies
+ * the ULID source: the simulator uses its seeded rng, the UI `wallUlid`.
+ */
+export function newId<P extends IdPrefix>(
+  prefix: P,
+  ulidFactory: UlidFactory,
+): Id<P> {
   const ulid = ulidFactory()
   if (typeof ulid !== 'string' || ulid.trim().length === 0) {
     throw new Error(`Invalid ULID generated for prefix "${prefix}"`)

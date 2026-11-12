@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { createServer } from 'vite'
 
@@ -69,6 +70,13 @@ const rawConfig = {
 
 const server = await createServer({
   root: rootDir,
+  configFile: false,
+  cacheDir: path.join(os.tmpdir(), 'ai-office-vite-content-validate'),
+  resolve: {
+    alias: {
+      '@': path.join(rootDir, 'src'),
+    },
+  },
   logLevel: 'silent',
   server: { middlewareMode: true, ws: false },
   appType: 'custom',
@@ -88,9 +96,61 @@ try {
     process.exitCode = 1
   } else {
     const cfg = res.data
-    console.log(
-      `OK: Validated content (${cfg.departments.length} departments, ${cfg.employees.length} employees, ${cfg.roles.length} roles, ${cfg.specialties.length} specialties, ${cfg.platforms.length} platforms, ${cfg.shops.length} shops, ${cfg.approvalRules.length} rules, ${cfg.floorTemplates.length} floor templates).`,
+    const titlesPath = path.join(
+      rootDir,
+      'src/adapters/sim/content/vi/titles.ts',
     )
+    if (fs.existsSync(titlesPath)) {
+      const { ALLOWED_TITLE_SLOTS, TASK_TITLE_TEMPLATES_VI } =
+        await server.ssrLoadModule('/src/adapters/sim/content/vi/titles.ts')
+      const allowedSet = new Set(ALLOWED_TITLE_SLOTS)
+      const titleErrors = []
+
+      for (const tt of cfg.taskTypes) {
+        const templates = TASK_TITLE_TEMPLATES_VI[tt.key]
+        if (!Array.isArray(templates) || templates.length === 0) {
+          titleErrors.push(
+            `  - [src/adapters/sim/content/vi/titles.ts] Missing title template for taskType "${tt.key}"`,
+          )
+        }
+      }
+
+      for (const [typeKey, templates] of Object.entries(
+        TASK_TITLE_TEMPLATES_VI,
+      )) {
+        for (const tpl of templates) {
+          const matches = [...tpl.matchAll(/\{([^}]*)\}/g)]
+          for (const m of matches) {
+            const slot = m[1]
+            if (!allowedSet.has(slot)) {
+              titleErrors.push(
+                `  - [src/adapters/sim/content/vi/titles.ts] Unknown slot "{${slot}}" in template for "${typeKey}": "${tpl}"`,
+              )
+            }
+          }
+          const stripped = tpl.replace(/\{\w+\}/g, '')
+          if (stripped.includes('{') || stripped.includes('}')) {
+            titleErrors.push(
+              `  - [src/adapters/sim/content/vi/titles.ts] Malformed brace in template for "${typeKey}": "${tpl}"`,
+            )
+          }
+        }
+      }
+
+      if (titleErrors.length > 0) {
+        console.error('Task title template validation failed:')
+        for (const err of titleErrors) {
+          console.error(err)
+        }
+        process.exitCode = 1
+      }
+    }
+
+    if (!process.exitCode) {
+      console.log(
+        `OK: Validated content (${cfg.departments.length} departments, ${cfg.employees.length} employees, ${cfg.roles.length} roles, ${cfg.specialties.length} specialties, ${cfg.platforms.length} platforms, ${cfg.shops.length} shops, ${cfg.approvalRules.length} rules, ${cfg.taskTypes.length} task types, ${cfg.floorTemplates.length} floor templates).`,
+      )
+    }
   }
 } finally {
   await server.close()

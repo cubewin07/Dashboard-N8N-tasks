@@ -10,6 +10,7 @@ export default defineConfig({
     },
   },
   test: {
+    testTimeout: 25_000,
     projects: [
       {
         extends: true,

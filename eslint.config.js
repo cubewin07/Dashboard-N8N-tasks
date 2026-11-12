@@ -34,9 +34,39 @@ export default tseslint.config(
   {
     files: ['src/**/*.{ts,tsx}'],
     ignores: [
+      'src/adapters/sim/**/*.{ts,tsx}',
+      'src/adapters/replay/__tests__/**/*.{ts,tsx}',
+      'src/office/feedRegistry.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@/adapters/sim',
+                '@/adapters/sim/*',
+                '@/adapters/sim/**',
+                '**/adapters/sim',
+                '**/adapters/sim/*',
+                '**/adapters/sim/**',
+              ],
+              message:
+                'Only src/office/feedRegistry.ts may import from src/adapters/sim.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
       'src/adapters/**/*.{ts,tsx}',
       'src/office/feedRegistry.ts',
       'src/office/configStore.ts',
+      'src/office/__tests__/**/*.{ts,tsx}',
       'src/app/providers.tsx',
     ],
     rules: {
@@ -103,6 +133,11 @@ export default tseslint.config(
           selector: "NewExpression[callee.name='Date'][arguments.length=0]",
           message:
             'Do not call new Date() without arguments in pure domain/scene modules; pass timestamps from the feed clock.',
+        },
+        {
+          selector: "CallExpression[callee.object.name='Math'][callee.property.name='random']",
+          message:
+            'Do not call Math.random() in pure domain/scene modules; use a seeded RNG passed as an argument.',
         },
       ],
     },

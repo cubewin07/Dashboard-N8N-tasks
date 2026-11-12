@@ -4,6 +4,8 @@ export const common = {
   nav: {
     office: 'Văn phòng',
     org: 'Sơ đồ',
+    queue: 'Hàng chờ',
+    activity: 'Nhật ký',
     legacyGroup: 'Bản cũ',
     overview: 'Tổng quan',
     inbox: 'Cần bạn xử lý',
@@ -92,7 +94,7 @@ export const common = {
     queued: 'Đã gửi, chờ đội ngũ nhận',
     queuedOffline: 'Đã lưu: sẽ chạy ngay khi đội ngũ trực lại',
     accepted: 'Đội ngũ đã nhận…',
-    applied: 'Đã xong',
+    applied: 'Đã áp dụng',
     failed: 'Không thành công',
     alreadyResolved: 'Việc này đã được xử lý trên Telegram',
   },

@@ -1,7 +1,29 @@
 // The ONE place for status → colour/icon/i18n-key mappings. Don't re-derive these in components.
+import type { Priority } from '@/domain/primitives'
+import type { PersonActivity } from '@/domain/work'
 import type { EmpStatus, StepStatus, TaskStatus, OwnerKey } from '@/lib/database.types'
 
 export type Tone = 'working' | 'waiting' | 'blocked' | 'done' | 'idle' | 'offline'
+
+export const activityTone: Record<PersonActivity, Tone> = {
+  idle: 'idle',
+  working: 'working',
+  reviewing: 'working',
+  delivering: 'working',
+  asking: 'waiting',
+  waiting_answer: 'waiting',
+  helping: 'working',
+  in_meeting: 'working',
+  resting: 'idle',
+  off_shift: 'offline',
+}
+
+export const priorityTone: Record<Priority, Tone> = {
+  urgent: 'blocked',
+  high: 'waiting',
+  normal: 'working',
+  low: 'idle',
+}
 
 export const toneClasses: Record<Tone, { text: string; bg: string; dot: string; border: string }> = {
   working: { text: 'text-working', bg: 'bg-working-soft', dot: 'bg-working', border: 'border-working/30' },

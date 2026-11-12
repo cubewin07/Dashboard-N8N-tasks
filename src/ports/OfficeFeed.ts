@@ -24,5 +24,10 @@ export interface OfficeFeed {
   /** Connection to the source: 'live' | 'reconnecting' | 'offline'. Drives LiveBadge. */
   connection(): ConnectionState
   onConnection(cb: (c: ConnectionState) => void): () => void
+  /**
+   * Optional: a feed that can restart its history (the sim's reset/seed change)
+   * calls back with the fresh state so the store replaces, not appends.
+   */
+  onReset?(cb: (state: OfficeState) => void): () => void
   stop(): void
 }

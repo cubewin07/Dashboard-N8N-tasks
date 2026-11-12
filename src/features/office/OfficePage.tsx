@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { OrgList } from '@/features/org/OrgList'
 import { useI18n } from '@/i18n'
+import { useOffice } from '@/office'
+import { officeExtensions } from '@/office/extensions'
 
 const LazyOfficeCanvas = lazy(() => import('@/scene/OfficeCanvas'))
 
@@ -43,6 +45,8 @@ class CanvasErrorBoundary extends Component<
 export function OfficePage() {
   const { t } = useI18n()
   const { tier, setOverride } = useDeviceTierPreference()
+  useOffice((s) => Boolean(s.state))
+  const ControlPanel = officeExtensions.controlPanel
 
   if (tier === 'fallback') {
     return (
@@ -61,6 +65,7 @@ export function OfficePage() {
             </Button>
           }
         />
+        {ControlPanel ? <ControlPanel /> : null}
         <OrgList compact />
       </div>
     )
@@ -82,6 +87,8 @@ export function OfficePage() {
           </Button>
         }
       />
+
+      {ControlPanel ? <ControlPanel /> : null}
 
       <CanvasErrorBoundary
         fallback={
