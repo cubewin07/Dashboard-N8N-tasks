@@ -211,10 +211,10 @@ describe('buildShellPlacements (P06b R3)', () => {
     expect(count('lobby_cafe', 'office_glass_door_01')).toBe(0)
   })
 
-  it('rails the boss terrace and parks one car per shaft on the ground floor', () => {
+  it('rails the boss terrace and leaves the cars to the people layer', () => {
     expect(count('boss', 'terrace_rail_01')).toBeGreaterThan(0)
     expect(count('cs', 'terrace_rail_01')).toBe(0)
-    expect(count('lobby_cafe', 'elevator_car_01')).toBe(layout.elevatorCarCount)
+    expect(count('lobby_cafe', 'elevator_car_01')).toBe(0)
     expect(count('cs', 'elevator_car_01')).toBe(0)
     expect(count('cs', 'elevator_door_frame_01')).toBe(2)
   })

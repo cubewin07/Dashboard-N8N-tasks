@@ -163,12 +163,14 @@ function vertical(
   }
 }
 
-/** Elevator bank: a framed shaft bay and landing door per car on every floor. */
+/**
+ * Elevator bank: a framed shaft bay and landing door per car on every floor.
+ * The cars themselves move, so `ElevatorCars` draws them (P04).
+ */
 function elevatorPlacements(
   floor: FloorLayout,
   kit: FurnitureKit,
   manifest: AssetManifest,
-  carCount: number,
 ): Placement[] {
   const doors = floor.elevatorDoorSlots
   if (doors.length === 0) return []
@@ -178,19 +180,14 @@ function elevatorPlacements(
   const bay = Math.min(2.4, pitch)
   const frameLen = moduleLength(manifest, kit.shaftFrame) || 2.4
   const doorLen = moduleLength(manifest, kit.elevatorDoor) || 2.4
-  const carLen = moduleLength(manifest, kit.elevatorCar) || 2
   const k = bay / frameLen
   const out: Placement[] = []
-  doors.forEach((door, idx) => {
+  doors.forEach((door) => {
     // Doors face west (people walk in from the floor); the shaft sits east of them.
     const rotY = Math.PI / 2
     const cx = door.x + 0.1 + (frameLen * k) / 2
     out.push(vertical(floor, kit.shaftFrame, cx, door.z, rotY, [k, 1, k]))
     out.push(vertical(floor, kit.elevatorDoor, door.x, door.z, rotY, [bay / doorLen, 1, 1]))
-    if (floor.index === 0 && idx < carCount) {
-      const ck = (bay * 0.88) / carLen
-      out.push(vertical(floor, kit.elevatorCar, cx, door.z, rotY, [ck, ck, ck]))
-    }
   })
   return out
 }
@@ -243,7 +240,7 @@ export function buildShellPlacements(
       out.push(...wallPlacements(floor, wall, kit, manifest, storey))
     }
     if (floor.kind === 'boss') out.push(...terracePlacements(floor, kit, manifest))
-    out.push(...elevatorPlacements(floor, kit, manifest, layout.elevatorCarCount))
+    out.push(...elevatorPlacements(floor, kit, manifest))
     out.push(
       ...stairPlacements(floor, kit, manifest, layout.floorHeight, i === layout.floors.length - 1),
     )
