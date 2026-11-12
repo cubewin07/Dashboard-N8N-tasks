@@ -85,6 +85,8 @@ The author fills the row for their layer and copies the table (with earlier rows
 |---|---|---|---|---|---|---|---|
 | P04 | 2026-11-12 | Mac, real GPU, 1440×900, overview, 30× | 38 | 60 | 111 | 394 k | 0.18 ms |
 | P04 | 2026-11-12 | SwiftShader (CI mode), same view | 38 | ≈ 9 (warning only) | 111 | 394 k | 0.04 ms |
+| P05 | 2026-11-13 | Mac, real GPU, 1440×900, overview, 30× | 38 | 60 | 173 | 70 k | 0.23 ms |
+| P05 | 2026-11-13 | SwiftShader (CI mode), same view | 38 | ≈ 19 (warning only) | 173 | 70 k | 0.07 ms |
 
 ## 6. Regression policy
 
