@@ -17,7 +17,7 @@ export const office: typeof viOffice = {
   modeFree: 'Free',
   modeFloor: 'Floor',
   modeFollow: 'Follow',
-  followDisabledHint: 'Available in Phase 4',
+  followPickHint: 'Pick a person to follow',
   shortcutsAriaLabel: 'Camera keyboard shortcuts',
   shortcutOverview: '1 Overview',
   shortcutFree: '2 Free',

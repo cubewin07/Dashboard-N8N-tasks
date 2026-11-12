@@ -16,7 +16,7 @@ export const office = {
   modeFree: 'Tự do',
   modeFloor: 'Theo tầng',
   modeFollow: 'Theo dõi',
-  followDisabledHint: 'Có ở giai đoạn 4',
+  followPickHint: 'Chọn một nhân viên để theo dõi',
   shortcutsAriaLabel: 'Phím tắt điều khiển góc nhìn',
   shortcutOverview: '1 Toàn cảnh',
   shortcutFree: '2 Tự do',
