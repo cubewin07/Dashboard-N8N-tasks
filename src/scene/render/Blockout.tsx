@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { FloorLayout } from '@/scene/layout'
-import { SLOT_BLOCKOUT, type BlockoutMeshKind } from './blockoutSpec'
+import { blockoutFor, type BlockoutMeshKind } from './blockoutSpec'
 import { toWorldX, toWorldZ } from './coords'
 
 interface InstanceTransform {
@@ -93,7 +93,7 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
     const countsByKind = new Map<BlockoutMeshKind, number>()
     for (const floor of floors) {
       for (const slot of floor.slots) {
-        const spec = SLOT_BLOCKOUT[slot.type]
+        const spec = blockoutFor(slot)
         if (!spec.render) continue
         for (const part of spec.parts) {
           countsByKind.set(part.kind, (countsByKind.get(part.kind) ?? 0) + 1)
@@ -105,7 +105,7 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
 
     for (const floor of floors) {
       for (const slot of floor.slots) {
-        const spec = SLOT_BLOCKOUT[slot.type]
+        const spec = blockoutFor(slot)
         if (!spec.render) continue
         for (const part of spec.parts) {
           const totalForKind = countsByKind.get(part.kind) ?? 1
@@ -133,7 +133,7 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
       const { w, d } = floor.size
 
       for (const slot of floor.slots) {
-        const spec = SLOT_BLOCKOUT[slot.type]
+        const spec = blockoutFor(slot)
         if (!spec.render) continue
 
         const cos = Math.cos(slot.rotY)

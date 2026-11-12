@@ -1,7 +1,19 @@
 import { useLayoutEffect, useRef } from 'react'
-import type { DirectionalLight } from 'three'
+import type * as THREE from 'three'
 import type { BuildingLayout } from '@/scene/layout'
 import { SCENE_PALETTE } from './palette'
+
+/** Noon values; `DayNight` scales and tints from these. */
+export const LIGHT_BASE = { hemi: 0.95, sun: 1.35 } as const
+
+/**
+ * The scene's two lights, for `DayNight` to tint imperatively (P05-T12).
+ * Not React state.
+ */
+export const lightRig: {
+  hemi: THREE.HemisphereLight | null
+  sun: THREE.DirectionalLight | null
+} = { hemi: null, sun: null }
 
 export interface LightsProps {
   layout: BuildingLayout
@@ -15,14 +27,23 @@ export function Lights({ layout }: LightsProps) {
   const extentY = Math.max(24, totalH * 0.85)
   const near = 2
   const far = Math.max(120, totalH * 3 + 60)
+  const hemiRef = useRef<THREE.HemisphereLight>(null)
+  const sunRef = useRef<THREE.DirectionalLight>(null)
 
-  const lightRef = useRef<DirectionalLight>(null)
+  useLayoutEffect(() => {
+    lightRig.hemi = hemiRef.current
+    lightRig.sun = sunRef.current
+    return () => {
+      lightRig.hemi = null
+      lightRig.sun = null
+    }
+  }, [])
 
   // r3f updates the shadow-camera bounds through props but never rebuilds the
   // projection, so after a department is added the shadow frustum stayed stale
   // and clipped the taller building.
   useLayoutEffect(() => {
-    const cam = lightRef.current?.shadow.camera
+    const cam = sunRef.current?.shadow.camera
     if (!cam) return
     cam.updateProjectionMatrix()
   }, [extentX, extentY, near, far])
@@ -30,12 +51,13 @@ export function Lights({ layout }: LightsProps) {
   return (
     <group name="scene-lights">
       <hemisphereLight
-        args={[SCENE_PALETTE.hemiSky, SCENE_PALETTE.hemiGround, 0.95]}
+        ref={hemiRef}
+        args={[SCENE_PALETTE.hemiSky, SCENE_PALETTE.hemiGround, LIGHT_BASE.hemi]}
       />
       <directionalLight
-        ref={lightRef}
+        ref={sunRef}
         position={[24, Math.max(36, totalH + 16), 30]}
-        intensity={1.35}
+        intensity={LIGHT_BASE.sun}
         color={SCENE_PALETTE.sunLight}
         castShadow
         shadow-mapSize={[SHADOW_MAP_SIZE, SHADOW_MAP_SIZE]}
