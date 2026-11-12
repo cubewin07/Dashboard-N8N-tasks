@@ -18,11 +18,27 @@ export interface ModelPart {
 
 type ModelStatus = 'loading' | 'ready' | 'error'
 
+interface ModelNode {
+  /** Node label: '' for the model's body, else e.g. `screen`, `hand_hour`. */
+  name: string
+  kind: MaterialKind
+  geometry: THREE.BufferGeometry
+  /** Where the node's own origin sits in model space (its pivot). */
+  pivot: [number, number, number]
+}
+
 interface ModelRecord {
   status: ModelStatus
-  /** Geometry per named child node, before merging. */
-  nodes: Array<{ name: string; kind: MaterialKind; geometry: THREE.BufferGeometry }>
+  /** Geometry per named child node, in model space, before merging. */
+  nodes: ModelNode[]
   merged: Map<string, ModelPart[]>
+  pivoted: Map<string, NodeParts>
+}
+
+/** One named node on its own, with its geometry moved so the pivot is the origin. */
+export interface NodeParts {
+  parts: ModelPart[]
+  pivot: [number, number, number]
 }
 
 const MAX_CONCURRENT = 6
@@ -101,6 +117,19 @@ function bakeGeometry(mesh: THREE.Mesh, toRoot: THREE.Matrix4): THREE.BufferGeom
   copy('position', 3)
   copy('normal', 3)
   copy('uv', 2)
+  // Baked ambient occlusion (COLOR_0, P06b-T13). White when a file has none,
+  // so every part carries the attribute and parts still merge.
+  const count0 = src.getAttribute('position')?.count ?? 0
+  const ao = src.getAttribute('color')
+  const colour = new Float32Array(count0 * 3).fill(1)
+  if (ao) {
+    for (let i = 0; i < ao.count; i += 1) {
+      colour[i * 3] = ao.getX(i)
+      colour[i * 3 + 1] = ao.getY(i)
+      colour[i * 3 + 2] = ao.getZ(i)
+    }
+  }
+  out.setAttribute('color', new THREE.BufferAttribute(colour, 3))
   // Always indexed, so any set of parts can be merged into one geometry.
   const count = src.getAttribute('position')?.count ?? 0
   out.setIndex(src.index ? Array.from(src.index.array) : Array.from({ length: count }, (_, i) => i))
@@ -109,21 +138,33 @@ function bakeGeometry(mesh: THREE.Mesh, toRoot: THREE.Matrix4): THREE.BufferGeom
   return out
 }
 
-function nodeLabel(mesh: THREE.Object3D, modelName: string): string {
-  const raw = mesh.name || mesh.parent?.name || ''
-  const prefix = `${modelName}_`
-  return raw.startsWith(prefix) ? raw.slice(prefix.length) : raw
+/**
+ * Label of a mesh inside a model file: the generator names a part `<model>_<part>`
+ * or `<part>`, and its mesh child `<…>_mesh`. The body comes out as ''.
+ */
+export function nodeLabel(rawName: string, modelName: string): string {
+  let name = rawName
+  if (name === modelName) return ''
+  if (name.startsWith(`${modelName}_`)) name = name.slice(modelName.length + 1)
+  if (name === 'mesh') return ''
+  return name.endsWith('_mesh') ? name.slice(0, -'_mesh'.length) : name
 }
 
-function extract(scene: THREE.Object3D, modelName: string): ModelRecord['nodes'] {
+const pivotVec = new THREE.Vector3()
+
+function extract(scene: THREE.Object3D, modelName: string): ModelNode[] {
   scene.updateMatrixWorld(true)
-  const nodes: ModelRecord['nodes'] = []
+  const nodes: ModelNode[] = []
   scene.traverse((obj) => {
     if (!(obj instanceof THREE.Mesh)) return
+    // A `<part>_mesh` child hangs under the empty that is the part's pivot.
+    const holder = obj.name.endsWith('_mesh') && obj.parent ? obj.parent : obj
+    pivotVec.setFromMatrixPosition(holder.matrixWorld)
     nodes.push({
-      name: nodeLabel(obj, modelName),
+      name: nodeLabel(obj.name || obj.parent?.name || '', modelName),
       kind: materialKind(obj.material),
       geometry: bakeGeometry(obj, obj.matrixWorld),
+      pivot: [pivotVec.x, pivotVec.y, pivotVec.z],
     })
   })
   return nodes
@@ -165,7 +206,7 @@ function pump() {
 export function requestModels(names: readonly string[]): void {
   for (const name of names) {
     if (records.has(name)) continue
-    records.set(name, { status: 'loading', nodes: [], merged: new Map() })
+    records.set(name, { status: 'loading', nodes: [], merged: new Map(), pivoted: new Map() })
     queue.push(name)
   }
   pump()
@@ -197,25 +238,64 @@ export function getLoadProgress(): LoadProgress {
   return { done, total, settled: manifestFailed || (total > 0 && done === total) }
 }
 
-/** One geometry per material for a model (optionally a single named node). */
-export function getModelParts(name: string, node?: string): ModelPart[] | null {
-  const record = records.get(name)
-  if (!record || record.status !== 'ready') return null
-  const key = node ?? '*'
-  const cached = record.merged.get(key)
-  if (cached) return cached
-
+function mergeNodes(nodes: readonly ModelNode[]): ModelPart[] {
   const parts: ModelPart[] = []
   for (const kind of ['palette', 'emissive', 'glass'] as const) {
-    const geos = record.nodes
-      .filter((n) => n.kind === kind && (!node || n.name === node))
-      .map((n) => n.geometry)
+    const geos = nodes.filter((n) => n.kind === kind).map((n) => n.geometry)
     if (geos.length === 0) continue
     const geometry = geos.length === 1 ? geos[0] : mergeGeometries(geos, false)
     if (geometry) parts.push({ kind, geometry })
   }
+  return parts
+}
+
+/**
+ * One geometry per material for a model in model space: the whole file, a
+ * single named node, or the file without the nodes in `omit` (those are drawn
+ * by something that animates them).
+ */
+export function getModelParts(
+  name: string,
+  node?: string,
+  omit?: readonly string[],
+): ModelPart[] | null {
+  const record = records.get(name)
+  if (!record || record.status !== 'ready') return null
+  const key = node ?? (omit && omit.length > 0 ? `-${omit.join(',')}` : '*')
+  const cached = record.merged.get(key)
+  if (cached) return cached
+  const parts = mergeNodes(
+    record.nodes.filter((n) => (node ? n.name === node : !omit?.includes(n.name))),
+  )
   record.merged.set(key, parts)
   return parts
+}
+
+/** Does a loaded model have this named node? */
+export function hasModelNode(name: string, node: string): boolean {
+  return records.get(name)?.nodes.some((n) => n.name === node) ?? false
+}
+
+/**
+ * A named node with its pivot at the origin, for parts that move on their own
+ * (clock hands, fan blades, doors). Place it at `pivot` in model space.
+ */
+export function getNodeParts(name: string, node: string): NodeParts | null {
+  const record = records.get(name)
+  if (!record || record.status !== 'ready') return null
+  const cached = record.pivoted.get(node)
+  if (cached) return cached
+  const nodes = record.nodes.filter((n) => n.name === node)
+  const first = nodes[0]
+  if (!first) return null
+  const [px, py, pz] = first.pivot
+  const parts = mergeNodes(nodes).map((part) => ({
+    kind: part.kind,
+    geometry: part.geometry.clone().translate(-px, -py, -pz),
+  }))
+  const out: NodeParts = { parts, pivot: first.pivot }
+  record.pivoted.set(node, out)
+  return out
 }
 
 /** Test hook: forget everything. */
