@@ -15,6 +15,7 @@ import { ShortcutHint } from '@/features/office/ShortcutHint'
 import { useFollowUrlSync } from '@/features/office/useFollowUrlSync'
 import { useConfigStore } from '@/office/configStore'
 import { useOfficeSelector } from '@/office/hooks'
+import { useReducedMotionPref } from '@/office/prefs'
 import { usePeopleUi } from '@/office/uiStore'
 import { CameraRig } from '@/scene/camera/CameraRig'
 import { useKeyboardShortcuts } from '@/scene/camera/useKeyboardShortcuts'
@@ -183,23 +184,6 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   return null
 }
 
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  })
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  return reduced
-}
-
 /**
  * Layouts for a changing staff list: each one keeps the seats of the one
  * before it, so a hire gets a free desk and nobody else moves.
@@ -219,7 +203,7 @@ export function OfficeCanvas() {
   const config = useConfigStore((s) => s.config)
   const [ready, setReady] = useState(false)
   const [dpr, setDpr] = useState(IS_E2E ? 1 : 1.5)
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = useReducedMotionPref()
 
   const location = useLocation()
   const [, setSearchParams] = useSearchParams()

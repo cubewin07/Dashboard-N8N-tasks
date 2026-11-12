@@ -146,6 +146,43 @@ try {
       }
     }
 
+    // P05: presentation data (not part of OrgConfig).
+    const visual = await server.ssrLoadModule('/src/domain/visual.ts')
+    const swatchKeys = new Set(cfg.palette.map((sw) => sw.key))
+    const presentation = [
+      ['visual-language.json', visual.VisualLanguageSchema],
+      ['idle-behaviours.json', visual.IdleBehavioursSchema],
+    ]
+    for (const [file, schema] of presentation) {
+      const parsed = schema.safeParse(readJson(file))
+      if (!parsed.success) {
+        console.error(`Content validation failed for src/content/${file}:`)
+        for (const issue of parsed.error.issues) {
+          console.error(`  - [src/content/${file}] ${issue.path.join('.')}: ${issue.message}`)
+        }
+        process.exitCode = 1
+        continue
+      }
+      if (file === 'visual-language.json') {
+        // Every colour must be a palette swatch.
+        const walk = (node, at) => {
+          if (node && typeof node === 'object') {
+            for (const [k, v] of Object.entries(node)) walk(v, `${at}.${k}`)
+          } else if (typeof node === 'string' && /(swatch|Swatch|priorityEdge|deskGlow)/.test(at) && !swatchKeys.has(node)) {
+            console.error(`  - [src/content/${file}] ${at.slice(1)}: unknown palette swatch "${node}"`)
+            process.exitCode = 1
+          }
+        }
+        walk(parsed.data, '')
+      }
+    }
+    for (const [idx, p] of cfg.platforms.entries()) {
+      if (!swatchKeys.has(p.badge.swatch)) {
+        console.error(`  - [src/content/platforms.json] ${idx}.badge.swatch: unknown palette swatch "${p.badge.swatch}"`)
+        process.exitCode = 1
+      }
+    }
+
     if (!process.exitCode) {
       console.log(
         `OK: Validated content (${cfg.departments.length} departments, ${cfg.employees.length} employees, ${cfg.roles.length} roles, ${cfg.specialties.length} specialties, ${cfg.platforms.length} platforms, ${cfg.shops.length} shops, ${cfg.approvalRules.length} rules, ${cfg.taskTypes.length} task types, ${cfg.floorTemplates.length} floor templates).`,

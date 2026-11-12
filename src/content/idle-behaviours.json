@@ -1,0 +1,23 @@
+{
+  "epochMinutes": 5,
+  "topN": 3,
+  "noveltyPenalty": 0.35,
+  "otherFloorPenalty": 0.7,
+  "maxDeptAwayShare": 0.3,
+  "options": [
+    { "key": "stay_at_desk", "slotTypes": [], "minPeople": 1, "maxPeople": 1, "durationMinutes": [15, 45], "floors": "own", "weight": 1.0, "anim": "sit_phone" },
+    { "key": "chat_pair", "slotTypes": ["idle_chat", "idle_water"], "minPeople": 2, "maxPeople": 2, "durationMinutes": [10, 25], "floors": "own", "weight": 1.1, "anim": "talk", "emote": "talk" },
+    { "key": "coffee", "slotTypes": ["idle_coffee"], "minPeople": 1, "maxPeople": 1, "durationMinutes": [10, 20], "floors": "leisure", "weight": 0.8, "anim": "coffee", "emote": "coffee" },
+    { "key": "tea_table", "slotTypes": ["idle_tea_table"], "minPeople": 1, "maxPeople": 4, "durationMinutes": [15, 35], "floors": "leisure", "weight": 0.8, "anim": "tea", "emote": "talk" },
+    { "key": "window_gaze", "slotTypes": ["idle_window"], "minPeople": 1, "maxPeople": 1, "durationMinutes": [5, 15], "floors": "own", "weight": 0.6, "anim": "stand" },
+    { "key": "sofa", "slotTypes": ["idle_sofa"], "minPeople": 1, "maxPeople": 1, "durationMinutes": [15, 40], "floors": "leisure", "weight": 0.6, "anim": "sofa" },
+    { "key": "pingpong", "slotTypes": ["idle_pingpong"], "minPeople": 2, "maxPeople": 2, "durationMinutes": [15, 30], "floors": "leisure", "weight": 0.9, "anim": "play_pingpong", "emote": "ball" },
+    { "key": "arcade", "slotTypes": ["idle_arcade"], "minPeople": 1, "maxPeople": 1, "durationMinutes": [10, 25], "floors": "leisure", "weight": 0.6, "anim": "play_arcade" },
+    { "key": "boardgame", "slotTypes": ["idle_boardgame"], "minPeople": 1, "maxPeople": 4, "durationMinutes": [20, 45], "floors": "leisure", "weight": 0.6, "anim": "play_boardgame", "emote": "think" },
+    { "key": "karaoke", "slotTypes": ["idle_karaoke"], "minPeople": 1, "maxPeople": 3, "durationMinutes": [15, 30], "floors": "leisure", "weight": 0.5, "anim": "karaoke", "emote": "note" },
+    { "key": "massage_chair", "slotTypes": ["idle_massage_chair"], "minPeople": 1, "maxPeople": 1, "durationMinutes": [15, 30], "floors": "leisure", "weight": 0.4, "anim": "sofa", "emote": "heart" },
+    { "key": "bed_sleep", "slotTypes": ["idle_bed"], "minPeople": 1, "maxPeople": 1, "durationMinutes": [30, 60], "floors": "leisure", "weight": 0.15, "anim": "sleep_bed", "emote": "zzz" },
+    { "key": "lunch_nap", "slotTypes": ["idle_bed", "idle_massage_chair", "idle_sofa"], "minPeople": 1, "maxPeople": 1, "durationMinutes": [30, 60], "floors": "any", "weight": 20, "when": { "lunch": true }, "anim": "nap_desk", "emote": "zzz" },
+    { "key": "night_rest", "slotTypes": ["idle_bed", "idle_massage_chair", "idle_sofa"], "minPeople": 1, "maxPeople": 1, "durationMinutes": [120, 480], "floors": "leisure", "weight": 20, "when": { "night": true }, "anim": "sleep_bed", "emote": "zzz" }
+  ]
+}
