@@ -85,19 +85,25 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
     })
   }
 
-  // 2. Ask enough questions that 5 askers end up sitting in waiting seats.
+  // 2. Ask the Marketing manager enough questions that 5 askers end up
+  // sitting on the bench outside their office (P05 demo: "Hàng chờ dài").
   // R8: a question is in person only once the target already has
   // `questionSeatThreshold` open ones, so the first few are walk-ups.
+  const mktDept = departmentIdByKey(ctx, 'marketing')
+  const questionTargetId = getDeptManagerEmployeeId(ctx, mktDept)
   const seatsWanted = 5
   const walkUps = ctx.state.config.policy.approvals.questionSeatThreshold
-  // CS staff first, then people from other floors, each on a task of their own department.
+  // Marketing staff first, then people from other floors, each on a task of
+  // their own department.
   const needed = walkUps + seatsWanted
   const askers = [
-    ...workers,
+    ...departmentWorkers(ctx, mktDept),
     ...ctx.state.config.departments
-      .filter((d) => d.active && d.id !== csDept)
+      .filter((d) => d.active && d.id !== mktDept)
       .flatMap((d) => departmentWorkers(ctx, d.id)),
-  ].slice(0, needed)
+  ]
+    .filter((id) => id !== questionTargetId)
+    .slice(0, needed)
   for (let i = 0; i < askers.length; i += 1) {
     const askerId = askers[i]!
     const askerDept =
@@ -110,6 +116,7 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
       ctx.state.config.taskTypes.find(
         (t) => t.departmentKey === askerDeptKey && !t.key.startsWith('sys.'),
       )?.key ?? 'cs.exchange'
+    const askerManagerId = getDeptManagerEmployeeId(ctx, askerDept)
     const qTask = createTaskInBrain(ctx, askerTaskType, {
       requestedByKind: askerDept === csDept ? 'customer' : 'manager',
       channel: askerDept === csDept ? 'platform' : 'internal',
@@ -122,9 +129,9 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
       {
         taskId: qTask.id,
         assigneeId: askerId,
-        byId: targetMgrId,
+        byId: askerManagerId,
       },
-      { actor: targetMgrId },
+      { actor: askerManagerId },
     )
     emitSimEvent(
       ctx,
@@ -136,7 +143,7 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
     const qa =
       QUESTIONS_VI[i % QUESTIONS_VI.length] ?? pick(ctx.rng, QUESTIONS_VI)
     const computedInPerson = isInPerson(
-      targetMgrId,
+      questionTargetId,
       ctx.state,
       ctx.state.config.policy,
     )
@@ -144,7 +151,7 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
       id: simId('q', ctx.rng, nowMs + 100 + i),
       taskId: qTask.id,
       fromId: askerId,
-      toId: targetMgrId,
+      toId: questionTargetId,
       text: qa.question,
       status: 'open',
       inPerson: computedInPerson,
