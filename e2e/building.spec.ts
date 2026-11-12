@@ -81,7 +81,8 @@ test.describe('P02 building blockout and camera modes', () => {
     })
     expect(debugStats).not.toBeNull()
     expect(debugStats!.drawCalls).toBeGreaterThan(0)
-    expect(debugStats!.drawCalls).toBeLessThanOrEqual(150)
+    // P05 adds instanced indicators, piles and decor; perf-check / performance.md budget.
+    expect(debugStats!.drawCalls).toBeLessThanOrEqual(250)
     console.log('P02_METRICS:', JSON.stringify(debugStats))
 
     // 2. Floor mode via URL (#/?cam=floor&floor=marketing) + screenshot
