@@ -57,7 +57,8 @@ declare global {
 }
 
 const IS_E2E = Boolean(import.meta.env.VITE_E2E)
-const IS_DEBUG_ENABLED = import.meta.env.DEV || IS_E2E
+const IS_DEBUG_ENABLED =
+  import.meta.env.DEV || IS_E2E || Boolean(import.meta.env.VITE_DEBUG)
 
 function addDepartmentToStore(
   key = 'logistics',
