@@ -25,6 +25,8 @@ import { usePeopleDirectory } from './usePeopleDirectory'
 export interface PeopleListProps {
   /** `panel`: compact floating panel over the 3D view. `page`: full width (phone). */
   variant?: 'panel' | 'page'
+  /** Panel only: start as just the header (the 3D view stays clear). */
+  defaultCollapsed?: boolean
   className?: string
 }
 
@@ -144,14 +146,18 @@ const PeopleListRow = memo(function PeopleListRow({
  * list. Clicking a row selects the person (opens the drawer); the follow
  * button or Enter makes the camera follow them.
  */
-export function PeopleList({ variant = 'panel', className }: PeopleListProps) {
+export function PeopleList({
+  variant = 'panel',
+  defaultCollapsed = false,
+  className,
+}: PeopleListProps) {
   const { t } = useI18n()
   const label = useLabel()
   const directory = usePeopleDirectory()
   const followedId = usePeopleUi((s) => s.followedId)
 
   const [query, setQuery] = useState('')
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(defaultCollapsed)
   const [activeId, setActiveId] = useState<string | null>(null)
 
   // Follow can also start or end in the 3D scene, so the announcement is
