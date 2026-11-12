@@ -1,7 +1,7 @@
 import type { BuildingConfig, Slot } from '@/domain/config'
 import type { OfficeEvent } from '@/domain/events'
 import type { DepartmentId, EmployeeId } from '@/domain/primitives'
-import type { OfficeState, PersonRuntime } from '@/domain/work'
+import type { OfficeState, PersonRuntime, Question } from '@/domain/work'
 import type { BuildingLayout, FloorLayout } from '@/scene/layout'
 import { ElevatorSystem, type CarState } from '@/scene/nav/elevator'
 import { buildGrid } from '@/scene/nav/grid'
@@ -26,9 +26,10 @@ import {
   type Intent,
   type PersonMemory,
 } from './intents'
-import { entrancePoint, plan, type PlanContext } from './planner'
+import { entrancePoint, plan, type PlanContext, type WaitingPlace } from './planner'
 import { isSeatedPose, type PoseKey } from './poses'
 import { makeRng, type Rng } from './rng'
+import { allocateSeats, benchOf, linePoint, nearestFree, type SeatPlace } from './seating'
 import { SlotLedger } from './slots'
 import { deskStationOf, headingTo } from './stations'
 import { TUNING } from './tuning'
@@ -109,6 +110,12 @@ interface Agent {
 
 const TWO_PI = Math.PI * 2
 
+interface Waiting {
+  floorIndex: number
+  nearEmployeeId: EmployeeId
+  place: SeatPlace
+}
+
 function turnToward(current: number, target: number, maxStep: number): number {
   let diff = (target - current) % TWO_PI
   if (diff > Math.PI) diff -= TWO_PI
@@ -155,6 +162,8 @@ export class Director {
   private visible: (floorIndex: number) => boolean = () => true
 
   private readonly inTransitByApprover = new Map<EmployeeId, number>()
+  /** P05-T07: who waits face to face, and where (seat or line place). */
+  private waiting = new Map<EmployeeId, Waiting>()
   private readonly deptCounts = new Map<string, { total: number; away: number }>()
   private counters = { delivered: 0, collapsed: 0, teleports: 0, elevatorTrips: 0, stairsTrips: 0 }
 
@@ -224,6 +233,7 @@ export class Director {
     }
     this.lastSeq = state.seq
     this.reconcile(state, hired, isReset)
+    this.updateSeating(state)
   }
 
   // ───────────────────────────── outputs ─────────────────────────────
@@ -247,7 +257,9 @@ export class Director {
 
   /** P05-T07: the waiting seat / line place of a person asking in person, or null. */
   waitingOf(id: EmployeeId): WaitingSpot | null {
-    return this.agents.has(id) ? null : null
+    const w = this.waiting.get(id)
+    if (!w || !this.agents.has(id)) return null
+    return { nearEmployeeId: w.nearEmployeeId, index: w.place.index, seated: w.place.seated }
   }
 
   backlogOf(id: EmployeeId): number {
@@ -346,6 +358,7 @@ export class Director {
     this.ledger.clear()
     this.elevatorSystem = this.makeElevators()
     this.inTransitByApprover.clear()
+    this.waiting = new Map()
     this.counters = { delivered: 0, collapsed: 0, teleports: 0, elevatorTrips: 0, stairsTrips: 0 }
   }
 
@@ -611,6 +624,75 @@ export class Director {
     }
   }
 
+  // ───────────────────────────── waiting seats (P05-T07) ─────────────────────────────
+
+  /**
+   * Everybody waiting face to face, grouped by the bench on their target's
+   * floor, in order of arrival. The seated keep their seats; anyone whose
+   * place changed re-plans (the line moves up).
+   */
+  private updateSeating(state: OfficeState): void {
+    const latest = new Map<EmployeeId, Question>()
+    for (const q of Object.values(state.questions)) {
+      if (q.status !== 'open') continue
+      const prev = latest.get(q.fromId)
+      if (!prev || q.createdAt > prev.createdAt) latest.set(q.fromId, q)
+    }
+    const groups = new Map<number, Array<{ id: EmployeeId; near: EmployeeId; at: string }>>()
+    for (const [from, q] of latest) {
+      if (!q.inPerson || q.toId === from) continue
+      if (!this.agents.has(from) || state.people[from]?.activity !== 'waiting_answer') continue
+      const target = this.agents.get(q.toId)?.desk ?? deskStationOf(this.layout, q.toId)
+      if (!target) continue
+      let group = groups.get(target.floorIndex)
+      if (!group) {
+        group = []
+        groups.set(target.floorIndex, group)
+      }
+      group.push({ id: from, near: q.toId, at: q.createdAt })
+    }
+
+    const next = new Map<EmployeeId, Waiting>()
+    for (const [floorIndex, group] of groups) {
+      const bench = benchOf(this.layout.floors[floorIndex]!)
+      group.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+      const previous = new Map<string, number>()
+      for (const g of group) {
+        const w = this.waiting.get(g.id)
+        if (w && w.floorIndex === floorIndex && w.place.seated) previous.set(g.id, w.place.seat)
+      }
+      const places = allocateSeats(
+        group.map((g) => g.id),
+        bench?.seats.length ?? 0,
+        previous,
+      )
+      places.forEach((place, i) => {
+        next.set(group[i]!.id, { floorIndex, nearEmployeeId: group[i]!.near, place })
+      })
+    }
+
+    for (const [id, w] of next) {
+      const before = this.waiting.get(id)
+      const agent = this.agents.get(id)
+      if (!before || !agent || agent.intent.kind !== 'WaitInSeat') continue
+      if (before.place.seat !== w.place.seat || before.place.line !== w.place.line) agent.intentKey = ''
+    }
+    this.waiting = next
+  }
+
+  private waitingPlace(id: EmployeeId): WaitingPlace | null {
+    const w = this.waiting.get(id)
+    if (!w) return null
+    const bench = benchOf(this.layout.floors[w.floorIndex]!)
+    if (!bench) return null
+    if (w.place.seated) {
+      const station = bench.seats[w.place.seat]
+      return station ? { kind: 'seat', station } : null
+    }
+    const point = nearestFree(this.gridOf(w.floorIndex), linePoint(bench.origin, bench.dir, w.place.line))
+    return { kind: 'line', floorIndex: w.floorIndex, point, facing: bench.seats[0]!.seat }
+  }
+
   // ───────────────────────────── think: state → intent → plan ─────────────────────────────
 
   private countDepartments(): void {
@@ -767,6 +849,7 @@ export class Director {
       grid: (floorIndex) => this.gridOf(floorIndex),
       ledger: this.ledger,
       deskOf: (id) => this.agents.get(id)?.desk ?? deskStationOf(this.layout, id),
+      waitingPlace: (id) => this.waitingPlace(id),
       jitterSeconds: leisure ? agent.rng() * TUNING.idle.startJitterSeconds : 0,
     }
     agent.intent = intent

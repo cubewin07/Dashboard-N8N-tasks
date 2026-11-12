@@ -24,7 +24,13 @@ export interface PlanContext {
   deskOf: (id: EmployeeId) => Station | null
   /** Pre-drawn start delay (visual seconds) for leisure plans. */
   jitterSeconds: number
+  /** P05-T07: the seat or line place of somebody waiting face to face (`seating.ts`). */
+  waitingPlace?: (id: EmployeeId) => WaitingPlace | null
 }
+
+export type WaitingPlace =
+  | { kind: 'seat'; station: Station }
+  | { kind: 'line'; floorIndex: number; point: Vec2; facing: Vec2 }
 
 interface Cursor {
   floor: number
@@ -222,6 +228,18 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
       }
       const floor = ctx.layout.floors[target.floorIndex]!
       standUp(out, me)
+      const place = ctx.waitingPlace?.(me.id) ?? null
+      if (place?.kind === 'seat') {
+        toStation(out, cursor, ctx, place.station, mode)
+        out.push({ k: 'hold', pose: 'wait_seat' })
+        return out
+      }
+      if (place?.kind === 'line') {
+        travel(out, cursor, ctx, place.floorIndex, place.point, mode)
+        out.push({ k: 'face', toward: place.facing })
+        out.push({ k: 'hold', pose: 'wait_stand' })
+        return out
+      }
       for (const slot of floor.slots) {
         if (slot.type !== 'waiting_seat') continue
         const key = SlotLedger.key(floor.key, slot.id)
