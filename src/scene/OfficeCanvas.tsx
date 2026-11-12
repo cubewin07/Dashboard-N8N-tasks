@@ -119,12 +119,23 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   const getThree = useThree((s) => s.get)
   const cameraDebug = useMemo(
     () =>
-      makeCameraDebug(() => {
-        const controls = getThree().controls as CameraControlsImpl | null
-        if (!controls || typeof controls.getTarget !== 'function') return null
-        controls.getTarget(debugTarget)
-        return [debugTarget.x, debugTarget.y, debugTarget.z]
-      }),
+      makeCameraDebug(
+        () => {
+          const controls = getThree().controls as CameraControlsImpl | null
+          if (!controls || typeof controls.getTarget !== 'function') return null
+          controls.getTarget(debugTarget)
+          return [debugTarget.x, debugTarget.y, debugTarget.z]
+        },
+        (x, y, z) => {
+          const { camera, gl: renderer } = getThree()
+          const rect = renderer.domElement.getBoundingClientRect()
+          debugTarget.set(x, y, z).project(camera)
+          return [
+            rect.left + ((debugTarget.x + 1) / 2) * rect.width,
+            rect.top + ((1 - debugTarget.y) / 2) * rect.height,
+          ]
+        },
+      ),
     [getThree],
   )
   const reportedReadyRef = useRef(false)
