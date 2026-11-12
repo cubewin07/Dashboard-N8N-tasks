@@ -1,64 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { makeEvent, makeSeedConfig } from '@/domain/__fixtures__/builders'
 import type { Employee } from '@/domain/config'
-import type { OfficeEvent } from '@/domain/events'
-import type { EmployeeId, EventId, Iso } from '@/domain/primitives'
-import { apply, initialState } from '@/domain/reducer'
-import type { OfficeState } from '@/domain/work'
+import type { EmployeeId } from '@/domain/primitives'
+import { initialState } from '@/domain/reducer'
 import { buildBuildingLayout } from '@/scene/layout'
 import { Director } from '../director'
 import { TUNING } from '../tuning'
-import { golden, runDirector } from './harness'
+import { golden, makeWorld, runDirector } from './harness'
 
 const START = golden.startIso
-const START_MS = Date.parse(START)
-
-/** A small hand-driven world for the scenario tests. */
-function makeWorld(seed = 'scenario') {
-  const config = makeSeedConfig()
-  const layout = buildBuildingLayout(config)
-  const warnings: string[] = []
-  const director = new Director(layout, config.building.elevator, {
-    seed,
-    warn: (m) => warnings.push(m),
-  })
-  let state: OfficeState = initialState(config, START)
-  director.sync(state)
-  let seq = 0
-  let nowMs = START_MS
-
-  const world = {
-    director,
-    layout,
-    warnings,
-    get state() {
-      return state
-    },
-    /** Apply one event at the current sim time. */
-    emit(build: (seq: number, at: Iso, id: EventId) => OfficeEvent) {
-      seq += 1
-      const at = new Date(nowMs).toISOString()
-      const id = `evt_01JTEST${String(seq).padStart(19, '0')}` as EventId
-      state = apply(state, build(seq, at, id))
-      director.sync(state)
-    },
-    /** Tick until `until` is true; returns the number of ticks, or -1 on timeout. */
-    run(maxSeconds: number, until?: () => boolean): number {
-      const ticks = Math.ceil(maxSeconds / TUNING.tickSeconds)
-      for (let i = 0; i < ticks; i += 1) {
-        // Sim time moves at 30× behind the ticks; it only matters for dwell and staleness.
-        nowMs += TUNING.tickSeconds * 30_000
-        director.tick(TUNING.tickSeconds)
-        if (until?.()) return i + 1
-      }
-      return until ? -1 : ticks
-    },
-    debug(id: string) {
-      return director.debugPeople().find((p) => p.id === id)
-    },
-  }
-  return world
-}
 
 describe('Director on the golden day', () => {
   it('30×: delivers the papers on foot, keeps the backlog bounded and never teleports', () => {
