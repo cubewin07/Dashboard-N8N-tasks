@@ -354,6 +354,24 @@ export function pileFor(
   return sorted
 }
 
+/**
+ * P05 (R4): the priority band of the most pressing paper in a pile, by
+ * effective priority (declared weight + aging). An aged "normal" item that
+ * scores above the "high" weight shows as "high". null for an empty pile.
+ */
+export function pileTopPriority(state: OfficeState, employeeId: EmployeeId): Priority | null {
+  const pile = pileFor(state, employeeId)
+  const top = pile[0]
+  if (!top) return null
+  const policy = state.config.policy
+  const score = effectivePriority(top, state.now, policy)
+  const bands = (Object.entries(policy.priority.weights) as Array<[Priority, number]>).sort(
+    (a, b) => b[1] - a[1],
+  )
+  for (const [band, weight] of bands) if (score >= weight) return band
+  return top.priority
+}
+
 export function waitingSeatsFor(
   state: OfficeState,
   employeeId: EmployeeId,
