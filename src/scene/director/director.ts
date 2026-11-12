@@ -241,8 +241,8 @@ export class Director {
   }
 
   /** P05-T07: the waiting seat / line place of a person asking in person, or null. */
-  waitingOf(_id: EmployeeId): WaitingSpot | null {
-    return null
+  waitingOf(id: EmployeeId): WaitingSpot | null {
+    return this.agents.has(id) ? null : null
   }
 
   backlogOf(id: EmployeeId): number {
