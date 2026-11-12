@@ -25,6 +25,7 @@ export interface RunOptions {
   startIso?: string
   durationMs?: number
   onTick?: (director: Director, state: OfficeState, tick: number) => void
+  director?: Omit<DirectorOptions, 'seed' | 'warn'>
 }
 
 export interface RunResult {
@@ -49,6 +50,7 @@ export function runDirector(options: RunOptions = {}): RunResult {
   const layout = buildBuildingLayout(config)
   const warnings: string[] = []
   const director = new Director(layout, config.building.elevator, {
+    ...options.director,
     seed: options.seed ?? 'test',
     warn: (m) => warnings.push(m),
   })
