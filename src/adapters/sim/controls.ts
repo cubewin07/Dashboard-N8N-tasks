@@ -12,6 +12,8 @@ export type ScenarioKey =
   | 'team_offline'
   | 'boss_telegram'
   | 'crowded'
+  | 'busy_day'
+  | 'lunch'
 
 export const DEFAULT_SIM_SEED = '20261110'
 

@@ -1,16 +1,16 @@
 import { Crosshair, ListChecks, X } from 'lucide-react'
-import { useEffect, useRef, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { pileFor, queueFor } from '@/domain/selectors'
-import type { PersonActivity } from '@/domain/work'
 import { useI18n } from '@/i18n'
 import { activityTone, toneClasses } from '@/lib/status'
 import { cn, fmt } from '@/lib/utils'
-import { useLabel, useOfficeSelector } from '@/office/hooks'
+import { useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
 import { usePeopleUi } from '@/office/uiStore'
 import { consumeKeepFocus } from './drawerFocus'
+import { swatchHex } from './legendModel'
 import { findPerson } from './peopleListModel'
+import { EMPTY_FACTS, personFacts, type PersonFacts } from './personFactsModel'
 import { usePeopleDirectory } from './usePeopleDirectory'
 
 export interface PersonDrawerProps {
@@ -22,8 +22,6 @@ export interface PersonDrawerProps {
   placement?: 'canvas' | 'screen'
   className?: string
 }
-
-const FIELD_SEPARATOR = '\n'
 
 /**
  * Non-modal details panel for the selected person. It never blocks the 3D
@@ -37,19 +35,16 @@ export function PersonDrawer({ placement = 'screen', className }: PersonDrawerPr
   const followed = usePeopleUi((s) => s.selectedId !== null && s.followedId === s.selectedId)
   const person = directory ? findPerson(directory, selectedId) : null
 
-  // One primitive for everything live, so feed batches that do not touch this
-  // person do not re-render the drawer.
-  const live = useOfficeSelector((s) => {
-    if (!s || !selectedId) return ''
-    const runtime = s.people[selectedId]
-    const title = runtime?.taskId ? (s.tasks[runtime.taskId]?.title ?? '') : ''
-    return [
-      runtime?.activity ?? 'idle',
-      pileFor(s, selectedId).length,
-      queueFor(s, selectedId).length,
-      title,
-    ].join(FIELD_SEPARATOR)
-  })
+  const { config } = useConfig()
+  // One primitive (a JSON string) for everything live, so feed batches that
+  // do not touch this person do not re-render the drawer.
+  const liveJson = useOfficeSelector((s) =>
+    s && selectedId ? JSON.stringify(personFacts(s, selectedId)) : '',
+  )
+  const facts = useMemo<PersonFacts>(
+    () => (liveJson ? (JSON.parse(liveJson) as PersonFacts) : EMPTY_FACTS),
+    [liveJson],
+  )
 
   const panelRef = useRef<HTMLElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
@@ -84,12 +79,12 @@ export function PersonDrawer({ placement = 'screen', className }: PersonDrawerPr
 
   if (!person) return null
 
-  const [activityRaw = 'idle', pileRaw = '0', queueRaw = '0', ...titleParts] =
-    live.split(FIELD_SEPARATOR)
-  const activity = activityRaw as PersonActivity
-  const pileCount = Number(pileRaw)
-  const queueCount = Number(queueRaw)
-  const taskTitle = titleParts.join(FIELD_SEPARATOR)
+  const { activity, pileCount, queueCount, taskTitle, carrying, waiting } = facts
+  const platform = facts.platformKey
+    ? (config?.platforms.find((p) => p.key === facts.platformKey) ?? null)
+    : null
+  const platformHex = platform ? swatchHex(config?.palette ?? [], platform.badge.swatch) : null
+  const waitingTarget = waiting && directory ? findPerson(directory, waiting.targetId) : null
   const tone = toneClasses[activityTone[activity]]
 
   const close = () => usePeopleUi.getState().select(null)
@@ -170,6 +165,58 @@ export function PersonDrawer({ placement = 'screen', className }: PersonDrawerPr
           )}
         >
           {taskTitle || t.office.drawer.noTask}
+        </dd>
+
+        <dt className="text-muted-foreground">{t.office.drawer.platform}</dt>
+        <dd
+          data-drawer-field="platform"
+          data-platform={platform?.key ?? ''}
+          className={cn('min-w-0 break-words', platform ? 'font-medium' : 'text-muted-foreground')}
+        >
+          {platform ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-flex h-5 min-w-7 items-center justify-center rounded px-1 text-[10px] font-bold text-white"
+                style={{ backgroundColor: platformHex ?? undefined }}
+                aria-hidden
+              >
+                {platform.badge.text}
+              </span>
+              {label(platform.label)}
+            </span>
+          ) : (
+            t.office.drawer.noPlatform
+          )}
+        </dd>
+
+        <dt className="text-muted-foreground">{t.office.drawer.carrying}</dt>
+        <dd
+          data-drawer-field="carrying"
+          className={cn(carrying ? 'font-medium' : 'text-muted-foreground')}
+        >
+          {carrying ? t.office.items[carrying] : t.office.drawer.carryingNothing}
+        </dd>
+
+        <dt className="text-muted-foreground">{t.office.drawer.waiting}</dt>
+        <dd
+          data-drawer-field="waiting"
+          data-waiting-position={waiting?.position ?? ''}
+          className={cn('min-w-0 break-words', waiting ? 'font-medium' : 'text-muted-foreground')}
+        >
+          {waiting ? (
+            <>
+              <span className="block">
+                {fmt(t.office.drawer.waitingValue, { n: waiting.position })}
+              </span>
+              {waitingTarget && (
+                <span className="block text-xs font-normal text-muted-foreground">
+                  {fmt(t.office.drawer.waitingTarget, { name: waitingTarget.name })}
+                </span>
+              )}
+            </>
+          ) : (
+            t.office.drawer.notWaiting
+          )}
         </dd>
 
         <dt className="text-muted-foreground">{t.office.drawer.pile}</dt>

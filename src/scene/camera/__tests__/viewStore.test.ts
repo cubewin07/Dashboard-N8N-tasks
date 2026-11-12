@@ -121,5 +121,11 @@ describe('viewStore and URL search param sync (R8, R11)', () => {
       faded: true,
       castShadow: false,
     })
+    // Higher floors are cut away completely, so ghosts never stack up.
+    expect(getFloorFadeTarget(4, 2)).toEqual({
+      opacity: 0,
+      faded: true,
+      castShadow: false,
+    })
   })
 })

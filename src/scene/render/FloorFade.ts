@@ -32,6 +32,9 @@ export function applyGroupFade(
     }
     obj.castShadow = Boolean(obj.userData.baseCastShadow) && castShadow
 
+    // Fully faded floors are not drawn at all (no zero-alpha overdraw).
+    obj.visible = opacity > 0.005
+
     const applyMat = (mat: THREE.Material) => {
       if (mat.userData.baseOpacity === undefined) {
         mat.userData.baseOpacity = mat.opacity
@@ -39,7 +42,11 @@ export function applyGroupFade(
       }
       const baseOpacity = Number(mat.userData.baseOpacity ?? 1)
       const nextOpacity = baseOpacity * opacity
-      mat.transparent = Boolean(mat.userData.baseTransparent) || isFaded
+      const transparent = Boolean(mat.userData.baseTransparent) || isFaded
+      // three.js bakes `transparent` into the shader (OPAQUE forces alpha to
+      // 1), so flipping it needs a recompile or the faded floor stays solid.
+      if (mat.transparent !== transparent) mat.needsUpdate = true
+      mat.transparent = transparent
       mat.opacity = nextOpacity
       mat.depthWrite = !isFaded && !mat.userData.baseTransparent
     }

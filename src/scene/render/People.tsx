@@ -4,21 +4,28 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { BuildingConfig, OrgConfig } from '@/domain/config'
 import type { EmployeeId } from '@/domain/primitives'
-import type { OfficeState, PersonActivity } from '@/domain/work'
+import type { IdleBehaviours } from '@/domain/visual'
+import type { OfficeState } from '@/domain/work'
 import { useOfficeSelector } from '@/office/hooks'
 import { getFeedClock, useOffice } from '@/office/store'
 import { usePeopleUi } from '@/office/uiStore'
+import { idleBehaviours, visualLanguage } from '@/office/visualConfig'
 import { getFloorFadeTarget, useViewStore } from '@/scene/camera/viewStore'
 import { ClockRateEstimator } from '@/scene/director/clockRate'
-import { Director } from '@/scene/director/director'
+import { Director, type DirectorOptions } from '@/scene/director/director'
 import { moveFactor, TUNING } from '@/scene/director/tuning'
+import { watchIdleDebug } from '@/scene/dev/idleDebug'
 import type { BuildingLayout } from '@/scene/layout'
 import { CapsulePeople } from './CapsulePeople'
 import { toWorldX, toWorldZ } from './coords'
 import { ElevatorCars } from './ElevatorCars'
+import { lodBand, lodRuntime, overrideBand, type LodBand, type LodOverride } from './lod'
+import { NameLabels, type NameLabelsHandle } from './NameLabels'
 import { SCENE_PALETTE } from './palette'
 import { peopleRuntime, resetPeopleRuntime, type PersonSight } from './peopleRuntime'
-import type { PersonTone, PersonVisualInput, PersonVisualSystem } from './PersonVisual'
+import { PersonIndicators } from './PersonIndicators'
+import type { PersonVisualInput, PersonVisualSystem } from './PersonVisual'
+import { isRestingActivity, statusLook } from './statusLook'
 
 export interface PeopleProps {
   layout: BuildingLayout
@@ -29,18 +36,8 @@ export interface PeopleProps {
 const FONT_URL = `${import.meta.env.BASE_URL}assets/fonts/BeVietnamPro-SemiBold.ttf`
 const IS_DEV = Boolean(import.meta.env.DEV)
 
-const TONE: Record<PersonActivity, PersonTone | null> = {
-  idle: null,
-  working: 'working',
-  reviewing: 'working',
-  delivering: 'working',
-  asking: 'waiting',
-  waiting_answer: 'waiting',
-  helping: 'working',
-  in_meeting: 'working',
-  resting: null,
-  off_shift: null,
-}
+/** Longest task title shown under a name (near band). */
+const TITLE_MAX = 28
 
 /** Shirt colour: the department's swatch; managers and owners wear their floor's. */
 function buildTints(config: OrgConfig): Map<EmployeeId, string> {
@@ -55,6 +52,14 @@ function buildTints(config: OrgConfig): Map<EmployeeId, string> {
   return out
 }
 
+function nameMap(config: OrgConfig): Map<EmployeeId, string> {
+  return new Map(config.employees.map((e) => [e.id, e.name]))
+}
+
+function clip(text: string, max: number): string {
+  return text.length <= max ? text : `${text.slice(0, max - 1).trimEnd()}…`
+}
+
 function blankInput(): PersonVisualInput {
   return {
     id: '' as EmployeeId,
@@ -67,7 +72,11 @@ function blankInput(): PersonVisualInput {
     speed01: 0,
     carrying: null,
     tintSwatch: 'management',
-    tone: null,
+    status: null,
+    platformKey: null,
+    emote: null,
+    saturation: 1,
+    floorIndex: 0,
     hovered: false,
     selected: false,
     followed: false,
@@ -78,6 +87,10 @@ function blankInput(): PersonVisualInput {
 
 const tmpHead = new THREE.Vector3()
 const tmpNdc = new THREE.Vector2()
+const tmpCentre = new THREE.Vector3()
+/** Distance bands before camera overrides, kept for hysteresis. */
+const rawBands: LodBand[] = []
+const lodOverride: LodOverride = { mode: 'overview', focusedFloorIndex: null, followedFloorIndex: null }
 
 /**
  * Everybody in the building. Owns the director, ticks it at a fixed 10 Hz
@@ -90,12 +103,16 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
   const camera = useThree((s) => s.camera)
   const raycaster = useThree((s) => s.raycaster)
 
-  const director = useMemo(
-    () =>
-      new Director(layout, elevator, {
-        seed: 'office',
-        warn: IS_DEV ? (m) => console.warn(m) : undefined,
-      }),
+  const director = useMemo(() => {
+    // `idle` is read by the idle brain (P05-T09); passed as a variable so this
+    // compiles whether or not `DirectorOptions` declares it yet.
+    const options: DirectorOptions & { idle?: IdleBehaviours } = {
+      seed: 'office',
+      warn: IS_DEV ? (m) => console.warn(m) : undefined,
+      idle: idleBehaviours,
+    }
+    return new Director(layout, elevator, options)
+  },
     // The director outlives layout changes (`setLayout` below keeps everybody).
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [elevator],
@@ -105,15 +122,22 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
   const rootRef = useRef<THREE.Group>(null)
   const visualRef = useRef<PersonVisualSystem | null>(null)
   const carsRef = useRef<ElevatorCars | null>(null)
+  const indicatorsRef = useRef<PersonIndicators | null>(null)
+  const namesRef = useRef<NameLabelsHandle | null>(null)
   const layoutRef = useRef(layout)
   const reducedMotionRef = useRef(reducedMotion)
 
   const inputsRef = useRef<PersonVisualInput[]>([])
   const accRef = useRef(0)
   const clockRef = useRef(new ClockRateEstimator())
-  const tintsRef = useRef<{ config: OrgConfig | null; map: Map<EmployeeId, string> }>({
+  const tintsRef = useRef<{
+    config: OrgConfig | null
+    map: Map<EmployeeId, string>
+    names: Map<EmployeeId, string>
+  }>({
     config: null,
     map: new Map(),
+    names: new Map(),
   })
   const labelRef = useRef<THREE.Object3D>(null)
   const settleRef = useRef(0)
@@ -140,18 +164,23 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
     if (!root) return
     const visual: PersonVisualSystem = new CapsulePeople()
     const cars = new ElevatorCars()
+    const indicators = new PersonIndicators()
     visual.setReducedMotion(reducedMotionRef.current)
+    indicators.setReducedMotion(reducedMotionRef.current)
     cars.build(layoutRef.current)
-    root.add(visual.object, cars.object)
+    root.add(visual.object, cars.object, indicators.object)
     visualRef.current = visual
     carsRef.current = cars
+    indicatorsRef.current = indicators
     invalidate()
     return () => {
       visualRef.current = null
       carsRef.current = null
-      root.remove(visual.object, cars.object)
+      indicatorsRef.current = null
+      root.remove(visual.object, cars.object, indicators.object)
       visual.dispose()
       cars.dispose()
+      indicators.dispose()
     }
   }, [invalidate])
 
@@ -172,7 +201,16 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
   useEffect(() => {
     reducedMotionRef.current = reducedMotion
     visualRef.current?.setReducedMotion(reducedMotion)
-  }, [reducedMotion])
+    indicatorsRef.current?.setReducedMotion(reducedMotion)
+    peopleRuntime.ringPulse = indicatorsRef.current?.rings.pulseAmplitude ?? 0
+    settleRef.current = 30
+    invalidate()
+  }, [reducedMotion, invalidate])
+
+  // Dev only: `#/office?debug=idle` opens the idle pose / emote gallery.
+  useEffect(() => {
+    return IS_DEV ? watchIdleDebug() : undefined
+  }, [])
 
   // With on-demand rendering nothing draws while paused: wake up when the
   // office state or the selection changes.
@@ -260,12 +298,18 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
     const state: OfficeState | null = useOffice.getState().state
     const visual = visualRef.current
     const cars = carsRef.current
-    if (!state || !visual || !cars) return
+    const indicators = indicatorsRef.current
+    if (!state || !visual || !cars || !indicators) return
     director.sync(state)
 
     if (tintsRef.current.config !== state.config) {
-      tintsRef.current = { config: state.config, map: buildTints(state.config) }
+      tintsRef.current = {
+        config: state.config,
+        map: buildTints(state.config),
+        names: nameMap(state.config),
+      }
     }
+    indicators.setPlatforms(state.config.platforms)
 
     // Visual seconds: real seconds × a factor that grows slowly with the feed's speed.
     const clock = getFeedClock()
@@ -302,6 +346,26 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
     while (inputs.length < sims.length) inputs.push(blankInput())
     const ui = usePeopleUi.getState()
     const active = activeFloorRef.current
+
+    // LOD band per floor (R12): camera distance to the floor centre, with
+    // hysteresis, then camera-mode overrides.
+    const view = useViewStore.getState()
+    const followedSim = ui.followedId ? director.person(ui.followedId) : null
+    lodOverride.mode = view.mode === 'floor' ? 'floor' : followedSim ? 'follow' : view.mode
+    lodOverride.focusedFloorIndex = active
+    lodOverride.followedFloorIndex = followedSim ? followedSim.floorIndex : null
+    const bands = lodRuntime.bands
+    bands.length = layout.floors.length
+    for (let f = 0; f < layout.floors.length; f += 1) {
+      const floor = layout.floors[f]!
+      tmpCentre.set(0, floor.y + floor.size.h / 2, 0)
+      const dist = frame.camera.position.distanceTo(tmpCentre)
+      // Hysteresis runs on the distance band; the override only masks it.
+      const raw = lodBand(dist, rawBands[f] ?? null)
+      rawBands[f] = raw
+      bands[f] = overrideBand(f, raw, lodOverride)
+    }
+
     const halfW = layout.footprint.w
     const halfD = layout.footprint.d
     const tints = tintsRef.current.map
@@ -321,7 +385,11 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       input.speed01 = sim.speed01
       input.carrying = sim.carrying
       input.tintSwatch = tints.get(sim.id) ?? 'management'
-      input.tone = task?.status === 'blocked' ? 'blocked' : runtime ? TONE[runtime.activity] : null
+      input.status = runtime ? statusLook(runtime.activity, task?.status === 'blocked') : null
+      input.platformKey = runtime?.platformKey ?? null
+      input.emote = sim.emote ?? null
+      input.saturation = !runtime || isRestingActivity(runtime.activity) ? visualLanguage.idle.saturation : 1
+      input.floorIndex = sim.floorIndex
       input.hovered = ui.hoveredId === sim.id
       input.selected = ui.selectedId === sim.id
       input.followed = ui.followedId === sim.id
@@ -330,12 +398,33 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       input.opacity = hidden ? 0 : sim.opacity
       input.lod = 0
     }
-    visual.sync(inputs, sims.length, factor > 0 ? dt : 0)
+    const animDt = factor > 0 ? dt : 0
+    visual.sync(inputs, sims.length, animDt)
     cars.update(director.elevators(), alpha)
+    const counts = indicators.sync(inputs, sims.length, visual, frame.camera.position, animDt)
+    peopleRuntime.indicators = counts
+    peopleRuntime.ringPulse = indicators.rings.pulseAmplitude
+
+    const shownId = ui.hoveredId ?? ui.followedId ?? ui.selectedId
+    const names = tintsRef.current.names
+    peopleRuntime.namesInUse =
+      namesRef.current?.update({
+        inputs,
+        count: sims.length,
+        visual,
+        camera: frame.camera,
+        excludeId: shownId,
+        textOf: (id) => {
+          const name = names.get(id) ?? ''
+          const taskId = state.people[id]?.taskId
+          const title = taskId ? state.tasks[taskId]?.title : undefined
+          return title ? `${name}\n${clip(title, TITLE_MAX)}` : name
+        },
+      }) ?? 0
 
     const label = labelRef.current
     if (label) {
-      const id = ui.hoveredId ?? ui.followedId ?? ui.selectedId
+      const id = shownId
       if (id && visual.headOf(id, tmpHead)) {
         label.visible = true
         label.position.set(tmpHead.x, tmpHead.y + 0.3, tmpHead.z)
@@ -358,6 +447,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
 
   return (
     <group name="people-root" ref={rootRef}>
+      <NameLabels ref={namesRef} />
       <Text
         ref={labelRef}
         visible={false}

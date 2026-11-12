@@ -1,8 +1,10 @@
-import { Building2, Compass, Layers, UserCheck } from 'lucide-react'
+import { Building2, Compass, Layers, SunMoon, UserCheck } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
+import { useOfficePrefs } from '@/office/prefs'
 import { usePeopleUi } from '@/office/uiStore'
 import { useViewStore } from '@/scene/camera/viewStore'
+import { Legend } from './Legend'
 
 export interface CameraModeBarProps {
   floorKeys: readonly string[]
@@ -20,6 +22,8 @@ export function CameraModeBar({ floorKeys }: CameraModeBarProps) {
   const followedId = usePeopleUi((s) => s.followedId)
   const follow = usePeopleUi((s) => s.follow)
   const followTarget = followedId ?? selectedId
+  const dayNight = useOfficePrefs((s) => s.dayNight)
+  const setDayNight = useOfficePrefs((s) => s.setDayNight)
 
   const handleFloorMode = () => {
     const target =
@@ -105,6 +109,26 @@ export function CameraModeBar({ floorKeys }: CameraModeBarProps) {
         <UserCheck className="size-3.5" aria-hidden="true" />
         <span>{t.office.modeFollow}</span>
       </button>
+
+      <span aria-hidden="true" className="mx-0.5 h-5 w-px bg-border" />
+
+      <button
+        type="button"
+        data-day-night
+        aria-pressed={dayNight}
+        aria-label={t.office.dayNight.ariaLabel}
+        title={t.office.dayNight.ariaLabel}
+        onClick={() => setDayNight(!dayNight)}
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+          dayNight ? 'bg-primary-soft text-primary' : 'text-foreground hover:bg-muted',
+        )}
+      >
+        <SunMoon className="size-3.5" aria-hidden="true" />
+        <span className="hidden lg:inline">{t.office.dayNight.label}</span>
+      </button>
+
+      <Legend />
     </div>
   )
 }

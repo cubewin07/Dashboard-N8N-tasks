@@ -6,6 +6,7 @@ import {
   KeyRound,
   Laptop,
   Loader2,
+  Wind,
   LogOut,
   Radio,
   Server,
@@ -17,6 +18,7 @@ import { useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTi
 import { useDrive } from '@/app/drive'
 import { useI18n, type Lang } from '@/i18n'
 import { useTeamOnline, useSystemStatus } from '@/hooks/queries'
+import { useOfficePrefs } from '@/office/prefs'
 import { formatDateTime } from '@/lib/time'
 import { fmt, cn } from '@/lib/utils'
 import {
@@ -49,6 +51,13 @@ export function SettingsPage() {
   const drive = useDrive()
   const { heartbeatAt, version } = useTeamOnline()
   const { data: status } = useSystemStatus()
+  const reducedMotionChoice = useOfficePrefs((s) => s.reducedMotionChoice)
+  const systemReducedMotion = useOfficePrefs((s) => s.systemReducedMotion)
+  const setReducedMotion = useOfficePrefs((s) => s.setReducedMotion)
+  const dayNight = useOfficePrefs((s) => s.dayNight)
+  const setDayNight = useOfficePrefs((s) => s.setDayNight)
+  const motionValue =
+    reducedMotionChoice === null ? 'system' : reducedMotionChoice ? 'on' : 'off'
 
   // Change password dialog state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
@@ -237,6 +246,101 @@ export function SettingsPage() {
                 mode: t.settings.deviceTier.activeModes[tier],
               })}
             </p>
+          </CardContent>
+        </Card>
+
+        {/* 1c. Motion and lighting in the 3D office (P05 R14, R11) */}
+        <Card data-settings-motion>
+          <CardHeader>
+            <div className="flex items-start gap-2.5 sm:items-center">
+              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                <Wind className="size-4" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <CardTitle>{t.settings.motion.title}</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  {t.settings.motion.description}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2.5">
+              <div className="space-y-1">
+                <p id="reduced-motion-label" className="text-sm font-medium text-foreground">
+                  {t.settings.motion.reducedLabel}
+                </p>
+                <p className="text-xs text-muted-foreground">{t.settings.motion.reducedHelp}</p>
+              </div>
+              <RadioGroup
+                value={motionValue}
+                onValueChange={(val) =>
+                  setReducedMotion(val === 'system' ? null : val === 'on')
+                }
+                className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+                aria-labelledby="reduced-motion-label"
+              >
+                {(
+                  [
+                    {
+                      value: 'system',
+                      label: t.settings.motion.options.system,
+                      sub: fmt(t.settings.motion.options.systemSubtitle, {
+                        state: systemReducedMotion
+                          ? t.settings.motion.systemOn
+                          : t.settings.motion.systemOff,
+                      }),
+                    },
+                    {
+                      value: 'on',
+                      label: t.settings.motion.options.on,
+                      sub: t.settings.motion.options.onSubtitle,
+                    },
+                    {
+                      value: 'off',
+                      label: t.settings.motion.options.off,
+                      sub: t.settings.motion.options.offSubtitle,
+                    },
+                  ] as const
+                ).map((opt) => (
+                  <label
+                    key={opt.value}
+                    htmlFor={`reduced-motion-${opt.value}`}
+                    className={cn(
+                      'flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors',
+                      motionValue === opt.value
+                        ? 'border-primary bg-primary-soft/40'
+                        : 'border-border bg-surface hover:bg-surface-muted',
+                    )}
+                  >
+                    <RadioGroupItem
+                      value={opt.value}
+                      id={`reduced-motion-${opt.value}`}
+                      className="mt-0.5"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">{opt.label}</p>
+                      <p className="text-xs text-muted-foreground">{opt.sub}</p>
+                    </div>
+                  </label>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="flex items-start justify-between gap-4 rounded-xl border border-border bg-surface-muted/30 p-3.5 sm:p-4">
+              <div className="space-y-1">
+                <Label htmlFor="settings-day-night" className="font-medium text-foreground">
+                  {t.settings.motion.dayNightLabel}
+                </Label>
+                <p className="text-xs text-muted-foreground">{t.settings.motion.dayNightHelp}</p>
+              </div>
+              <Switch
+                id="settings-day-night"
+                checked={dayNight}
+                onCheckedChange={setDayNight}
+                className="shrink-0"
+              />
+            </div>
           </CardContent>
         </Card>
 

@@ -71,7 +71,7 @@ try {
   await page.locator('#login-email').fill('boss@example.com')
   await page.locator('#login-password').fill('123456')
   await page.locator('button[type="submit"]').click()
-  await page.waitForSelector('[data-office-canvas][data-assets="ready"]', { timeout: 120_000 })
+  await page.waitForSelector('[data-office-canvas][data-ready="true"]', { timeout: 120_000 })
 
   await page.locator('[data-sim-speed="30"]').first().click()
   await page.locator('[data-sim-scenario="hire_temps"]').first().click()

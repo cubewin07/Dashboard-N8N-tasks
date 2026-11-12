@@ -51,6 +51,8 @@ export const TUNING = {
     /** People do not all stand up in the same tick. */
     startJitterSeconds: 9,
     firstDwellScale: 0.5,
+    /** P05: a chatting pair takes turns showing the speech bubble. */
+    talkTurnSeconds: 2.5,
   },
 
   separation: {

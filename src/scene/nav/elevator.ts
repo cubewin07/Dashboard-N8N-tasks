@@ -42,6 +42,26 @@ export interface CarState {
   riders: readonly string[]
   /** Floors it is committed to stop at, ascending (debug). */
   stops: readonly number[]
+  /** P05-T08: nearest floor (`Math.round(position)`), for the floor indicator. */
+  floor: number
+  /** P05-T08: the next stop in the travel direction (the floor it stands at while stopped), or null when idle with nothing to do. */
+  targetFloor: number | null
+}
+
+/** The stop a car heads for next: first stop ahead in its direction, else the nearest one. */
+export function nextStop(position: number, direction: -1 | 0 | 1, stops: readonly number[]): number | null {
+  if (stops.length === 0) return null
+  if (direction !== 0) {
+    let best: number | null = null
+    for (const f of stops) {
+      if ((f - position) * direction < -EPS) continue
+      if (best === null || Math.abs(f - position) < Math.abs(best - position)) best = f
+    }
+    if (best !== null) return best
+  }
+  let nearest = stops[0]!
+  for (const f of stops) if (Math.abs(f - position) < Math.abs(nearest - position)) nearest = f
+  return nearest
 }
 
 export type PassengerPhase = 'waiting' | 'riding' | 'arrived'
@@ -406,6 +426,7 @@ export class ElevatorSystem {
       const stops = new Set<number>()
       for (const r of car.riders) stops.add(r.to)
       for (const p of this.waiting) if (p.car === car.index) stops.add(p.from)
+      const sorted = [...stops].sort((a, b) => a - b)
       return {
         index: car.index,
         position: car.position,
@@ -413,7 +434,11 @@ export class ElevatorSystem {
         direction: car.direction,
         door01: car.door01,
         riders: car.riders.map((r) => r.id),
-        stops: [...stops].sort((a, b) => a - b),
+        stops: sorted,
+        floor: Math.round(car.position),
+        targetFloor: car.phase === 'moving' || sorted.length > 0
+          ? nextStop(car.position, car.direction, sorted)
+          : null,
       }
     })
   }

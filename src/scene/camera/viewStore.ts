@@ -79,7 +79,11 @@ export function getFloorFadeTarget(
   activeFloorIndex: number | null,
 ): { opacity: number; faded: boolean; castShadow: boolean } {
   if (activeFloorIndex !== null && floorIndex > activeFloorIndex) {
-    return { opacity: 0.15, faded: true, castShadow: false }
+    // Only the floor right above stays as a faint ghost. Ghosts stacked over
+    // several floors add up to an almost solid layer that hides the people at
+    // the back of the focused floor while their labels still draw on top.
+    const opacity = floorIndex === activeFloorIndex + 1 ? 0.15 : 0
+    return { opacity, faded: true, castShadow: false }
   }
   return { opacity: 1, faded: false, castShadow: true }
 }

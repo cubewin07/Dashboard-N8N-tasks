@@ -590,3 +590,43 @@ describe('ElevatorSystem: property test', () => {
     expect(r.maxRiders).toBeLessThanOrEqual(BASE.capacity)
   })
 })
+
+describe('ElevatorSystem: car state for the renderer (P05-T08, R7)', () => {
+  it('doors never open between floors, capacity holds, floor/target indicator is consistent', () => {
+    const cfg = { ...BASE, capacity: 3 }
+    const sys = new ElevatorSystem(cfg)
+    const rand = lcg(42)
+    let calls = 0
+    let sawOpen = 0
+    let sawMovingTarget = 0
+    for (let i = 0; i < 6000; i++) {
+      if (rand() < 1 / 15) {
+        const from = Math.floor(rand() * cfg.floorCount)
+        let to = Math.floor(rand() * (cfg.floorCount - 1))
+        if (to >= from) to++
+        sys.call(`p${calls++}`, from, to)
+      }
+      sys.step(DT)
+      for (let k = 0; k < calls; k++) if (arrived(sys, `p${k}`)) sys.release(`p${k}`)
+      for (const car of sys.cars()) {
+        if (car.door01 > 0) {
+          sawOpen++
+          expect(Math.abs(car.position - Math.round(car.position))).toBeLessThan(1e-6)
+          expect(car.phase).not.toBe('moving')
+        }
+        expect(car.riders.length).toBeLessThanOrEqual(cfg.capacity)
+        expect(car.floor).toBe(Math.round(car.position))
+        if (car.phase === 'moving') {
+          sawMovingTarget++
+          expect(car.targetFloor).not.toBeNull()
+          // The indicator never points behind the car.
+          expect((car.targetFloor! - car.position) * car.direction).toBeGreaterThanOrEqual(-1e-6)
+        }
+        if (car.phase === 'idle' && car.stops.length === 0) expect(car.targetFloor).toBeNull()
+      }
+    }
+    expect(calls).toBeGreaterThan(200)
+    expect(sawOpen).toBeGreaterThan(100)
+    expect(sawMovingTarget).toBeGreaterThan(100)
+  })
+})

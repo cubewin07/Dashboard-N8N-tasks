@@ -40,5 +40,125 @@
     "label": { "vi": "Xanh ngọc", "en": "Teal" },
     "hex": "#0d9488",
     "softHex": "#ccfbf1"
+  },
+  {
+    "key": "status_working",
+    "label": { "vi": "Xanh làm việc", "en": "Working blue" },
+    "hex": "#2563eb",
+    "softHex": "#e8effd"
+  },
+  {
+    "key": "status_waiting",
+    "label": { "vi": "Cam chờ", "en": "Waiting amber" },
+    "hex": "#d97706",
+    "softHex": "#fdf3e3"
+  },
+  {
+    "key": "status_blocked",
+    "label": { "vi": "Đỏ vướng", "en": "Blocked red" },
+    "hex": "#dc2626",
+    "softHex": "#fdeaea"
+  },
+  {
+    "key": "status_done",
+    "label": { "vi": "Xanh xong", "en": "Done green" },
+    "hex": "#16a34a",
+    "softHex": "#e7f6ec"
+  },
+  {
+    "key": "status_idle",
+    "label": { "vi": "Xám rảnh", "en": "Idle grey" },
+    "hex": "#8a867f",
+    "softHex": "#f0eeea"
+  },
+  {
+    "key": "priority_urgent",
+    "label": { "vi": "Khẩn", "en": "Urgent" },
+    "hex": "#dc2626",
+    "softHex": "#fdeaea"
+  },
+  {
+    "key": "priority_high",
+    "label": { "vi": "Cao", "en": "High" },
+    "hex": "#ea580c",
+    "softHex": "#ffedd5"
+  },
+  {
+    "key": "priority_normal",
+    "label": { "vi": "Thường", "en": "Normal" },
+    "hex": "#2563eb",
+    "softHex": "#e8effd"
+  },
+  {
+    "key": "priority_low",
+    "label": { "vi": "Thấp", "en": "Low" },
+    "hex": "#94a3b8",
+    "softHex": "#f1f5f9"
+  },
+  {
+    "key": "paper",
+    "label": { "vi": "Giấy", "en": "Paper" },
+    "hex": "#fafaf9",
+    "softHex": "#ffffff"
+  },
+  {
+    "key": "screen_off",
+    "label": { "vi": "Màn hình tắt", "en": "Screen off" },
+    "hex": "#334155",
+    "softHex": "#e2e8f0"
+  },
+  {
+    "key": "blue_600",
+    "label": { "vi": "Xanh dương", "en": "Blue" },
+    "hex": "#2563eb",
+    "softHex": "#dbeafe"
+  },
+  {
+    "key": "indigo_600",
+    "label": { "vi": "Chàm", "en": "Indigo" },
+    "hex": "#4f46e5",
+    "softHex": "#e0e7ff"
+  },
+  {
+    "key": "neutral_900",
+    "label": { "vi": "Đen", "en": "Black" },
+    "hex": "#171717",
+    "softHex": "#e5e5e5"
+  },
+  {
+    "key": "orange_500",
+    "label": { "vi": "Cam", "en": "Orange" },
+    "hex": "#f97316",
+    "softHex": "#ffedd5"
+  },
+  {
+    "key": "pink_600",
+    "label": { "vi": "Hồng", "en": "Pink" },
+    "hex": "#db2777",
+    "softHex": "#fce7f3"
+  },
+  {
+    "key": "rose_600",
+    "label": { "vi": "Hồng đỏ", "en": "Rose" },
+    "hex": "#e11d48",
+    "softHex": "#ffe4e6"
+  },
+  {
+    "key": "sky_500",
+    "label": { "vi": "Xanh trời nhạt", "en": "Light sky" },
+    "hex": "#0ea5e9",
+    "softHex": "#e0f2fe"
+  },
+  {
+    "key": "sky_600",
+    "label": { "vi": "Xanh trời", "en": "Sky blue" },
+    "hex": "#0284c7",
+    "softHex": "#e0f2fe"
+  },
+  {
+    "key": "teal_600",
+    "label": { "vi": "Xanh mòng két", "en": "Teal" },
+    "hex": "#0d9488",
+    "softHex": "#ccfbf1"
   }
 ]
