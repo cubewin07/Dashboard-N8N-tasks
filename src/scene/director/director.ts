@@ -31,7 +31,7 @@ import { makeRng, type Rng } from './rng'
 import { SlotLedger } from './slots'
 import { deskStationOf, headingTo } from './stations'
 import { TUNING } from './tuning'
-import type { Action, Errand, PersonSim, Station } from './types'
+import type { Action, Errand, PersonSim, Station, WaitingSpot } from './types'
 
 export interface DirectorOptions {
   /** Seeds every person's idle choices. Same seed + same input → same movement. */
@@ -240,6 +240,11 @@ export class Director {
     return this.inTransitByApprover.get(approverId) ?? 0
   }
 
+  /** P05-T07: the waiting seat / line place of a person asking in person, or null. */
+  waitingOf(_id: EmployeeId): WaitingSpot | null {
+    return null
+  }
+
   backlogOf(id: EmployeeId): number {
     return this.agents.get(id)?.memory.errands.length ?? 0
   }
@@ -406,6 +411,8 @@ export class Director {
       opacity: 1,
       visible: true,
       inCar: -1,
+      emote: null,
+      idleKey: null,
     }
     const [lo, hi] = TUNING.idle.dwellSimMinutes
     const firstDwell = (lo + rng() * (hi - lo)) * TUNING.idle.firstDwellScale * rng()
