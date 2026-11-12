@@ -1,5 +1,6 @@
 import type * as THREE from 'three'
-import type { SlotType } from '@/domain/config'
+import type { Slot, SlotType } from '@/domain/config'
+import { decorKind } from './decorModel'
 import { SCENE_PALETTE } from './palette'
 
 export type BlockoutMeshKind =
@@ -298,4 +299,16 @@ export const SLOT_BLOCKOUT: Record<SlotType, BlockoutSpec> = {
     ],
   },
   cat_spot: { render: false },
+}
+
+const NOT_RENDERED: BlockoutSpec = { render: false }
+
+/**
+ * Blockout spec for one slot. Decor slots that are not plants (reception
+ * counter, task wall) are drawn by `Decor.tsx` instead, so nothing is drawn
+ * twice.
+ */
+export function blockoutFor(slot: Pick<Slot, 'id' | 'type'>): BlockoutSpec {
+  if (slot.type === 'decor' && decorKind(slot) !== 'plant') return NOT_RENDERED
+  return SLOT_BLOCKOUT[slot.type]
 }
