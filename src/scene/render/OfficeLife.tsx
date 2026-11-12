@@ -1,4 +1,5 @@
 import type { BuildingLayout } from '@/scene/layout'
+import { DeskStatus } from './DeskStatus'
 import { DocPiles } from './DocPiles'
 
 export interface OfficeLifeProps {
@@ -14,6 +15,7 @@ export interface OfficeLifeProps {
 export function OfficeLife({ layout }: OfficeLifeProps) {
   return (
     <group name="office-life">
+      <DeskStatus layout={layout} />
       <DocPiles layout={layout} />
     </group>
   )
