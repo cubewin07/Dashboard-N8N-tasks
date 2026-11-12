@@ -60,6 +60,11 @@ const TABLE_POSE: Partial<Record<SlotType, PoseKey>> = {
   meeting_table: 'sit',
 }
 
+/** A spot one person stands at (no seat, no table places). */
+export function isStandSlot(slot: Slot): boolean {
+  return !DESK_TYPES.has(slot.type) && !SEAT_POSE[slot.type] && !TABLE_POSE[slot.type]
+}
+
 export function isDeskSlot(slot: Slot): boolean {
   return DESK_TYPES.has(slot.type)
 }

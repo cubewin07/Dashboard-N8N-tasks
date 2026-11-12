@@ -15,7 +15,17 @@ import {
 import { stairsTime } from '@/scene/nav/stairs'
 import type { NavGrid, Vec2 } from '@/scene/nav/types'
 import { heldItemFor } from './held'
-import { chooseIdleIntent, chooseRestIntent, type IdleContext } from './idleBrain'
+import type { EmoteKey, IdleBehaviours } from '@/domain/visual'
+import {
+  calendarPhase,
+  chooseIdle,
+  chooseIdleIntent,
+  chooseRestIntent,
+  idleClock,
+  spotIntent,
+  type IdleContext,
+  type IdlePartner,
+} from './idleBrain'
 import {
   deriveIntent,
   employeeIndex,
@@ -39,6 +49,11 @@ export interface DirectorOptions {
   /** Seeds every person's idle choices. Same seed + same input → same movement. */
   seed?: string
   warn?: (message: string) => void
+  /**
+   * P05 idle brain config (`idle-behaviours.json`), passed in by the caller so
+   * the director never imports content. Missing → the P04 idle brain.
+   */
+  idle?: IdleBehaviours
 }
 
 export interface DirectorStats {
@@ -106,6 +121,12 @@ interface Agent {
   gone: boolean
   /** A courier's paper is in hand (between the plan's `pick` and `drop`). */
   paper: boolean
+  /** P05 idle brain: option key, its emote, recent keys, pair partner, calendar phase. */
+  idleKey: string | null
+  idleEmote: EmoteKey | null
+  idleHistory: string[]
+  partnerId: EmployeeId | null
+  idlePhase: string | null
 }
 
 const TWO_PI = Math.PI * 2
@@ -147,6 +168,9 @@ export class Director {
   private readonly seed: string
   private readonly warn: (message: string) => void
   private readonly warned = new Set<string>()
+  private readonly idleConfig: IdleBehaviours | null
+  /** Visual seconds since start (alternates the chat bubbles of a pair). */
+  private visualT = 0
 
   private grids = new Map<number, NavGrid>()
   private elevatorSystem: ElevatorSystem
@@ -172,6 +196,7 @@ export class Director {
     this.building = elevator
     this.seed = options.seed ?? 'office'
     this.warn = options.warn ?? (() => {})
+    this.idleConfig = options.idle ?? null
     this.elevatorSystem = this.makeElevators()
   }
 
@@ -312,6 +337,7 @@ export class Director {
   /** Advance by `dt` visual seconds (fixed 0.1 s steps from the renderer). */
   tick(dt: number): void {
     if (!this.state || dt <= 0) return
+    this.visualT += dt
     this.elevatorSystem.step(dt)
     this.countDepartments()
 
@@ -473,6 +499,11 @@ export class Director {
       car: -1,
       gone: false,
       paper: false,
+      idleKey: null,
+      idleEmote: null,
+      idleHistory: [],
+      partnerId: null,
+      idlePhase: null,
     }
     if (arriving) {
       const door = entrancePoint(this.layout)
@@ -737,6 +768,27 @@ export class Director {
 
     this.catchUp(agent)
 
+    if (this.idleConfig) {
+      this.thinkIdleP05(agent, person, this.idleConfig)
+    } else {
+      this.thinkIdleP04(agent, person)
+    }
+
+    const intent = deriveIntent(person, state, this.layout, memory)
+    const key = intentKey(intent)
+    if (key === agent.intentKey) return
+
+    if (this.isVertical(agent)) {
+      // Mid-ride or in the stairwell: finish the vertical move, then re-plan.
+      this.truncateAfterVertical(agent)
+      return
+    }
+    this.replan(agent, intent, key)
+  }
+
+  private thinkIdleP04(agent: Agent, person: PersonRuntime): void {
+    const state = this.state!
+    const memory = agent.memory
     // Lunch / night: choose a place once per rest period.
     const activity = person.activity
     if (activity === 'resting' || activity === 'off_shift') {
@@ -768,17 +820,125 @@ export class Director {
       // Any other activity interrupts idling; the choice is dropped, never queued (§3.6 rule 5).
       memory.idleChoice = null
     }
+  }
 
-    const intent = deriveIntent(person, state, this.layout, memory)
-    const key = intentKey(intent)
-    if (key === agent.intentKey) return
-
-    if (this.isVertical(agent)) {
-      // Mid-ride or in the stairwell: finish the vertical move, then re-plan.
-      this.truncateAfterVertical(agent)
+  /**
+   * P05-T09/T11 idle brain (§3.3). Idle, resting and off-shift people pick
+   * an option from `idle-behaviours.json` when their dwell ends or the
+   * calendar phase changes (lunch, night). Working people never run it, so
+   * nobody is forced to nap; any work activity drops the choice at once.
+   */
+  private thinkIdleP05(agent: Agent, person: PersonRuntime, config: IdleBehaviours): void {
+    const state = this.state!
+    const memory = agent.memory
+    const activity = person.activity
+    const free = activity === 'idle' || activity === 'resting' || activity === 'off_shift'
+    if (!free) {
+      if (memory.idleChoice !== null || memory.restChoice !== null || agent.idleKey !== null) {
+        this.dropIdle(agent)
+      }
       return
     }
-    this.replan(agent, intent, key)
+    const clock = idleClock(this.simNowMs, state.config.policy.calendar)
+    const phase = `${activity}:${calendarPhase(clock)}`
+    const settled = agent.plan.length === 0 || agent.plan[agent.step]?.k === 'hold' || agent.idleKey === null
+    const dwellOver = agent.dwellVisualLeft <= 0 || this.simNowMs >= agent.dwellSimEndMs
+    const phaseChanged = agent.idlePhase !== phase
+    // Invited partners keep their joint choice until it ends for both.
+    if (!phaseChanged && !(settled && dwellOver && isLeisureIntent(agent.intent))) return
+    if (memory.awayOnWork && !memory.atDesk) return
+
+    if (agent.partnerId) this.unpair(agent)
+    this.ledger.releaseAll(agent.id)
+    const owner = isOwner(state, agent.id)
+    const dept = agent.departmentId
+      ? state.config.departments.find((d) => d.id === agent.departmentId)
+      : undefined
+    const c = this.deptCounts.get(agent.departmentId ?? '_')
+    const decision = chooseIdle(
+      {
+        id: agent.id,
+        homeFloorIndex: agent.desk.floorIndex,
+        currentFloorIndex: agent.sim.floorIndex,
+        pos: { x: agent.bx, z: agent.bz },
+        history: agent.idleHistory,
+        is247: dept?.hours === '24_7',
+        owner,
+        deptAwayShare: c && c.total > 0 ? (c.away + 1) / c.total : 1,
+      },
+      {
+        config,
+        layout: this.layout,
+        ledger: this.ledger,
+        seed: this.seed,
+        clock,
+        partners: owner ? [] : this.idlePartners(agent),
+      },
+    )
+    this.applyIdle(agent, decision.key, decision.emote, decision.intent, decision.dwellSimMinutes, phase)
+    if (decision.partnerId && decision.spot) {
+      const partner = this.agents.get(decision.partnerId)
+      if (partner) {
+        const intent = spotIntent(partner.desk.floorIndex, decision.spot, decision.pose)
+        this.applyIdle(partner, decision.key, decision.emote, intent, decision.dwellSimMinutes, partner.idlePhase ?? phase)
+        partner.partnerId = agent.id
+        agent.partnerId = partner.id
+      }
+    }
+  }
+
+  private applyIdle(
+    agent: Agent,
+    key: string,
+    emote: EmoteKey | null,
+    intent: Intent,
+    dwellSimMinutes: number,
+    phase: string,
+  ): void {
+    // deriveIntent reads idleChoice when idle and restChoice when resting.
+    agent.memory.idleChoice = intent
+    agent.memory.restChoice = intent
+    agent.idleKey = key
+    agent.idleEmote = key === 'stay_at_desk' ? null : emote
+    agent.idlePhase = phase
+    agent.idleHistory.push(key)
+    if (agent.idleHistory.length > 3) agent.idleHistory.shift()
+    agent.dwellVisualLeft = dwellSimMinutes * TUNING.idle.visualSecondsPerSimMinute
+    agent.dwellSimEndMs = this.simNowMs + dwellSimMinutes * 60_000
+  }
+
+  private dropIdle(agent: Agent): void {
+    if (agent.partnerId) this.unpair(agent)
+    agent.memory.idleChoice = null
+    agent.memory.restChoice = null
+    agent.idleKey = null
+    agent.idleEmote = null
+    agent.idlePhase = null
+  }
+
+  /** A pair ends for both: the partner re-chooses at its next think. */
+  private unpair(agent: Agent): void {
+    const partner = agent.partnerId ? this.agents.get(agent.partnerId) : undefined
+    agent.partnerId = null
+    if (partner && partner.partnerId === agent.id) {
+      partner.partnerId = null
+      partner.dwellVisualLeft = 0
+    }
+  }
+
+  /** Idle people settled on a spot or at their desk, not paired, sorted by id. */
+  private idlePartners(me: Agent): IdlePartner[] {
+    const state = this.state!
+    const out: IdlePartner[] = []
+    for (const other of this.order) {
+      if (other === me || other.partnerId || other.gone) continue
+      if (state.people[other.id]?.activity !== 'idle') continue
+      if (isOwner(state, other.id)) continue
+      if (other.plan[other.step] && other.plan[other.step]!.k !== 'hold') continue
+      out.push({ id: other.id, floorIndex: other.sim.floorIndex })
+    }
+    out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    return out
   }
 
   /** §3.6: the state moves faster than legs. */
@@ -1081,6 +1241,8 @@ export class Director {
 
   /** P05-T04/T06: what is in the hand. The courier's paper wins; otherwise the desk work decides. */
   private dress(agent: Agent): void {
+    agent.sim.idleKey = agent.idleKey
+    agent.sim.emote = this.emoteOf(agent)
     if (agent.paper) return
     const runtime = this.state?.people[agent.id]
     agent.sim.carrying = heldItemFor(
@@ -1088,6 +1250,16 @@ export class Director {
       runtime?.carrying ?? null,
       agent.intent.kind,
     )
+  }
+
+  /** The bubble shown while settled on an idle choice; a chatting pair takes turns. */
+  private emoteOf(agent: Agent): EmoteKey | null {
+    if (!agent.idleEmote || agent.plan[agent.step]?.k !== 'hold' || !isLeisureIntent(agent.intent)) return null
+    if (agent.idleEmote === 'talk' && agent.partnerId) {
+      const window = Math.floor(this.visualT / TUNING.idle.talkTurnSeconds) % 2
+      return (window === 0) === agent.id < agent.partnerId ? 'talk' : null
+    }
+    return agent.idleEmote
   }
 
   private walkPose(agent: Agent): PoseKey {
