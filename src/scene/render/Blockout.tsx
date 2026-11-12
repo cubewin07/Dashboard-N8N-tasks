@@ -130,6 +130,8 @@ export function Blockout({ floors, activeFloorIndex }: BlockoutProps) {
 
     for (const floor of floors) {
       const faded = activeFloorIndex !== null && floor.index > activeFloorIndex
+      // Same cut-away as the floors: one ghost floor above the focus, no more.
+      if (faded && floor.index > activeFloorIndex + 1) continue
       const { w, d } = floor.size
 
       for (const slot of floor.slots) {
