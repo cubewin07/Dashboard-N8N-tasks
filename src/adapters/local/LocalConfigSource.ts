@@ -1,6 +1,11 @@
 import { z } from 'zod'
 import approvalRules from '@/content/approval-rules.json'
 import building from '@/content/building.json'
+import bossTemplate from '@/content/floor-templates/boss.json'
+import departmentTemplate from '@/content/floor-templates/department.json'
+import gamesRestTemplate from '@/content/floor-templates/games_rest.json'
+import lobbyCafeTemplate from '@/content/floor-templates/lobby_cafe.json'
+import managementTemplate from '@/content/floor-templates/management.json'
 import orgSeed from '@/content/org.seed.json'
 import palette from '@/content/palette.json'
 import platforms from '@/content/platforms.json'
@@ -59,7 +64,13 @@ export function getBundledRawConfig(): Record<string, unknown> {
     policy,
     taskTypes,
     building,
-    floorTemplates: [],
+    floorTemplates: [
+      bossTemplate,
+      departmentTemplate,
+      gamesRestTemplate,
+      lobbyCafeTemplate,
+      managementTemplate,
+    ],
     palette,
   }
 }

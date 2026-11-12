@@ -1,16 +1,33 @@
-import type {
-  ApprovalRule,
-  BuildingConfig,
-  Department,
-  Employee,
-  OrgConfig,
-  PaletteSwatch,
-  Platform,
-  Policy,
-  RoleDef,
-  Shop,
-  Specialty,
-  TaskType,
+import approvalRulesJson from '@/content/approval-rules.json'
+import buildingJson from '@/content/building.json'
+import bossTemplateJson from '@/content/floor-templates/boss.json'
+import departmentTemplateJson from '@/content/floor-templates/department.json'
+import gamesRestTemplateJson from '@/content/floor-templates/games_rest.json'
+import lobbyCafeTemplateJson from '@/content/floor-templates/lobby_cafe.json'
+import managementTemplateJson from '@/content/floor-templates/management.json'
+import orgSeedJson from '@/content/org.seed.json'
+import paletteJson from '@/content/palette.json'
+import platformsJson from '@/content/platforms.json'
+import policyJson from '@/content/policy.json'
+import rolesJson from '@/content/roles.json'
+import specialtiesJson from '@/content/specialties.json'
+import taskTypesJson from '@/content/task-types.json'
+import {
+  FloorTemplateSchema,
+  parseOrgConfig,
+  type ApprovalRule,
+  type BuildingConfig,
+  type Department,
+  type Employee,
+  type FloorTemplate,
+  type OrgConfig,
+  type PaletteSwatch,
+  type Platform,
+  type Policy,
+  type RoleDef,
+  type Shop,
+  type Specialty,
+  type TaskType,
 } from '../config'
 import type { Command, CommandPayloads, CommandType } from '../commands'
 import type { EventPayloads, EventType, OfficeEvent } from '../events'
@@ -204,6 +221,35 @@ export const DEFAULT_PALETTE: PaletteSwatch[] = [
   { key: 'leisure', label: { vi: 'Xanh ngọc', en: 'Teal' }, hex: '#0d9488', softHex: '#ccfbf1' },
 ]
 
+export const DEFAULT_FLOOR_TEMPLATES: FloorTemplate[] = [
+  FloorTemplateSchema.parse(bossTemplateJson),
+  FloorTemplateSchema.parse(departmentTemplateJson),
+  FloorTemplateSchema.parse(gamesRestTemplateJson),
+  FloorTemplateSchema.parse(lobbyCafeTemplateJson),
+  FloorTemplateSchema.parse(managementTemplateJson),
+]
+
+export function makeSeedConfig(overrides: Partial<OrgConfig> = {}): OrgConfig {
+  const base = parseOrgConfig({
+    departments: orgSeedJson.departments,
+    employees: orgSeedJson.employees,
+    shops: orgSeedJson.shops,
+    roles: rolesJson,
+    specialties: specialtiesJson,
+    platforms: platformsJson,
+    approvalRules: approvalRulesJson,
+    policy: policyJson,
+    taskTypes: taskTypesJson,
+    building: buildingJson,
+    floorTemplates: DEFAULT_FLOOR_TEMPLATES,
+    palette: paletteJson,
+  })
+  return {
+    ...base,
+    ...overrides,
+  }
+}
+
 export function makeConfig(overrides: Partial<OrgConfig> = {}): OrgConfig {
   const departments: Department[] = overrides.departments ?? [
     {
@@ -329,7 +375,7 @@ export function makeConfig(overrides: Partial<OrgConfig> = {}): OrgConfig {
     policy: overrides.policy ?? DEFAULT_POLICY,
     taskTypes,
     building: overrides.building ?? DEFAULT_BUILDING,
-    floorTemplates: overrides.floorTemplates ?? [],
+    floorTemplates: overrides.floorTemplates ?? DEFAULT_FLOOR_TEMPLATES,
     palette: overrides.palette ?? DEFAULT_PALETTE,
   }
 }

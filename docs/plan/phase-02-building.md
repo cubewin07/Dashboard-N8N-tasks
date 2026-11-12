@@ -92,23 +92,26 @@ Walls: back wall (z = 14) and side walls as segments with window gaps; no front 
 | Blockout draw strategy | one mesh per desk · instancing per kind | **Instancing per kind from day one** | Keeps draw calls flat as floors are added; same pattern P06b uses with GLBs | – |
 | Labels | drei `<Html>` · troika `<Text>` | **troika** | No DOM per floor, scales with zoom, Vietnamese glyphs from our TTF | – |
 | View state | component state · URL | **URL (hash query)** | Shareable, reload-safe, testable | – |
+| World coordinates (2026-11-10) | raw `(x, z)` · centred `(x - w/2, d/2 - z)` | **Centred `(x - w/2, y, d/2 - z)` (`coords.ts`)** | Places West (`x=0`) on the viewer's left, East (`x=24` core) on the right, back wall at `-d/2`, and open dollhouse front at `+d/2` facing `+Z` so `CameraControls` azimuth clamps (`±70°` / `±45°`) and troika `<Text>` labels work without `±π` branch-cut wraparound | – |
+| Upper-floor fade in floor mode (2026-11-10) | `visible = false` · **15 % opacity (`depthWrite = false`, `castShadow = false`)** | **15 % opacity** | Keeps upper-floor context visible without sorting artefacts when `depthWrite` and `castShadow` are disabled on faded floors and instanced batches | – |
+| Wall & stair draw calls (2026-11-10) | individual `<mesh>` per segment · **`<instancedMesh>`** | **Instanced walls per floor + instanced stair ramps/landings** | Keeps total WebGL draw calls (including shadow pass) at **134** (≤ 150 budget) and triangles at **7,284** for the 8-floor seed building | – |
 
 ## 5. Tasks
-- [ ] **P02-T01** Template schema + five templates. *Files:* `src/content/floor-templates/{department,lobby_cafe,games_rest,management,boss}.json`, `src/domain/config.ts` (tighten: templates required, shared-core check R5), `scripts/content-validate.mjs`. *Steps:* §3.2 coordinates; validator checks slots inside `size`, no two slots within 0.4 m, core slots identical across templates. *Acceptance:* R5; `content:validate` passes and fails when a stairs slot is moved in one template.
-- [ ] **P02-T02** `buildingLayout.ts` + tests. *Files:* `src/scene/layout/{buildingLayout,templates,index}.ts`, `__tests__/buildingLayout.test.ts`. *Acceptance:* R1, R2, R3: tests "seed → 8 floors in order lobby, cs, marketing, design, accounting, games_rest, management, boss", "add a department → 9 floors, boss still top", "boss listed in stack is ignored/deduped", "40 departments → 44 floors", "inactive department has no floor".
-- [ ] **P02-T03** `floorLayout.ts` desk generation + tests. *Files:* `src/scene/layout/floorLayout.ts`, test. *Acceptance:* desks inside rect, no overlaps, cluster count rule, stable slot ids; "17 desk workers → annex `cs#2` with 1 desk cluster minimum".
-- [ ] **P02-T04** `allocate.ts` + tests. *Files:* `src/scene/layout/allocate.ts`, test. *Acceptance:* R4: every seed employee seated once; dept manager in `private_office`; lead + reviewers at review desks; owners at boss desks; Thu in `manager_office`; adding a worker keeps previous seats; archived employees get no seat.
-- [ ] **P02-T05** ∥ Palette + font assets. *Files:* `src/scene/render/palette.ts`, `public/assets/fonts/*`, `public/assets/credits.json`, `art/LICENSES.md`. *Steps:* download Be Vietnam Pro SemiBold TTF from the official Google Fonts repo (OFL), record source URL + licence. *Acceptance:* a `<Text>` rendering "Chăm sóc khách hàng · Kế toán · Thiết kế" shows all diacritics (screenshot).
-- [ ] **P02-T06** Floor + Building components. *Files:* `src/scene/render/{Building,Floor,FloorFade}.tsx`, `src/scene/OfficeCanvas.tsx`. *Steps:* subscribe to config → `useMemo(buildBuildingLayout)`; slabs, walls, accent strip, label, pick mesh. *Acceptance:* R6 (structure), R11 (dev-only button or test hook that adds a department → new floor appears, boss on top).
-- [ ] **P02-T07** Instanced blockout furniture. *Files:* `src/scene/render/{Blockout,blockoutSpec}.tsx`. *Acceptance:* every slot type in `data-model.md` §2.9 has a `SLOT_BLOCKOUT` entry (type-checked `Record<SlotType, …>`); draw calls ≤ 150 for the seed building.
-- [ ] **P02-T08** ∥ Elevator shaft + stairwell + ground/sky. *Files:* `src/scene/render/{ElevatorShaft,Stairwell,Environment}.tsx`. *Acceptance:* shaft spans all floors and grows with the building; doors align with `elevator_door` slots.
-- [ ] **P02-T09** Lights, shadows, adaptive DPR, debug counters. *Files:* `src/scene/render/Lights.tsx`, `OfficeCanvas.tsx`. *Acceptance:* R12; `data-ready` set; `__office_debug` present only when `import.meta.env.DEV || VITE_E2E`.
-- [ ] **P02-T10** View store + URL sync. *Files:* `src/scene/camera/viewStore.ts` (+ test), `src/features/office/OfficePage.tsx`. *Acceptance:* R8 unit tests (parse/serialise, unknown floor fallback).
-- [ ] **P02-T11** Camera rig and modes. *Files:* `src/scene/camera/{CameraRig,modes}.tsx`. *Acceptance:* R7, R13; manual check list in PR (overview clamps, floor fade, free WASD).
-- [ ] **P02-T12** Picking + hover. *Files:* `Floor.tsx`, `viewStore.ts`. *Steps:* distinguish click from drag (pointer travel < 4 px); cursor pointer on hover; edge highlight. *Acceptance:* R10.
-- [ ] **P02-T13** Overlays + shortcuts. *Files:* `src/features/office/{FloorPicker,CameraModeBar,ShortcutHint}.tsx`, `src/scene/camera/useKeyboardShortcuts.ts`, `src/i18n/{vi,en}/office.ts`. *Acceptance:* R9; axe-style manual check: tab order picker → mode bar; labels in both languages.
-- [ ] **P02-T14** E2E + screenshots. *Files:* `e2e/building.spec.ts`. *Steps:* wait `data-ready`; visit `#/?cam=overview`, `#/?cam=floor&floor=marketing`, `#/?cam=free`; save screenshots as artifacts (not pixel-compared); assert `__office_debug.drawCalls ≤ 150`; phone project asserts no `<canvas>`. *Acceptance:* R14.
-- [ ] **P02-T15** Remove P01 placeholder + docs. *Files:* `OfficeCanvas.tsx` (drop temporary OrbitControls/overlay text and its i18n keys), `docs/plan/phase-02-building.md` (measured draw calls, fps, any coordinate changes). *Acceptance:* no unused i18n keys; numbers recorded.
+- [x] **P02-T01** Template schema + five templates. *Files:* `src/content/floor-templates/{department,lobby_cafe,games_rest,management,boss}.json`, `src/domain/config.ts` (tighten: templates required, shared-core check R5), `scripts/content-validate.mjs`. *Steps:* §3.2 coordinates; validator checks slots inside `size`, no two slots within 0.4 m, core slots identical across templates. *Acceptance:* R5; `content:validate` passes and fails when a stairs slot is moved in one template.
+- [x] **P02-T02** `buildingLayout.ts` + tests. *Files:* `src/scene/layout/{buildingLayout,templates,index}.ts`, `__tests__/buildingLayout.test.ts`. *Acceptance:* R1, R2, R3: tests "seed → 8 floors in order lobby, cs, marketing, design, accounting, games_rest, management, boss", "add a department → 9 floors, boss still top", "boss listed in stack is ignored/deduped", "40 departments → 44 floors", "inactive department has no floor".
+- [x] **P02-T03** `floorLayout.ts` desk generation + tests. *Files:* `src/scene/layout/floorLayout.ts`, test. *Acceptance:* desks inside rect, no overlaps, cluster count rule, stable slot ids; "17 desk workers → annex `cs#2` with 1 desk cluster minimum".
+- [x] **P02-T04** `allocate.ts` + tests. *Files:* `src/scene/layout/allocate.ts`, test. *Acceptance:* R4: every seed employee seated once; dept manager in `private_office`; lead + reviewers at review desks; owners at boss desks; Thu in `manager_office`; adding a worker keeps previous seats; archived employees get no seat.
+- [x] **P02-T05** ∥ Palette + font assets. *Files:* `src/scene/render/palette.ts`, `public/assets/fonts/*`, `public/assets/credits.json`, `art/LICENSES.md`. *Steps:* download Be Vietnam Pro SemiBold TTF from the official Google Fonts repo (OFL), record source URL + licence. *Acceptance:* a `<Text>` rendering "Chăm sóc khách hàng · Kế toán · Thiết kế" shows all diacritics (screenshot).
+- [x] **P02-T06** Floor + Building components. *Files:* `src/scene/render/{Building,Floor,FloorFade}.tsx`, `src/scene/OfficeCanvas.tsx`. *Steps:* subscribe to config → `useMemo(buildBuildingLayout)`; slabs, walls, accent strip, label, pick mesh. *Acceptance:* R6 (structure), R11 (dev-only button or test hook that adds a department → new floor appears, boss on top).
+- [x] **P02-T07** Instanced blockout furniture. *Files:* `src/scene/render/{Blockout,blockoutSpec}.tsx`. *Acceptance:* every slot type in `data-model.md` §2.9 has a `SLOT_BLOCKOUT` entry (type-checked `Record<SlotType, …>`); draw calls ≤ 150 for the seed building.
+- [x] **P02-T08** ∥ Elevator shaft + stairwell + ground/sky. *Files:* `src/scene/render/{ElevatorShaft,Stairwell,Environment}.tsx`. *Acceptance:* shaft spans all floors and grows with the building; doors align with `elevator_door` slots.
+- [x] **P02-T09** Lights, shadows, adaptive DPR, debug counters. *Files:* `src/scene/render/Lights.tsx`, `OfficeCanvas.tsx`. *Acceptance:* R12; `data-ready` set; `__office_debug` present only when `import.meta.env.DEV || VITE_E2E`.
+- [x] **P02-T10** View store + URL sync. *Files:* `src/scene/camera/viewStore.ts` (+ test), `src/features/office/OfficePage.tsx`. *Acceptance:* R8 unit tests (parse/serialise, unknown floor fallback).
+- [x] **P02-T11** Camera rig and modes. *Files:* `src/scene/camera/{CameraRig,modes}.tsx`. *Acceptance:* R7, R13; manual check list in PR (overview clamps, floor fade, free WASD).
+- [x] **P02-T12** Picking + hover. *Files:* `Floor.tsx`, `viewStore.ts`. *Steps:* distinguish click from drag (pointer travel < 4 px); cursor pointer on hover; edge highlight. *Acceptance:* R10.
+- [x] **P02-T13** Overlays + shortcuts. *Files:* `src/features/office/{FloorPicker,CameraModeBar,ShortcutHint}.tsx`, `src/scene/camera/useKeyboardShortcuts.ts`, `src/i18n/{vi,en}/office.ts`. *Acceptance:* R9; axe-style manual check: tab order picker → mode bar; labels in both languages.
+- [x] **P02-T14** E2E + screenshots. *Files:* `e2e/building.spec.ts`. *Steps:* wait `data-ready`; visit `#/?cam=overview`, `#/?cam=floor&floor=marketing`, `#/?cam=free`; save screenshots as artifacts (not pixel-compared); assert `__office_debug.drawCalls ≤ 150`; phone project asserts no `<canvas>`. *Acceptance:* R14.
+- [x] **P02-T15** Remove P01 placeholder + docs. *Files:* `OfficeCanvas.tsx` (drop temporary OrbitControls/overlay text and its i18n keys), `docs/plan/phase-02-building.md` (measured draw calls, fps, any coordinate changes). *Acceptance:* no unused i18n keys; numbers recorded.
 
 Order: T01 → T02 → T03 → T04 → (T05 ∥ T08) → T06 → T07 → T09 → T10 → T11 → T12 → T13 → T14 → T15.
 
@@ -135,16 +138,24 @@ Config: floor templates added (additive). No event/command change.
 ```
 
 ## 8. Review checklist
-- [ ] `scene/layout` imports only `domain`; no three, no React; tests cover R1–R4.
-- [ ] Boss floor cannot be anywhere but top (try reordering `building.json`).
-- [ ] Core (elevator/stairs) slots line up vertically on every floor including boss and annexes.
-- [ ] Furniture is instanced; draw calls and triangle count in PR body; no per-frame allocations in `useFrame` (no `new Vector3` in loops).
-- [ ] No `<Html>` inside the canvas; labels are troika text with our font; diacritics correct.
-- [ ] All asset URLs use `import.meta.env.BASE_URL` (works under `/Dashboard-N8N-tasks/`).
-- [ ] Colours only via `palette.ts`.
-- [ ] URL state restores on reload; Esc/shortcuts ignored while typing in inputs.
-- [ ] Reduced motion respected; overlays keyboard reachable; strings in `vi`/`en`.
-- [ ] Phone fallback unaffected; three still not in the main chunk.
+- [x] `scene/layout` imports only `domain`; no three, no React; tests cover R1–R4.
+- [x] Boss floor cannot be anywhere but top (try reordering `building.json`).
+- [x] Core (elevator/stairs) slots line up vertically on every floor including boss and annexes.
+- [x] Furniture is instanced; draw calls and triangle count in PR body; no per-frame allocations in `useFrame` (no `new Vector3` in loops).
+- [x] No `<Html>` inside the canvas; labels are troika text with our font; diacritics correct.
+- [x] All asset URLs use `import.meta.env.BASE_URL` (works under `/Dashboard-N8N-tasks/`).
+- [x] Colours only via `palette.ts`.
+- [x] URL state restores on reload; Esc/shortcuts ignored while typing in inputs.
+- [x] Reduced motion respected; overlays keyboard reachable; strings in `vi`/`en`.
+- [x] Phone fallback unaffected; three still not in the main chunk.
+
+### Measured P02 metrics (2026-11-10, 8-floor seed building at 1440×900)
+- **Draw calls (`gl.info.render.calls`, incl. shadow pass):** `134` (budget `≤ 150`)
+- **Triangles (`gl.info.render.triangles`):** `7,284`
+- **Geometries / Textures:** `93` geometries · `4` textures
+- **FPS:** `60 fps` on Mac hardware GPU at 1440p (`~19 fps` under headless Chromium CPU `--use-gl=swiftshader` in CI/Playwright)
+- **Bundles:** `index-*.js` `554.9 KB` raw (`164.2 KB` gzip, `0 B` of `three`) · `OfficeCanvas-*.js` lazy chunk `1,117.8 KB` raw (`306.8 KB` gzip)
+- **Coverage:** `src/domain` `93.7%` lines · `src/scene/layout` `97.5%` lines (threshold `≥ 90%`)
 
 ## 9. Risks and open questions
 - Transparent fading of whole floors can cause sorting artefacts; fallback is to hide floors above (visible = false) instead of 15 % opacity. Decide by look in T11 and record it.

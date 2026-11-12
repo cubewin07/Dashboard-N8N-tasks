@@ -1,0 +1,190 @@
+{
+  "key": "management",
+  "size": { "w": 24, "d": 14 },
+  "gridCell": 0.5,
+  "fixedSlots": [
+    {
+      "id": "elevator_door_1",
+      "type": "elevator_door",
+      "x": 20.5,
+      "z": 9,
+      "rotY": -1.5708,
+      "footprint": [[41, 18]],
+      "approach": [40, 18]
+    },
+    {
+      "id": "elevator_door_2",
+      "type": "elevator_door",
+      "x": 20.5,
+      "z": 11,
+      "rotY": -1.5708,
+      "footprint": [[41, 22]],
+      "approach": [40, 22]
+    },
+    {
+      "id": "stairs_entry",
+      "type": "stairs_entry",
+      "x": 21,
+      "z": 4,
+      "rotY": -1.5708,
+      "footprint": [[42, 8]],
+      "approach": [40, 8]
+    },
+    {
+      "id": "manager_office",
+      "type": "manager_office",
+      "x": 4,
+      "z": 9,
+      "rotY": 1.5708,
+      "roleHint": "manager",
+      "footprint": [
+        [7, 17],
+        [7, 18],
+        [8, 17],
+        [8, 18]
+      ],
+      "approach": [9, 18]
+    },
+    {
+      "id": "waiting_seat_1",
+      "type": "waiting_seat",
+      "x": 7,
+      "z": 8,
+      "rotY": 1.5708,
+      "footprint": [[14, 16]],
+      "approach": [15, 16]
+    },
+    {
+      "id": "waiting_seat_2",
+      "type": "waiting_seat",
+      "x": 7,
+      "z": 9,
+      "rotY": 1.5708,
+      "footprint": [[14, 18]],
+      "approach": [15, 18]
+    },
+    {
+      "id": "waiting_seat_3",
+      "type": "waiting_seat",
+      "x": 7,
+      "z": 10,
+      "rotY": 1.5708,
+      "footprint": [[14, 20]],
+      "approach": [15, 20]
+    },
+    {
+      "id": "waiting_seat_4",
+      "type": "waiting_seat",
+      "x": 7,
+      "z": 11,
+      "rotY": 1.5708,
+      "footprint": [[14, 22]],
+      "approach": [15, 22]
+    },
+    {
+      "id": "intake_desk",
+      "type": "decor",
+      "x": 11,
+      "z": 4,
+      "rotY": 0,
+      "footprint": [[22, 8]],
+      "approach": [22, 7]
+    },
+    {
+      "id": "meeting_table",
+      "type": "meeting_table",
+      "x": 3.5,
+      "z": 3.5,
+      "rotY": 0,
+      "capacity": 8,
+      "footprint": [
+        [6, 7],
+        [7, 7],
+        [8, 7]
+      ],
+      "approach": [7, 6]
+    },
+    {
+      "id": "task_wall",
+      "type": "decor",
+      "x": 12.5,
+      "z": 13.5,
+      "rotY": 3.1416,
+      "footprint": [
+        [24, 27],
+        [25, 27]
+      ],
+      "approach": [25, 26]
+    },
+    {
+      "id": "spare_desk_1",
+      "type": "desk",
+      "x": 15,
+      "z": 4.5,
+      "rotY": 0,
+      "footprint": [[30, 9]],
+      "approach": [30, 8]
+    },
+    {
+      "id": "spare_desk_2",
+      "type": "desk",
+      "x": 17.5,
+      "z": 4.5,
+      "rotY": 0,
+      "footprint": [[35, 9]],
+      "approach": [35, 8]
+    },
+    {
+      "id": "idle_sofa_1",
+      "type": "idle_sofa",
+      "x": 15,
+      "z": 9.5,
+      "rotY": 0,
+      "footprint": [[30, 19]],
+      "approach": [30, 18]
+    },
+    {
+      "id": "decor_plant_1",
+      "type": "decor",
+      "x": 1,
+      "z": 1,
+      "rotY": 0,
+      "footprint": [[2, 2]],
+      "approach": [3, 2]
+    },
+    {
+      "id": "decor_plant_2",
+      "type": "decor",
+      "x": 1,
+      "z": 13,
+      "rotY": 0,
+      "footprint": [[2, 26]],
+      "approach": [3, 25]
+    },
+    {
+      "id": "decor_plant_3",
+      "type": "decor",
+      "x": 23,
+      "z": 1,
+      "rotY": 0,
+      "footprint": [[46, 2]],
+      "approach": [45, 2]
+    },
+    {
+      "id": "decor_plant_4",
+      "type": "decor",
+      "x": 23,
+      "z": 13,
+      "rotY": 0,
+      "footprint": [[46, 26]],
+      "approach": [45, 25]
+    }
+  ],
+  "walls": [
+    { "x1": 0, "z1": 14, "x2": 24, "z2": 14 },
+    { "x1": 0, "z1": 0, "x2": 0, "z2": 14 },
+    { "x1": 24, "z1": 0, "x2": 24, "z2": 14 },
+    { "x1": 6, "z1": 7, "x2": 6, "z2": 14, "door": { "offset": 1.5, "width": 1 } },
+    { "x1": 0, "z1": 7, "x2": 6, "z2": 7 }
+  ]
+}
