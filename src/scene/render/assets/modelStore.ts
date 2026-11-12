@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { reprioritise } from './loadQueue'
 import { AssetManifestSchema, assetUrl, type AssetManifest } from './manifest'
 
 /**
@@ -202,13 +203,17 @@ function pump() {
   }
 }
 
-/** Queue models for loading, in the given order. Already known names are skipped. */
+/**
+ * Queue models for loading, in the given order. Already known names are not
+ * fetched again, but the ones still waiting move to this call's order (P06b-T12).
+ */
 export function requestModels(names: readonly string[]): void {
   for (const name of names) {
     if (records.has(name)) continue
     records.set(name, { status: 'loading', nodes: [], merged: new Map(), pivoted: new Map() })
     queue.push(name)
   }
+  queue.splice(0, queue.length, ...reprioritise(queue, names))
   pump()
 }
 
