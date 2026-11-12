@@ -23,5 +23,7 @@ export const sim: typeof viSim = {
     team_offline: 'Team offline',
     boss_telegram: 'Boss messages on Telegram',
     crowded: 'Crowded building (80)',
+    busy_day: 'Busy day',
+    lunch: 'Lunch break',
   },
 }

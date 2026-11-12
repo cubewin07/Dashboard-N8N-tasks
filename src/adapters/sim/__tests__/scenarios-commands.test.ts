@@ -94,7 +94,7 @@ describe('Scenarios, commands, and intakeParser (P03-T10)', () => {
       ).toBe(true)
     })
 
-    it('long_queue: puts 12 reviews and 5 in-person waiting questions onto one dept manager', async () => {
+    it('long_queue: puts 12 reviews on the CS manager and 5 in-person waiting questions on the Marketing manager', async () => {
       const feed = createSimFeed({
         seed: 104,
         autoStartTimer: false,
@@ -109,8 +109,11 @@ describe('Scenarios, commands, and intakeParser (P03-T10)', () => {
       const pile = pileFor(state, 'emp_ngoc')
       expect(pile.length).toBe(12)
 
-      const seats = waitingSeatsFor(state, 'emp_ngoc')
+      const seats = waitingSeatsFor(state, 'emp_hai')
       expect(seats.length).toBe(5)
+      expect(seats.length).toBeGreaterThanOrEqual(
+        state.config.policy.approvals.questionSeatThreshold,
+      )
     })
 
     it('hire_temps: hires temps up to cap and produces a hire_over_cap boss review or cap archive', async () => {
