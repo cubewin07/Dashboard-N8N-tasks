@@ -10,6 +10,9 @@ import { catAt, catHomes, catLoop } from './catModel'
 import { isNight, localMinutes } from './clock'
 import { toWorldX, toWorldZ } from './coords'
 import { getSwatchColor } from './palette'
+import { getSharedMaterials } from './assets/materials'
+import { getModelParts } from './assets/modelStore'
+import { LIFE, useModelReady } from './liveParts'
 import { activeFloorIndexOf, isCutAway } from './place'
 
 const CAT_SWATCH = 'orange_500'
@@ -42,8 +45,18 @@ export interface CatProps {
 }
 
 /** P05-T12 (R11, D8): the office cat, driven by feed time only. */
+type CatPoseNode = 'walk' | 'sit' | 'sleep'
+const POSES: readonly CatPoseNode[] = ['walk', 'sit', 'sleep']
+
 export function Cat({ layout, reducedMotion = false }: CatProps) {
-  const meshRef = useRef<THREE.Mesh>(null)
+  const meshRef = useRef<THREE.Object3D>(null)
+  const poseRefs = useRef<Partial<Record<CatPoseNode, THREE.Group | null>>>({})
+  const ready = useModelReady(LIFE?.cat.model)
+  const poseParts = useMemo(() => {
+    if (!LIFE || !ready) return null
+    const cat = LIFE.cat
+    return POSES.map((key) => ({ key, parts: getModelParts(cat.model, cat[key]) ?? [] }))
+  }, [ready])
   const geometry = useMemo(() => buildCatGeometry(), [])
   useLayoutEffect(() => () => geometry.dispose(), [geometry])
   const plan = useMemo(() => {
@@ -84,13 +97,48 @@ export function Cat({ layout, reducedMotion = false }: CatProps) {
     mesh.visible = true
     const bob = pose.walking && !reducedMotion ? Math.abs(Math.sin(clock.elapsedTime * 9)) * 0.02 : 0
     mesh.position.set(toWorldX(pose.x, floor.size.w), floor.y + bob, toWorldZ(pose.z, floor.size.d))
+    if (poseParts) {
+      // The model faces −Z: half a turn more than the box cat, which faces +Z.
+      mesh.rotation.set(0, -pose.heading, 0)
+      const shown: CatPoseNode = night ? 'sleep' : pose.walking ? 'walk' : 'sit'
+      for (const key of POSES) {
+        const group = poseRefs.current[key]
+        if (group) group.visible = key === shown
+      }
+      return
+    }
     // Floor-local heading → world yaw (world z runs opposite to floor z).
     mesh.rotation.set(0, Math.PI - pose.heading, 0)
     mesh.scale.set(1, night ? 0.7 : 1, 1)
   })
 
+  if (poseParts) {
+    const materials = getSharedMaterials()
+    return (
+      <group ref={meshRef} name="office-cat" visible={false}>
+        {poseParts.map(({ key, parts }) => (
+          <group
+            key={key}
+            ref={(el) => {
+              poseRefs.current[key] = el
+            }}
+            visible={false}
+          >
+            {parts.map((part) => (
+              <mesh key={part.kind} geometry={part.geometry} material={materials[part.kind]} />
+            ))}
+          </group>
+        ))}
+      </group>
+    )
+  }
   return (
-    <mesh ref={meshRef} name="office-cat" geometry={geometry} castShadow visible={false}>
+    <mesh
+      ref={meshRef as React.RefObject<THREE.Mesh>}
+      name="office-cat"
+      geometry={geometry}
+      visible={false}
+    >
       <meshStandardMaterial color={getSwatchColor(CAT_SWATCH)} roughness={0.8} />
     </mesh>
   )
