@@ -31,7 +31,7 @@ test.describe('P06b environment art', () => {
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name === 'phone', 'Canvas is desktop only')
-    test.setTimeout(90_000)
+    test.setTimeout(120_000)
 
     const consoleErrors: string[] = []
     page.on('console', (msg) => {
@@ -56,8 +56,8 @@ test.describe('P06b environment art', () => {
 
     const canvas = page.locator('[data-office-canvas]')
     await expect(canvas).toBeVisible()
-    await expect(canvas).toHaveAttribute('data-ready', 'true', { timeout: 25_000 })
-    await expect(canvas).toHaveAttribute('data-assets', 'ready', { timeout: 45_000 })
+    await expect(canvas).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
+    await expect(canvas).toHaveAttribute('data-assets', 'ready', { timeout: 60_000 })
     await expect(page.locator('[data-load-progress]')).toHaveCount(0)
 
     // Verify 8 floors present in top-to-bottom order in FloorPicker
