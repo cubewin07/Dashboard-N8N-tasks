@@ -1,5 +1,6 @@
 // Validates committed assets (no Blender needed, runs in CI). Fails on: bad name, unregistered
-// file, over tri/size budget, foreign material or texture, >1 UV set, missing anchors/nodes,
+// file, over tri/size budget, foreign material or texture, >1 UV set, a primitive without the
+// baked AO vertex colours (COLOR_0), missing anchors/nodes,
 // licence ledger not 1:1, stale manifest. `--strict` also requires every target to exist.
 import { existsSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
@@ -41,6 +42,9 @@ for (const file of glbs) {
   if (i.textures.length > 1) err(r, `${i.textures.length} textures (only the palette is allowed)`)
   for (const tx of i.textures) if (tx.size?.[0] !== 256 || tx.size?.[1] !== 256) err(r, 'embedded texture is not the 256 px palette')
   if (i.maxUvSets > 1) err(r, 'more than one UV set')
+  if (i.noVertexColor.length) {
+    err(r, `${i.noVertexColor.length} of ${i.primitives} primitive(s) have no COLOR_0 (baked AO) in mesh ${[...new Set(i.noVertexColor)].join(', ')}; rebuild with npm run assets:all`)
+  }
   for (const kind of t.anchors) {
     const isAnchor = i.anchors.some((a) => a.kind === kind)
     if (!isAnchor && !i.nodes.includes(kind)) err(r, `missing required anchor/node "${kind}"`)

@@ -51,8 +51,12 @@ export async function inspectGlb(io, file) {
   const scene = root.getDefaultScene() ?? root.listScenes()[0]
   let tris = 0
   let maxUvSets = 0
+  let primitives = 0
+  const noVertexColor = [] // mesh names with a primitive that lacks COLOR_0 (the baked AO)
   for (const mesh of root.listMeshes()) {
     for (const prim of mesh.listPrimitives()) {
+      primitives++
+      if (!prim.getAttribute('COLOR_0')) noVertexColor.push(mesh.getName() || '(unnamed mesh)')
       const idx = prim.getIndices()
       const pos = prim.getAttribute('POSITION')
       tris += (idx ? idx.getCount() : pos.getCount()) / 3
@@ -93,5 +97,7 @@ export async function inspectGlb(io, file) {
     materials: root.listMaterials().map((m) => m.getName()),
     textures: root.listTextures().map((t) => ({ name: t.getName(), size: t.getSize(), bytes: t.getImage()?.byteLength ?? 0 })),
     maxUvSets,
+    primitives,
+    noVertexColor,
   }
 }
