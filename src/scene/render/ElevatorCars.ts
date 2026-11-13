@@ -116,6 +116,7 @@ export class ElevatorCars {
       const doorB = new THREE.Mesh(leaf, door)
       doorA.position.set(-CAR.depth / 2, (CAR.height - 0.2) / 2, -width / 4)
       doorB.position.set(-CAR.depth / 2, (CAR.height - 0.2) / 2, width / 4)
+      for (const part of [base, roof, wall, light, doorA, doorB]) part.castShadow = false
       group.add(base, roof, wall, light, doorA, doorB)
       this.object.add(group)
       const slide = (open: number) => {

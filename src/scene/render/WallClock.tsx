@@ -158,10 +158,10 @@ function PrimitiveClocks({ layout }: WallClockProps) {
 
   return (
     <group name="wall-clocks">
-      <instancedMesh key={`f${count}`} ref={faceRef} args={[faceGeometry, undefined, count]} frustumCulled={false}>
+      <instancedMesh key={`f${count}`} ref={faceRef} args={[faceGeometry, undefined, count]} castShadow={false} frustumCulled={false}>
         <meshStandardMaterial color={getSwatchColor(FACE_SWATCH)} roughness={0.6} />
       </instancedMesh>
-      <instancedMesh key={`h${count}`} ref={handRef} args={[handGeometry, undefined, count * 2]} frustumCulled={false}>
+      <instancedMesh key={`h${count}`} ref={handRef} args={[handGeometry, undefined, count * 2]} castShadow={false} frustumCulled={false}>
         <meshBasicMaterial color={getSwatchColor(HAND_SWATCH)} />
       </instancedMesh>
     </group>

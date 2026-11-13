@@ -114,6 +114,7 @@ function PrimitiveFans({ layout, reducedMotion = false }: FansProps) {
       ref={meshRef}
       name="ceiling-fans"
       args={[geometry, undefined, count]}
+      castShadow={false}
       frustumCulled={false}
     >
       <meshStandardMaterial color={SCENE_PALETTE.stairsRail} roughness={0.5} />

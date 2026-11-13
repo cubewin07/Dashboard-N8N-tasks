@@ -132,6 +132,7 @@ function PrimitiveAquarium({ layout, reducedMotion = false }: AquariumProps) {
       <instancedMesh
         ref={fishRef}
         args={[fishGeometry, undefined, FISH_SWATCHES.length]}
+        castShadow={false}
         frustumCulled={false}
       >
         <meshStandardMaterial roughness={0.5} />

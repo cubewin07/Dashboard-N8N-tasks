@@ -32,12 +32,19 @@ import {
   type DirectorDebug,
 } from '@/scene/debug'
 import { buildBuildingLayout, type BuildingLayout } from '@/scene/layout'
-import { useLoadProgress } from '@/scene/render/assets/useModels'
+import { useLoadProgress, useModelsVersion } from '@/scene/render/assets/useModels'
 import { Building } from '@/scene/render/Building'
 import { Environment } from '@/scene/render/Environment'
 import { Lights } from '@/scene/render/Lights'
 import { OfficeLife } from '@/scene/render/OfficeLife'
 import { People } from '@/scene/render/People'
+import { activeFloorIndexOf } from '@/scene/render/place'
+import {
+  getShadowRenders,
+  onAfterRenderFrame,
+  onBeforeRenderFrame,
+  requestShadowUpdate,
+} from '@/scene/render/shadowCache'
 
 export interface OfficeDebugInfo {
   drawCalls: number
@@ -45,6 +52,7 @@ export interface OfficeDebugInfo {
   geometries: number
   textures: number
   fps: number
+  shadowRenders?: number
   floorKeys: string[]
   addDepartment: (key?: string, labelVi?: string, labelEn?: string) => void
   removeDepartment: (key: string) => void
@@ -154,6 +162,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   }, [floorKeys])
 
   useFrame((_, delta) => {
+    onBeforeRenderFrame()
     if (!reportedReadyRef.current) {
       reportedReadyRef.current = true
       onFirstFrame()
@@ -176,6 +185,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       geometries: gl.info.memory.geometries,
       textures: gl.info.memory.textures,
       fps: fpsRef.current,
+      shadowRenders: getShadowRenders(),
       floorKeys: [...floorKeysRef.current],
       addDepartment: addDepartmentToStore,
       removeDepartment: removeDepartmentFromStore,
@@ -188,16 +198,52 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   // on-demand rendering that frame may never be followed by another: refresh
   // the render counters right after each render as well.
   useEffect(() => {
-    if (!IS_DEBUG_ENABLED) return
     return addAfterEffect(() => {
+      onAfterRenderFrame()
+      if (!IS_DEBUG_ENABLED) return
       const debug = window.__office_debug
       if (!debug) return
       debug.drawCalls = gl.info.render.calls
       debug.triangles = gl.info.render.triangles
       debug.geometries = gl.info.memory.geometries
       debug.textures = gl.info.memory.textures
+      debug.shadowRenders = getShadowRenders()
     })
   }, [gl])
+
+  return null
+}
+
+/**
+ * Observes layout, floor focus / cut-away, and model streaming version to request
+ * shadow map updates only when the scene structure or visibility changes.
+ */
+function ShadowCoordinator({ layout }: { layout: BuildingLayout }) {
+  const mode = useViewStore((s) => s.mode)
+  const focusedFloorKey = useViewStore((s) => s.focusedFloorKey)
+  const modelsVersion = useModelsVersion()
+
+  const activeIndex = useMemo(
+    () => activeFloorIndexOf(layout, { mode, focusedFloorKey }),
+    [layout, mode, focusedFloorKey],
+  )
+
+  const prevActiveRef = useRef<number | null>(activeIndex)
+  const prevLayoutRef = useRef<BuildingLayout>(layout)
+  const prevModelsRef = useRef<number>(modelsVersion)
+
+  useEffect(() => {
+    if (
+      prevActiveRef.current !== activeIndex ||
+      prevLayoutRef.current !== layout ||
+      prevModelsRef.current !== modelsVersion
+    ) {
+      prevActiveRef.current = activeIndex
+      prevLayoutRef.current = layout
+      prevModelsRef.current = modelsVersion
+      requestShadowUpdate()
+    }
+  }, [activeIndex, layout, modelsVersion])
 
   return null
 }
@@ -329,6 +375,11 @@ export function OfficeCanvas() {
         frameloop={IS_E2E ? 'demand' : 'always'}
         shadows={IS_E2E ? true : 'soft'}
         dpr={dpr}
+        gl={{
+          toneMapping: THREE.NoToneMapping,
+          outputColorSpace: THREE.SRGBColorSpace,
+          preserveDrawingBuffer: IS_DEBUG_ENABLED,
+        }}
         camera={{ position: [14, 24, 52], fov: 35, near: 0.5, far: 320 }}
       >
         {!IS_E2E && (
@@ -342,6 +393,7 @@ export function OfficeCanvas() {
         <Environment />
         <Lights layout={layout} />
         <Building layout={layout} reducedMotion={reducedMotion} />
+        <ShadowCoordinator layout={layout} />
         <People
           layout={layout}
           elevator={config.building.elevator}

@@ -206,8 +206,8 @@ export class CapsulePeople implements PersonVisualSystem {
       withFade(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0 }), true)
     const flat = () => withFade(new THREE.MeshBasicMaterial({ toneMapped: false }))
 
-    this.body = this.make('people-body', bodyGeometry(), lit(), true)
-    this.head = this.make('people-head', headGeometry(), lit(), true)
+    this.body = this.make('people-body', bodyGeometry(), lit(), false)
+    this.head = this.make('people-head', headGeometry(), lit(), false)
     this.carry = this.make(
       'people-carry',
       new THREE.BoxGeometry(1, 1, 1),

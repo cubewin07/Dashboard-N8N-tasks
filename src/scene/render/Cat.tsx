@@ -137,6 +137,7 @@ export function Cat({ layout, reducedMotion = false }: CatProps) {
       ref={meshRef as React.RefObject<THREE.Mesh>}
       name="office-cat"
       geometry={geometry}
+      castShadow={false}
       visible={false}
     >
       <meshStandardMaterial color={getSwatchColor(CAT_SWATCH)} roughness={0.8} />
