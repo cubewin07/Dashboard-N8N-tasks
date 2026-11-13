@@ -12,7 +12,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Each desktop page renders WebGL in software and decodes ~70 models; more
+  // than 3 at once starves the CPU and times out unrelated specs.
+  workers: process.env.CI ? 1 : 3,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: 'http://localhost:4173/Dashboard-N8N-tasks/',
