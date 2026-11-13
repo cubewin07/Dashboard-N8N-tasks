@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { orderModelLoads, reprioritise, type ModelUse } from '../loadQueue'
 
-const use = (model: string, floorKey: string, floorIndex: number): ModelUse => ({
+const makeUse = (model: string, floorKey: string, floorIndex: number): ModelUse => ({
   model,
   floorKey,
   floorIndex,
@@ -9,13 +9,13 @@ const use = (model: string, floorKey: string, floorIndex: number): ModelUse => (
 
 // Given top floor first on purpose: the order must come from floorIndex.
 const USES: ModelUse[] = [
-  use('desk_boss', 'boss', 2),
-  use('plant', 'boss', 2),
-  use('desk', 'marketing', 1),
-  use('chair', 'marketing', 1),
-  use('plant', 'marketing', 1),
-  use('sofa', 'lobby', 0),
-  use('chair', 'lobby', 0),
+  makeUse('desk_boss', 'boss', 2),
+  makeUse('plant', 'boss', 2),
+  makeUse('desk', 'marketing', 1),
+  makeUse('chair', 'marketing', 1),
+  makeUse('plant', 'marketing', 1),
+  makeUse('sofa', 'lobby', 0),
+  makeUse('chair', 'lobby', 0),
 ]
 const KIT = ['wall', 'stairs']
 
