@@ -66,7 +66,7 @@ docs/plan/      the plan (current) · docs/archive/ (history)
 9. **Config is data.** Departments, roles, employees, specialties, platforms, approval rules, caps, floor templates and wardrobe items live in `src/content/` (seeded to Supabase from P09). Adding one must not need a code change.
 10. **Boundaries (lint-enforced):** UI and 3D read only `src/office`. Nothing imports `src/adapters/**` except the registry files. The simulator lives only in `src/adapters/sim/` and must stay removable.
 11. **3D rules:** metres, +Y up, one `<Canvas>` (the wardrobe preview is the single exception), no per-frame React state, no per-character DOM overlays, budgets in `docs/plan/performance.md`.
-12. **Assets:** CC0 or CC-BY 4.0 only, every file listed in `art/LICENSES.md` and `public/assets/credits.json`, palette-texture style per `docs/plan/assets.md`. No AI-generated models.
+12. **Assets:** CC0 or CC-BY 4.0 only, every file listed in `art/LICENSES.md` and `public/assets/credits.json`, palette-texture style per `docs/plan/assets.md`. AI-generated models are allowed (agent-written Blender generator scripts, or a text/image-to-3D tool) under the same rules: licence recorded, palette style, budgets.
 13. **Live state updates without refresh**, and the global `LiveBadge` reflects the feed connection.
 
 ## Coding conventions
