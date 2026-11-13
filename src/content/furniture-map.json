@@ -119,6 +119,10 @@
       ]
     }
   },
+  "accentTint": {
+    "from": "jade_600",
+    "models": ["partition_low_01", "desk_standard_01", "desk_standard_02", "desk_standard_03", "desk_review_01"]
+  },
   "life": {
     "deskScreen": "screen",
     "clock": { "model": "clock_wall_01", "hour": "hand_hour", "minute": "hand_minute" },

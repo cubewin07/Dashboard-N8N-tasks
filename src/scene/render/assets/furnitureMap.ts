@@ -117,6 +117,13 @@ export const FurnitureMapSchema = z.object({
     )
     .optional(),
   life: LifeSchema.optional(),
+  /**
+   * Department colour on department floors (R5): these models' `from` swatch
+   * is redrawn in the floor's `dept_<colour>` swatch.
+   */
+  accentTint: z
+    .object({ from: z.string().min(1), models: z.array(z.string().min(1)) })
+    .optional(),
   kit: KitSchema,
   exterior: ExteriorSchema.optional(),
 })
