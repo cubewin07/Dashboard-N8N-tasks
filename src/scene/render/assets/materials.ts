@@ -17,8 +17,16 @@ export function getSharedMaterials(): Record<MaterialKind, THREE.Material> {
   palette.generateMipmaps = false
   palette.flipY = false
 
+  // Model geometry always carries a `color` attribute: baked ambient occlusion
+  // from COLOR_0 (P06b-T13), white where a file has none. It multiplies the
+  // palette colour, so no shader patch is needed.
   cache = {
-    palette: new THREE.MeshStandardMaterial({ map: palette, roughness: 0.85, metalness: 0 }),
+    palette: new THREE.MeshStandardMaterial({
+      map: palette,
+      vertexColors: true,
+      roughness: 0.85,
+      metalness: 0,
+    }),
     emissive: new THREE.MeshStandardMaterial({
       map: palette,
       emissiveMap: palette,
