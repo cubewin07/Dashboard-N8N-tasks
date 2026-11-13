@@ -44,7 +44,9 @@ def export_glb(objs, path):
         filepath=path, export_format="GLB", use_selection=True, export_yup=True,
         export_apply=True, export_tangents=False, export_cameras=False,
         export_lights=False, export_animations=False, export_extras=False,
-        export_vertex_color="NONE", export_normals=True, export_texcoords=True,
+        # the baked AO (lib/ao.py) is each mesh's active colour attribute -> COLOR_0
+        export_vertex_color="ACTIVE", export_all_vertex_colors=False,
+        export_active_vertex_color_when_no_material=True, export_normals=True, export_texcoords=True,
         export_materials="EXPORT", export_image_format="AUTO", export_skins=False,
         export_morph=False, export_copyright="AI Office project (CC0-1.0)",
     )

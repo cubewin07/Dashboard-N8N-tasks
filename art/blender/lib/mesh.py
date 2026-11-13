@@ -16,7 +16,7 @@ import bmesh
 import bpy
 from mathutils import Euler, Matrix, Vector
 
-from . import palette
+from . import ao, palette
 
 C = Matrix(((1, 0, 0), (0, 0, -1), (0, 1, 0)))  # author (x,y,z) -> blender (x,-z,y)
 CI = C.transposed()
@@ -34,8 +34,9 @@ def _rot(rot):
 
 
 class _Part:
-    def __init__(self, suffix, mat, pivot, exact):
+    def __init__(self, suffix, mat, pivot, exact, solo=False):
         self.suffix, self.mat, self.pivot, self.exact = suffix, mat, pivot, exact
+        self.solo = solo or pivot is not None  # baked on its own (lib/ao.py)
         self.bm = bmesh.new()
         self.bm.loops.layers.uv.new("UVMap")
 
@@ -52,14 +53,15 @@ class Model:
 
     # ---- structure -------------------------------------------------------
     @contextmanager
-    def part(self, suffix, mat="palette", pivot=None, exact=False):
+    def part(self, suffix, mat="palette", pivot=None, exact=False, solo=False):
         """Sub-mesh node `<name>_<suffix>` (or exactly `suffix` when exact).
         With a pivot the node is an empty at the pivot holding the mesh, so the
-        runtime can rotate/slide it."""
+        runtime can rotate/slide it. `solo` marks an alternate (shown instead of
+        its siblings): like a pivoted part it gets its ambient occlusion alone."""
         prev = self.cur
         found = next((p for p in self.parts if p.suffix == suffix), None)
         if found is None:
-            found = _Part(suffix, mat, pivot, exact)
+            found = _Part(suffix, mat, pivot, exact, solo)
             self.parts.append(found)
         self.cur = found
         try:
@@ -246,8 +248,11 @@ class Model:
         self._emit(tb, sw)
 
     # ---- output ----------------------------------------------------------
-    def build(self):
-        """Create Blender objects: root empty -> part meshes / pivots / anchors."""
+    def build(self, bake_ao=True):
+        """Create Blender objects: root empty -> part meshes / pivots / anchors.
+        Every mesh gets the `AO` colour attribute (exported as COLOR_0)."""
+        if bake_ao:
+            ao.bake(self.parts)
         root = bpy.data.objects.new(self.name, None)
         bpy.context.scene.collection.objects.link(root)
         objs = [root]
@@ -259,6 +264,9 @@ class Model:
             me = bpy.data.meshes.new(node + ("_mesh" if p.pivot else ""))
             p.bm.to_mesh(me)
             p.bm.free()
+            if bake_ao:
+                me.color_attributes.active_color = me.color_attributes[ao.LAYER]
+                me.color_attributes.render_color_index = me.color_attributes.find(ao.LAYER)
             me.materials.append(palette.material(p.mat))
             ob = bpy.data.objects.new(me.name, me)
             bpy.context.scene.collection.objects.link(ob)
