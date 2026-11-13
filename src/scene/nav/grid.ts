@@ -304,7 +304,33 @@ export function buildGrid(floor: FloorLayout): NavGrid {
     blockWall(blocked, w, h, cell, wall)
   }
 
+  const modelSlots = floor.art?.slotsWithModels
+    ? new Set(floor.art.slotsWithModels)
+    : new Set<string>()
+
+  // Rasterise art obstacles if present
+  if (floor.art?.obstacles) {
+    for (const rect of floor.art.obstacles) {
+      const b = obstacleBounds(rect, OBSTACLE_INFLATE)
+      const c0 = Math.max(0, Math.floor(b.minX / cell))
+      const c1 = Math.min(w - 1, Math.floor(b.maxX / cell))
+      const r0 = Math.max(0, Math.floor(b.minZ / cell))
+      const r1 = Math.min(h - 1, Math.floor(b.maxZ / cell))
+      for (let row = r0; row <= r1; row += 1) {
+        for (let col = c0; col <= c1; col += 1) {
+          if (obstacleContains(rect, (col + 0.5) * cell, (row + 0.5) * cell, OBSTACLE_INFLATE)) {
+            blocked[row * w + col] = 1
+          }
+        }
+      }
+    }
+  }
+
+  // For slots that do not have models, use slotObstacleRect and footprint
   for (const slot of floor.slots) {
+    if (modelSlots.has(slot.id)) {
+      continue
+    }
     const rect = slotObstacleRect(slot)
     if (!rect) {
       continue
@@ -330,20 +356,50 @@ export function buildGrid(floor: FloorLayout): NavGrid {
 
   blockCore(blocked, w, h, cell, floor)
 
-  const approaches = new Set<number>()
+  const keep = new Set<number>()
+
+  const unblockCell = (col: number, row: number) => {
+    if (col >= 0 && row >= 0 && col < w && row < h) {
+      const idx = row * w + col
+      blocked[idx] = 0
+      keep.add(idx)
+    }
+  }
+
+  const unblockPoint = (p: { x: number; z: number }) => {
+    unblockCell(Math.floor(p.x / cell), Math.floor(p.z / cell))
+  }
+
+  // Slot approaches stay walkable
   for (const slot of floor.slots) {
     const [col, row] = approachCell(slot, cell)
-    if (col >= 0 && row >= 0 && col < w && row < h) {
-      blocked[row * w + col] = 0
-      approaches.add(row * w + col)
+    unblockCell(col, row)
+  }
+
+  // Seats stay walkable
+  if (floor.art?.seats) {
+    for (const slotSeats of Object.values(floor.art.seats)) {
+      for (const seat of slotSeats) {
+        unblockPoint(seat)
+      }
     }
+  }
+
+  // Elevator door and stairs entry approach cells stay walkable
+  for (const door of floor.elevatorDoorSlots) {
+    const [dc, dr] = approachCell(door, cell)
+    unblockCell(dc, dr)
+  }
+  if (floor.stairsEntrySlot) {
+    const [sc, sr] = approachCell(floor.stairsEntrySlot, cell)
+    unblockCell(sc, sr)
   }
 
   const anchorSlot = floor.elevatorDoorSlots[0] ?? floor.stairsEntrySlot
   if (anchorSlot) {
     const [col, row] = approachCell(anchorSlot, cell)
     if (col >= 0 && row >= 0 && col < w && row < h) {
-      sealPockets(blocked, w, h, row * w + col, approaches)
+      sealPockets(blocked, w, h, row * w + col, keep)
     }
   }
 
