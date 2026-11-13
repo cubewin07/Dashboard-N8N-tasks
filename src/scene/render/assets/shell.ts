@@ -131,13 +131,16 @@ function terracePlacements(
   kit: FurnitureKit,
   manifest: AssetManifest,
 ): Placement[] {
-  const { d } = floor.size
+  const { w, d } = floor.size
   const rail = [kit.terraceRail]
   const base = { floor, manifest, models: rail, fitHeight: null }
   return [
     ...tileRun({ ...base, x: 0, z: 0.06, ux: 1, uz: 0, length: TERRACE_DEPTH }),
     ...tileRun({ ...base, x: 0.06, z: 0, ux: 0, uz: 1, length: d }),
     ...tileRun({ ...base, x: 0, z: d - 0.06, ux: 1, uz: 0, length: TERRACE_DEPTH }),
+    // Lower front wall (T07): a glass rail along the rest of the open front,
+    // so the top floor reads as a penthouse from the street.
+    ...tileRun({ ...base, x: TERRACE_DEPTH, z: 0.06, ux: 1, uz: 0, length: w - TERRACE_DEPTH }),
   ]
 }
 
