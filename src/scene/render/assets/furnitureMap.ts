@@ -79,6 +79,31 @@ const ExteriorSchema = z.object({
     .optional(),
 })
 
+/**
+ * Parts that move or change at runtime (P06b-T06). The components that draw
+ * them read their model and node names from here, never from code.
+ */
+const LifeSchema = z.object({
+  /** Emissive node on a desk model that shows its owner's state. */
+  deskScreen: z.string().min(1),
+  clock: z.object({ model: z.string().min(1), hour: z.string().min(1), minute: z.string().min(1) }),
+  fan: z.object({ model: z.string().min(1), blades: z.string().min(1) }),
+  aquarium: z.object({ model: z.string().min(1), fish: z.string().min(1) }),
+  /** The roaming cat: one node per pose of one file. */
+  cat: z.object({
+    model: z.string().min(1),
+    walk: z.string().min(1),
+    sit: z.string().min(1),
+    sleep: z.string().min(1),
+  }),
+  /** One unit of a document pile. */
+  paper: z.string().min(1),
+  /** Model per `carries` kind; a kind without one keeps the plain box. */
+  held: z.record(z.string(), z.string().min(1)),
+  /** Sliding leaves of `kit.elevatorCar`. */
+  elevator: z.object({ doorLeft: z.string().min(1), doorRight: z.string().min(1) }),
+})
+
 export const FurnitureMapSchema = z.object({
   version: z.literal(1),
   slots: z.record(z.string(), SlotArtSchema),
@@ -91,6 +116,7 @@ export const FurnitureMapSchema = z.object({
       }),
     )
     .optional(),
+  life: LifeSchema.optional(),
   kit: KitSchema,
   exterior: ExteriorSchema.optional(),
 })
@@ -100,6 +126,7 @@ export type Companion = z.infer<typeof CompanionSchema>
 export type SlotArt = z.infer<typeof SlotArtSchema>
 export type FurnitureExtra = z.infer<typeof ExtraSchema>
 export type FurnitureKit = z.infer<typeof KitSchema>
+export type FurnitureLife = z.infer<typeof LifeSchema>
 export type FurnitureMap = z.infer<typeof FurnitureMapSchema>
 
 export const FURNITURE_MAP: FurnitureMap = FurnitureMapSchema.parse(raw)
@@ -118,6 +145,13 @@ export function listMapModels(map: FurnitureMap): string[] {
   })
   map.exterior?.props.forEach((e) => names.add(e.model))
   if (map.exterior?.sign) names.add(map.exterior.sign.model)
+  const life = map.life
+  if (life) {
+    ;[life.clock.model, life.fan.model, life.aquarium.model, life.cat.model, life.paper].forEach(
+      (n) => names.add(n),
+    )
+    Object.values(life.held).forEach((n) => names.add(n))
+  }
   const kit = map.kit
   ;[...kit.wallBack, ...kit.wallSide].forEach((n) => names.add(n))
   ;[

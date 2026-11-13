@@ -79,12 +79,19 @@ export function InstancedModels({ name, placements, activeFloorIndex }: Instance
   const version = useModelsVersion()
 
   const groups = useMemo(() => {
-    const byKey = new Map<string, { model: string; node?: string; all: Placement[] }>()
+    const byKey = new Map<
+      string,
+      { model: string; node?: string; omit?: readonly string[]; all: Placement[] }
+    >()
     for (const p of placements) {
-      const key = p.node ? `${p.model}#${p.node}` : p.model
+      const key = p.node
+        ? `${p.model}#${p.node}`
+        : p.omit
+          ? `${p.model}-${p.omit.join(',')}`
+          : p.model
       let group = byKey.get(key)
       if (!group) {
-        group = { model: p.model, node: p.node, all: [] }
+        group = { model: p.model, node: p.node, omit: p.omit, all: [] }
         byKey.set(key, group)
       }
       group.all.push(p)
@@ -102,7 +109,7 @@ export function InstancedModels({ name, placements, activeFloorIndex }: Instance
       castShadow: boolean
     }> = []
     for (const [key, group] of groups) {
-      const parts = getModelParts(group.model, group.node)
+      const parts = getModelParts(group.model, group.node, group.omit)
       if (!parts) continue
       const visible =
         activeFloorIndex === null
