@@ -10,6 +10,7 @@ import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
 import { getSharedMaterials } from './assets/materials'
 import { getModelParts } from './assets/modelStore'
+import { useArtLayout } from './assets/useArtLayout'
 import { LIFE, useModelReady } from './liveParts'
 import { bandOf } from './lod'
 import { getSwatchColor, SCENE_PALETTE } from './palette'
@@ -37,7 +38,9 @@ export interface DocPilesProps {
  * follows `pileVisualCount` so a paper joins the pile when its courier
  * arrives, not at event time.
  */
-export function DocPiles({ layout }: DocPilesProps) {
+export function DocPiles({ layout: baseLayout }: DocPilesProps) {
+  // Piles sit on the desk models' `pile` anchors once the manifest is in.
+  const layout = useArtLayout(baseLayout)
   const config = useOfficeSelector((s) => s?.config ?? null)
   const { maxSheets, sheetHeight, sheetSize, priorityEdge, paperSwatch } = visualLanguage.pile
   const anchors = useMemo(
