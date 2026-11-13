@@ -104,6 +104,19 @@ const LifeSchema = z.object({
   elevator: z.object({ doorLeft: z.string().min(1), doorRight: z.string().min(1) }),
 })
 
+const NavRulesSchema = z.object({
+  /** People sit in or on these: never an obstacle. */
+  seats: z.array(z.string().min(1)),
+  /** Rugs, ceiling and hanging things: walk under or over. */
+  walkThrough: z.array(z.string().min(1)),
+  /** Only the front half (the worktop) blocks; the kneehole stays open. */
+  frontOnly: z.array(z.string().min(1)),
+  /** Only a centred core of this size [x, z] in metres blocks (seats around it stay open). */
+  core: z.record(z.string(), z.tuple([z.number().positive(), z.number().positive()])),
+  /** Only the pot blocks: half-size capped at this many metres. */
+  potHalf: z.record(z.string(), z.number().positive()),
+})
+
 export const FurnitureMapSchema = z.object({
   version: z.literal(1),
   slots: z.record(z.string(), SlotArtSchema),
@@ -124,6 +137,11 @@ export const FurnitureMapSchema = z.object({
   accentTint: z
     .object({ from: z.string().min(1), models: z.array(z.string().min(1)) })
     .optional(),
+  /**
+   * How models become nav obstacles (P06b-T08). Patterns: `name` exact,
+   * `name*` prefix, `*part*` contains.
+   */
+  nav: NavRulesSchema.optional(),
   kit: KitSchema,
   exterior: ExteriorSchema.optional(),
 })
@@ -135,6 +153,7 @@ export type FurnitureExtra = z.infer<typeof ExtraSchema>
 export type FurnitureKit = z.infer<typeof KitSchema>
 export type FurnitureLife = z.infer<typeof LifeSchema>
 export type FurnitureMap = z.infer<typeof FurnitureMapSchema>
+export type NavRules = z.infer<typeof NavRulesSchema>
 
 export const FURNITURE_MAP: FurnitureMap = FurnitureMapSchema.parse(raw)
 

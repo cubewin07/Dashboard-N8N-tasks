@@ -1,5 +1,5 @@
 import type { BuildingLayout, FloorArtData, FloorLayout, FloorPileArt, FloorSeatArt, ObstacleRect } from '@/scene/layout'
-import type { FurnitureMap } from './furnitureMap'
+import { FURNITURE_MAP, type FurnitureMap, type NavRules } from './furnitureMap'
 import type { AssetManifest, ManifestAnchor, ManifestEntry } from './manifest'
 import {
   buildFloorFurniturePlacements,
@@ -56,11 +56,25 @@ export function anchorToFloor(
   }
 }
 
-/** True when the model is seat furniture people sit on/in (chairs, stools, benches, sofas, beds). */
-export function isSeatFurniture(model: string): boolean {
-  return /^(chair_|stool_|bench_|sofa_|bed_|sleep_pod_|armchair_|terrace_chair_|set_karaoke_|set_boss_lounge_)/.test(
-    model,
-  )
+const NO_RULES: NavRules = { seats: [], walkThrough: [], frontOnly: [], core: {}, potHalf: {} }
+const RULES: NavRules = FURNITURE_MAP.nav ?? NO_RULES
+
+/** `name` exact, `name*` prefix, `*part*` contains (furniture-map `nav`). */
+export function matchesModel(model: string, patterns: readonly string[]): boolean {
+  return patterns.some((p) => {
+    const head = p.startsWith('*')
+    const tail = p.endsWith('*')
+    const core = p.slice(head ? 1 : 0, tail ? -1 : undefined)
+    if (head && tail) return model.includes(core)
+    if (tail) return model.startsWith(core)
+    if (head) return model.endsWith(core)
+    return model === core
+  })
+}
+
+/** True when people sit on or in the model (furniture-map `nav.seats`). */
+export function isSeatFurniture(model: string, rules: NavRules = RULES): boolean {
+  return matchesModel(model, rules.seats)
 }
 
 /**
@@ -72,9 +86,10 @@ export function placementObstacleRect(
   entry: ManifestEntry,
   floorSize: { w: number; d: number },
   floorY: number,
+  rules: NavRules = RULES,
 ): ObstacleRect | null {
   // 1. Seat furniture people sit in (chairs, stools, benches, sofas, beds, lounge/karaoke seating sets)
-  if (isSeatFurniture(placement.model)) {
+  if (isSeatFurniture(placement.model, rules)) {
     return null
   }
 
@@ -88,17 +103,12 @@ export function placementObstacleRect(
   }
 
   // 3. Flat things (height < 0.15, rugs)
-  if (height < 0.15 || placement.model.includes('rug')) {
+  if (height < 0.15) {
     return null
   }
 
   // 4. Anything hanging from the ceiling (fans, lights, hanging plants)
-  if (
-    placement.model.includes('fan') ||
-    placement.model.includes('ceiling') ||
-    placement.model.includes('hanging') ||
-    localMinY >= 2.4
-  ) {
+  if (matchesModel(placement.model, rules.walkThrough) || localMinY >= 2.4) {
     return null
   }
 
@@ -112,22 +122,22 @@ export function placementObstacleRect(
   let minZ = entry.bbox.min[2]
   let maxZ = entry.bbox.max[2]
 
-  // Desks with L-returns (desk_manager_01): the obstacle is the desk surface itself,
+  // Desks (`nav.frontOnly`): the obstacle is the desk surface itself,
   // leaving the kneehole and manager chair area behind it open and reachable.
   const hasPile = entry.anchors.some((a) => a.kind === 'pile')
-  if (hasPile || placement.model.startsWith('desk_')) {
+  if (hasPile || matchesModel(placement.model, rules.frontOnly)) {
     if (minZ < -maxZ) {
       minZ = -maxZ
     }
   }
 
-  // Tea table set (set_tea_table_01): obstacle is the central table, leaving the surrounding
-  // cushion seats open and reachable.
-  if (placement.model === 'set_tea_table_01') {
-    minX = -0.5
-    maxX = 0.5
-    minZ = -0.5
-    maxZ = 0.5
+  // Sets with seats around a table: only the table core blocks.
+  const core = rules.core[placement.model]
+  if (core) {
+    minX = -core[0] / 2
+    maxX = core[0] / 2
+    minZ = -core[1] / 2
+    maxZ = core[1] / 2
   }
 
   let halfX = (maxX - minX) / 2
@@ -135,10 +145,11 @@ export function placementObstacleRect(
   const localCx = (minX + maxX) / 2
   const localCz = (minZ + maxZ) / 2
 
-  // Floor plants: pot size is <= 0.3 m (foliage flares out above head/knee height)
-  if (placement.model.startsWith('plant_') && !placement.model.includes('desk')) {
-    halfX = Math.min(halfX, 0.3)
-    halfZ = Math.min(halfZ, 0.3)
+  // Floor plants: only the pot blocks (foliage flares out above knee height).
+  const pot = rules.potHalf[placement.model]
+  if (pot !== undefined) {
+    halfX = Math.min(halfX, pot)
+    halfZ = Math.min(halfZ, pot)
   }
 
   const [dx, dz] = rotateY(placement.rotY, localCx, localCz)

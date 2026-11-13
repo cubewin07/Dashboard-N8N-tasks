@@ -140,6 +140,13 @@
     },
     "elevator": { "doorLeft": "door_l", "doorRight": "door_r" }
   },
+  "nav": {
+    "seats": ["chair_*", "stool_*", "bench_*", "sofa_*", "bed_*", "sleep_pod_*", "armchair_*", "terrace_chair_*", "set_karaoke_*", "set_boss_lounge_*"],
+    "walkThrough": ["*rug*", "*fan*", "*ceiling*", "*hanging*"],
+    "frontOnly": ["desk_*"],
+    "core": { "set_tea_table_01": [1, 1] },
+    "potHalf": { "plant_bamboo_01": 0.3, "plant_ficus_01": 0.3, "plant_monstera_01": 0.3, "plant_snake_01": 0.3 }
+  },
   "kit": { "wallBack": ["wall_window_01"], "wallSide": ["wall_solid_01", "wall_window_01"], "wallInterior": "office_glass_wall_01", "doorInterior": "office_glass_door_01", "terraceRail": "terrace_rail_01", "column": "column_01", "stairsFlight": "stairs_flight_01", "stairsLanding": "stairs_landing_01", "shaftFrame": "elevator_shaft_frame_01", "elevatorCar": "elevator_car_01", "elevatorDoor": "elevator_door_frame_01" },
   "exterior": {
     "props": [
