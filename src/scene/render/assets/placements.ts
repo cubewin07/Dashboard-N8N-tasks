@@ -1,7 +1,8 @@
 import type { Slot } from '@/domain/config'
 import type { BuildingLayout, FloorLayout } from '@/scene/layout'
 import { toWorldX, toWorldZ } from '../coords'
-import type { FurnitureMap, ModelRef, SlotArt } from './furnitureMap'
+import { DESK_SLOT_TYPES } from '../deskStatusModel'
+import type { FurnitureLife, FurnitureMap, ModelRef, SlotArt } from './furnitureMap'
 import type { AssetManifest, ManifestEntry } from './manifest'
 
 /**
@@ -13,6 +14,8 @@ export interface Placement {
   model: string
   /** Optional node filter (one named node of the file). */
   node?: string
+  /** Nodes left out of the static scenery because something animates them. */
+  omit?: readonly string[]
   floorKey: string
   floorIndex: number
   /** Slot this instance belongs to, or `null` for shell and dressing. */
@@ -80,6 +83,26 @@ export function pickVariant(models: readonly ModelRef[], seed: string): ModelRef
   return models[models.length - 1] ?? null
 }
 
+/**
+ * Nodes of a placed model that a live component draws instead of the static
+ * bake: the screen of a workspace desk, clock hands, fan blades, fish.
+ */
+export function liveNodesOf(
+  life: FurnitureLife | undefined,
+  model: string,
+  entry: ManifestEntry | undefined,
+  isDesk: boolean,
+): readonly string[] | undefined {
+  if (!life || !entry) return undefined
+  const wanted: string[] = []
+  if (isDesk) wanted.push(life.deskScreen)
+  if (model === life.clock.model) wanted.push(life.clock.hour, life.clock.minute)
+  if (model === life.fan.model) wanted.push(life.fan.blades)
+  if (model === life.aquarium.model) wanted.push(life.aquarium.fish)
+  const found = wanted.filter((node) => entry.nodes.includes(node))
+  return found.length > 0 ? found : undefined
+}
+
 function seatAnchor(entry: ManifestEntry | undefined) {
   return entry?.anchors.find((a) => a.kind === 'seat')
 }
@@ -106,6 +129,9 @@ function slotPlacements(
       ...base,
       model: main.model,
       node: main.node,
+      omit: main.node
+        ? undefined
+        : liveNodesOf(map.life, main.model, manifest.files[main.model], DESK_SLOT_TYPES.has(slot.type)),
       primary: true,
       position: [ox, floor.y, oz],
       rotY: theta,
@@ -173,6 +199,9 @@ function extraPlacements(
     out.push({
       model: extra.model,
       node: extra.node,
+      omit: extra.node
+        ? undefined
+        : liveNodesOf(map.life, extra.model, manifest.files[extra.model], false),
       floorKey: floor.key,
       floorIndex: floor.index,
       slotId: null,

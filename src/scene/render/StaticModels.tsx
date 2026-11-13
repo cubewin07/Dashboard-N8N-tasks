@@ -27,7 +27,7 @@ function buildMerged(placements: readonly Placement[]): MergedPart[] {
     const endByFloor = new Array<number>(maxFloor + 1).fill(0)
     let total = 0
     for (const p of sorted) {
-      const part = getModelParts(p.model, p.node)?.find((x) => x.kind === kind)
+      const part = getModelParts(p.model, p.node, p.omit)?.find((x) => x.kind === kind)
       if (!part) continue
       temp.position.set(p.position[0], p.position[1], p.position[2])
       temp.rotation.set(0, p.rotY, 0)

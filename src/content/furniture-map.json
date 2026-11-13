@@ -87,7 +87,7 @@
     "intake_desk": { "models": [{ "model": "desk_review_01" }], "companions": [{ "model": "chair_office_01", "anchor": "seat" }], "fallback": true },
     "task_wall": { "models": [{ "model": "whiteboard_01", "rotY": 3.1416 }], "fallback": true },
     "decor_terrace_plant": { "models": [{ "model": "terrace_planter_01" }], "fallback": true },
-    "cat_spot": { "models": [{ "model": "cat_01", "node": "pose_loaf" }, { "model": "cat_01", "node": "pose_sit" }], "fallback": false },
+    "cat_spot": { "models": [], "fallback": false },
     "pile_anchor": { "models": [], "fallback": false },
     "elevator_door": { "models": [], "fallback": false },
     "stairs_entry": { "models": [], "fallback": false },
@@ -95,10 +95,10 @@
     "idle_chat": { "models": [], "fallback": false }
   },
   "templates": {
-    "lobby_cafe": { "extras": [{ "model": "table_cafe_01", "x": 4, "z": 8.5 }, { "model": "stool_cafe_01", "x": 4, "z": 7.8 }, { "model": "stool_cafe_01", "x": 4, "z": 9.2 }, { "model": "table_cafe_01", "x": 8.5, "z": 8.8 }, { "model": "stool_cafe_01", "x": 7.8, "z": 8.8 }, { "model": "stool_cafe_01", "x": 9.2, "z": 8.8 }, { "model": "rug_large_01", "x": 15.5, "z": 9.3 }, { "model": "plant_bamboo_01", "x": 10, "z": 13.2 }, { "model": "aquarium_01", "x": 12, "z": 13.4 }, { "model": "painting_01", "x": 15.5, "z": 13.9, "y": 1.9 }, { "model": "clock_wall_01", "x": 5.5, "z": 13.9, "y": 2.5 }, { "model": "bin_01", "x": 9, "z": 11.7 }] },
-    "department": { "extras": [{ "model": "printer_01", "x": 22.6, "z": 6.2, "rotY": 1.5708 }, { "model": "cabinet_file_02", "x": 9, "z": 13.6 }, { "model": "cabinet_file_02", "x": 10, "z": 13.6 }, { "model": "shelf_open_01", "x": 11.3, "z": 13.7 }, { "model": "locker_01", "x": 15.5, "z": 13.6 }, { "model": "locker_01", "x": 16.5, "z": 13.6 }, { "model": "whiteboard_01", "x": 12.8, "z": 13.4 }, { "model": "clock_wall_01", "x": 19, "z": 13.9, "y": 2.5 }, { "model": "painting_02", "x": 6.5, "z": 13.9, "y": 1.9 }, { "model": "bin_01", "x": 17.6, "z": 12.6 }, { "model": "partition_low_01", "x": 17.2, "z": 4, "rotY": 1.5708 }, { "model": "partition_low_01", "x": 17.2, "z": 8, "rotY": 1.5708 }] },
-    "games_rest": { "extras": [{ "model": "rug_large_01", "x": 5.5, "z": 4 }, { "model": "partition_low_01", "x": 14.5, "z": 6 }, { "model": "partition_low_01", "x": 17, "z": 6 }, { "model": "plant_monstera_01", "x": 10.5, "z": 12.8 }, { "model": "painting_01", "x": 6, "z": 13.9, "y": 1.9 }, { "model": "locker_01", "x": 22.8, "z": 6.5, "rotY": 1.5708 }, { "model": "water_dispenser_01", "x": 10.6, "z": 1.2 }] },
-    "management": { "extras": [{ "model": "tv_wall_01", "x": 16, "z": 13.9, "y": 1.8 }, { "model": "cabinet_file_02", "x": 9, "z": 13.6 }, { "model": "cabinet_file_02", "x": 10, "z": 13.6 }, { "model": "shelf_open_01", "x": 18.6, "z": 13.7 }, { "model": "rug_large_01", "x": 15, "z": 10.4 }, { "model": "printer_01", "x": 22.6, "z": 6.2, "rotY": 1.5708 }, { "model": "clock_wall_01", "x": 8, "z": 13.9, "y": 2.5 }] },
+    "lobby_cafe": { "extras": [{ "model": "table_cafe_01", "x": 4, "z": 8.5 }, { "model": "stool_cafe_01", "x": 4, "z": 7.8 }, { "model": "stool_cafe_01", "x": 4, "z": 9.2 }, { "model": "table_cafe_01", "x": 8.5, "z": 8.8 }, { "model": "stool_cafe_01", "x": 7.8, "z": 8.8 }, { "model": "stool_cafe_01", "x": 9.2, "z": 8.8 }, { "model": "rug_large_01", "x": 15.5, "z": 9.3 }, { "model": "plant_bamboo_01", "x": 10, "z": 13.2 }, { "model": "aquarium_01", "x": 12, "z": 13.4 }, { "model": "painting_01", "x": 15.5, "z": 13.9, "y": 1.9 }, { "model": "clock_wall_01", "x": 5.5, "z": 13.9, "y": 2.5 }, { "model": "bin_01", "x": 9, "z": 11.7 }, { "model": "fan_ceiling_01", "x": 7.2, "z": 7, "y": 3.68 }, { "model": "fan_ceiling_01", "x": 14.4, "z": 7, "y": 3.68 }] },
+    "department": { "extras": [{ "model": "printer_01", "x": 22.6, "z": 6.2, "rotY": 1.5708 }, { "model": "cabinet_file_02", "x": 9, "z": 13.6 }, { "model": "cabinet_file_02", "x": 10, "z": 13.6 }, { "model": "shelf_open_01", "x": 11.3, "z": 13.7 }, { "model": "locker_01", "x": 15.5, "z": 13.6 }, { "model": "locker_01", "x": 16.5, "z": 13.6 }, { "model": "whiteboard_01", "x": 12.8, "z": 13.4 }, { "model": "clock_wall_01", "x": 19, "z": 13.9, "y": 2.5 }, { "model": "painting_02", "x": 6.5, "z": 13.9, "y": 1.9 }, { "model": "bin_01", "x": 17.6, "z": 12.6 }, { "model": "partition_low_01", "x": 17.2, "z": 4, "rotY": 1.5708 }, { "model": "partition_low_01", "x": 17.2, "z": 8, "rotY": 1.5708 }, { "model": "fan_ceiling_01", "x": 7.2, "z": 7, "y": 3.68 }, { "model": "fan_ceiling_01", "x": 14.4, "z": 7, "y": 3.68 }] },
+    "games_rest": { "extras": [{ "model": "rug_large_01", "x": 5.5, "z": 4 }, { "model": "partition_low_01", "x": 14.5, "z": 6 }, { "model": "partition_low_01", "x": 17, "z": 6 }, { "model": "plant_monstera_01", "x": 10.5, "z": 12.8 }, { "model": "painting_01", "x": 6, "z": 13.9, "y": 1.9 }, { "model": "locker_01", "x": 22.8, "z": 6.5, "rotY": 1.5708 }, { "model": "water_dispenser_01", "x": 10.6, "z": 1.2 }, { "model": "fan_ceiling_01", "x": 7.2, "z": 7, "y": 3.68 }, { "model": "fan_ceiling_01", "x": 14.4, "z": 7, "y": 3.68 }, { "model": "clock_wall_01", "x": 19, "z": 13.9, "y": 2.5 }] },
+    "management": { "extras": [{ "model": "tv_wall_01", "x": 16, "z": 13.9, "y": 1.8 }, { "model": "cabinet_file_02", "x": 9, "z": 13.6 }, { "model": "cabinet_file_02", "x": 10, "z": 13.6 }, { "model": "shelf_open_01", "x": 18.6, "z": 13.7 }, { "model": "rug_large_01", "x": 15, "z": 10.4 }, { "model": "printer_01", "x": 22.6, "z": 6.2, "rotY": 1.5708 }, { "model": "clock_wall_01", "x": 8, "z": 13.9, "y": 2.5 }, { "model": "fan_ceiling_01", "x": 7.2, "z": 7, "y": 3.68 }, { "model": "fan_ceiling_01", "x": 14.4, "z": 7, "y": 3.68 }] },
     "boss": {
       "slots": {
         "waiting_seat": { "models": [{ "model": "armchair_01", "rotY": 3.1416 }], "fallback": true },
@@ -114,9 +114,27 @@
         { "model": "terrace_planter_01", "x": 3, "z": 13.4 },
         { "model": "armchair_01", "x": 2, "z": 8.5, "rotY": 1.5708 },
         { "model": "armchair_01", "x": 2, "z": 10.2, "rotY": 1.5708 },
-        { "model": "table_cafe_01", "x": 3.2, "z": 9.3 }
+        { "model": "table_cafe_01", "x": 3.2, "z": 9.3 },
+        { "model": "clock_wall_01", "x": 13.2, "z": 13.9, "y": 2.5 }
       ]
     }
+  },
+  "life": {
+    "deskScreen": "screen",
+    "clock": { "model": "clock_wall_01", "hour": "hand_hour", "minute": "hand_minute" },
+    "fan": { "model": "fan_ceiling_01", "blades": "blades" },
+    "aquarium": { "model": "aquarium_01", "fish": "fish" },
+    "cat": { "model": "cat_01", "walk": "pose_stand", "sit": "pose_sit", "sleep": "pose_loaf" },
+    "paper": "paper_stack_01",
+    "held": {
+      "document": "held_document_01",
+      "laptop": "held_laptop_01",
+      "phone": "held_phone_01",
+      "tablet": "held_tablet_01",
+      "box": "held_box_01",
+      "camera": "held_camera_01"
+    },
+    "elevator": { "doorLeft": "door_l", "doorRight": "door_r" }
   },
   "kit": { "wallBack": ["wall_window_01"], "wallSide": ["wall_solid_01", "wall_window_01"], "wallInterior": "office_glass_wall_01", "doorInterior": "office_glass_door_01", "terraceRail": "terrace_rail_01", "column": "column_01", "stairsFlight": "stairs_flight_01", "stairsLanding": "stairs_landing_01", "shaftFrame": "elevator_shaft_frame_01", "elevatorCar": "elevator_car_01", "elevatorDoor": "elevator_door_frame_01" },
   "exterior": {
