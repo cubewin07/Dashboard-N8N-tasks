@@ -115,6 +115,7 @@ Each family task starts with a 30-minute **source spike**: check the candidate p
 - [x] **P06a-T15** *(2026-11-11: `npm run assets:all` on the build machine left `git status` clean: all 102 GLBs, palette, manifest and credits byte-identical; not repeated from a fresh clone)* Reproducibility check. *Steps:* fresh clone + `npm ci` + `npm run assets:all` on the build machine; `git status` must be clean (outputs byte-identical) or differences documented (meshopt is deterministic; Blender export should be given fixed seeds/names). *Acceptance:* R6; if not byte-identical, record which files differ and why, and relax to "manifest numbers identical".
 
 ## 6. Dependencies
+- **Status:** the models and tooling of this phase were built early and ship in this layer, stacked on `stack/p04-people` (see D14). Nothing here needs to be created again; only the P05-dependent follow-ups remain.
 - **Needs:** P05 (final slot types, held-prop list via `TaskType.carries`, visual-language swatch keys), P02 (floor template sizes, 0.5 m grid), `assets.md`.
 - **Later phases rely on:** P06b loads these files through `manifest.json` and anchors; P07a/P08a reuse `art/blender/lib`, the palette, validators, `targets.json`, the ledger and contact-sheet tooling; P07b attaches held props by `_hand_r`.
 

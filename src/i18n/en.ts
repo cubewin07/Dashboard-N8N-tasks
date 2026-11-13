@@ -1,5 +1,6 @@
 import { activity } from './en/activity'
 import { common } from './en/common'
+import { credits } from './en/credits'
 import { inbox } from './en/inbox'
 import { library } from './en/library'
 import { login } from './en/login'
@@ -28,6 +29,7 @@ export const en: Messages = {
   taskDetail,
   office,
   org,
+  credits,
   activity,
   queue,
   sim,

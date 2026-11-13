@@ -11,6 +11,9 @@ import {
   restPose,
   type CapsulePose,
 } from './capsulePose'
+import { FURNITURE_MAP } from './assets/furnitureMap'
+import { getSharedMaterials } from './assets/materials'
+import { getModelParts, isModelReady } from './assets/modelStore'
 import { getSwatchColor, SCENE_PALETTE } from './palette'
 import type { PersonVisualInput, PersonVisualSystem } from './PersonVisual'
 
@@ -142,6 +145,10 @@ const tmpTarget: CapsulePose = restPose({} as CapsulePose)
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
 const ONE = new THREE.Vector3(1, 1, 1)
 const FLAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0))
+/** Held models are authored for someone facing −Z; capsules face +Z. */
+const HELD_TURN = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)
+/** How often (frames) to look for newly loaded held-item models. */
+const HELD_CHECK_FRAMES = 30
 
 /**
  * The P04 placeholder look: every person is a capsule with a head, drawn
@@ -159,6 +166,10 @@ export class CapsulePeople implements PersonVisualSystem {
   private readonly carry: THREE.InstancedMesh
   private readonly ring: THREE.InstancedMesh
   private readonly meshes: THREE.InstancedMesh[]
+  /** One instanced mesh per carried kind whose model has loaded (P06b-T06). */
+  private readonly held = new Map<string, THREE.InstancedMesh>()
+  private heldMaterial: THREE.Material | null = null
+  private readonly heldUsed = new Set<THREE.InstancedMesh>()
   private readonly fade: THREE.InstancedBufferAttribute
   private readonly sat: THREE.InstancedBufferAttribute
   private readonly depthMaterial: THREE.MeshDepthMaterial
@@ -195,8 +206,8 @@ export class CapsulePeople implements PersonVisualSystem {
       withFade(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0 }), true)
     const flat = () => withFade(new THREE.MeshBasicMaterial({ toneMapped: false }))
 
-    this.body = this.make('people-body', bodyGeometry(), lit(), true)
-    this.head = this.make('people-head', headGeometry(), lit(), true)
+    this.body = this.make('people-body', bodyGeometry(), lit(), false)
+    this.head = this.make('people-head', headGeometry(), lit(), false)
     this.carry = this.make(
       'people-carry',
       new THREE.BoxGeometry(1, 1, 1),
@@ -233,6 +244,32 @@ export class CapsulePeople implements PersonVisualSystem {
     return mesh
   }
 
+  /** Adds a mesh for each held-item model that has finished loading. */
+  private adoptHeldModels(): void {
+    const models = FURNITURE_MAP.life?.held
+    if (!models) return
+    for (const [kind, model] of Object.entries(models)) {
+      if (this.held.has(kind) || !isModelReady(model)) continue
+      const parts = getModelParts(model)
+      if (!parts || parts.length === 0) continue
+      // Screens and bodies in one geometry: a carried phone is a few pixels.
+      const geometry =
+        parts.length === 1
+          ? parts[0]!.geometry.clone()
+          : mergeGeometries(parts.map((part) => part.geometry), false)
+      if (!geometry) continue
+      if (!this.heldMaterial) {
+        const palette = (getSharedMaterials().palette as THREE.MeshStandardMaterial).map
+        this.heldMaterial = withFade(new THREE.MeshStandardMaterial({ map: palette, vertexColors: true, roughness: 0.6 }), true)
+      }
+      const mesh = this.make(`people-held-${kind}`, geometry, this.heldMaterial, false)
+      for (let i = 0; i < this.capacity; i += 1) mesh.setMatrixAt(i, ZERO)
+      mesh.visible = false
+      this.meshes.push(mesh)
+      this.held.set(kind, mesh)
+    }
+  }
+
   setReducedMotion(reduced: boolean): void {
     this.motion = reduced ? 0 : 1
   }
@@ -245,6 +282,8 @@ export class CapsulePeople implements PersonVisualSystem {
     const fadeStep = dt > 0 ? 1 - Math.exp(-9 * dt) : 1
     const fades = this.fade.array as Float32Array
     const sats = this.sat.array as Float32Array
+    if (this.frame % HELD_CHECK_FRAMES === 1) this.adoptHeldModels()
+    this.heldUsed.clear()
 
     for (let i = 0; i < n; i += 1) {
       const p = inputs[i]!
@@ -320,7 +359,18 @@ export class CapsulePeople implements PersonVisualSystem {
       tmpLocal.premultiply(tmpMatrix)
       this.head.setMatrixAt(i, tmpLocal)
 
-      if (p.carrying) {
+      const heldMesh = p.carrying ? this.held.get(p.carrying) : undefined
+      for (const mesh of this.held.values()) if (mesh !== heldMesh) mesh.setMatrixAt(i, ZERO)
+      if (p.carrying && heldMesh) {
+        // The model's `hand_r` anchor is its origin: put it at the hands.
+        tmpA.set(0, CAPSULE.carryY * pose.squash, CAPSULE.carryZ + (p.seated ? CAPSULE.seatedReach : 0))
+        tmpLocal.compose(tmpA, HELD_TURN, ONE)
+        tmpLocal.premultiply(tmpMatrix)
+        heldMesh.setMatrixAt(i, tmpLocal)
+        heldMesh.setColorAt(i, WHITE)
+        this.heldUsed.add(heldMesh)
+        this.carry.setMatrixAt(i, ZERO)
+      } else if (p.carrying) {
         // Hand anchor (P07b: a bone). Seated, the hands rest further forward,
         // over the desk or the lap.
         const [w, h, d] = itemSize(p.carrying)
@@ -364,6 +414,7 @@ export class CapsulePeople implements PersonVisualSystem {
 
     this.count = n
     this.ids.length = n
+    for (const mesh of this.held.values()) mesh.visible = this.heldUsed.has(mesh)
     for (const mesh of this.meshes) {
       mesh.count = n
       mesh.instanceMatrix.needsUpdate = true

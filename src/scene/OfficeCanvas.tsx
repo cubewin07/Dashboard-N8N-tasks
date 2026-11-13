@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { PerformanceMonitor } from '@react-three/drei'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { addAfterEffect, Canvas, useFrame, useThree } from '@react-three/fiber'
 import type CameraControlsImpl from 'camera-controls'
 import * as THREE from 'three'
 import type { Department, OrgConfig } from '@/domain/config'
@@ -9,6 +9,7 @@ import type { DepartmentId } from '@/domain/primitives'
 import { ActivityTicker } from '@/features/activity/ActivityTicker'
 import { CameraModeBar } from '@/features/office/CameraModeBar'
 import { FloorPicker } from '@/features/office/FloorPicker'
+import { LoadProgress } from '@/features/office/LoadProgress'
 import { PeopleList } from '@/features/office/PeopleList'
 import { PersonDrawer } from '@/features/office/PersonDrawer'
 import { ShortcutHint } from '@/features/office/ShortcutHint'
@@ -31,11 +32,19 @@ import {
   type DirectorDebug,
 } from '@/scene/debug'
 import { buildBuildingLayout, type BuildingLayout } from '@/scene/layout'
+import { useLoadProgress, useModelsVersion } from '@/scene/render/assets/useModels'
 import { Building } from '@/scene/render/Building'
 import { Environment } from '@/scene/render/Environment'
 import { Lights } from '@/scene/render/Lights'
 import { OfficeLife } from '@/scene/render/OfficeLife'
 import { People } from '@/scene/render/People'
+import { activeFloorIndexOf } from '@/scene/render/place'
+import {
+  getShadowRenders,
+  onAfterRenderFrame,
+  onBeforeRenderFrame,
+  requestShadowUpdate,
+} from '@/scene/render/shadowCache'
 
 export interface OfficeDebugInfo {
   drawCalls: number
@@ -43,6 +52,7 @@ export interface OfficeDebugInfo {
   geometries: number
   textures: number
   fps: number
+  shadowRenders?: number
   floorKeys: string[]
   addDepartment: (key?: string, labelVi?: string, labelEn?: string) => void
   removeDepartment: (key: string) => void
@@ -152,6 +162,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   }, [floorKeys])
 
   useFrame((_, delta) => {
+    onBeforeRenderFrame()
     if (!reportedReadyRef.current) {
       reportedReadyRef.current = true
       onFirstFrame()
@@ -174,6 +185,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       geometries: gl.info.memory.geometries,
       textures: gl.info.memory.textures,
       fps: fpsRef.current,
+      shadowRenders: getShadowRenders(),
       floorKeys: [...floorKeysRef.current],
       addDepartment: addDepartmentToStore,
       removeDepartment: removeDepartmentFromStore,
@@ -181,6 +193,57 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       camera: cameraDebug,
     }
   })
+
+  // useFrame runs before the render, so its numbers are one frame old. With
+  // on-demand rendering that frame may never be followed by another: refresh
+  // the render counters right after each render as well.
+  useEffect(() => {
+    return addAfterEffect(() => {
+      onAfterRenderFrame()
+      if (!IS_DEBUG_ENABLED) return
+      const debug = window.__office_debug
+      if (!debug) return
+      debug.drawCalls = gl.info.render.calls
+      debug.triangles = gl.info.render.triangles
+      debug.geometries = gl.info.memory.geometries
+      debug.textures = gl.info.memory.textures
+      debug.shadowRenders = getShadowRenders()
+    })
+  }, [gl])
+
+  return null
+}
+
+/**
+ * Observes layout, floor focus / cut-away, and model streaming version to request
+ * shadow map updates only when the scene structure or visibility changes.
+ */
+function ShadowCoordinator({ layout }: { layout: BuildingLayout }) {
+  const mode = useViewStore((s) => s.mode)
+  const focusedFloorKey = useViewStore((s) => s.focusedFloorKey)
+  const modelsVersion = useModelsVersion()
+
+  const activeIndex = useMemo(
+    () => activeFloorIndexOf(layout, { mode, focusedFloorKey }),
+    [layout, mode, focusedFloorKey],
+  )
+
+  const prevActiveRef = useRef<number | null>(activeIndex)
+  const prevLayoutRef = useRef<BuildingLayout>(layout)
+  const prevModelsRef = useRef<number>(modelsVersion)
+
+  useEffect(() => {
+    if (
+      prevActiveRef.current !== activeIndex ||
+      prevLayoutRef.current !== layout ||
+      prevModelsRef.current !== modelsVersion
+    ) {
+      prevActiveRef.current = activeIndex
+      prevLayoutRef.current = layout
+      prevModelsRef.current = modelsVersion
+      requestShadowUpdate()
+    }
+  }, [activeIndex, layout, modelsVersion])
 
   return null
 }
@@ -205,6 +268,7 @@ export function OfficeCanvas() {
   const [ready, setReady] = useState(false)
   const [dpr, setDpr] = useState(IS_E2E ? 1 : 1.5)
   const reducedMotion = useReducedMotionPref()
+  const assets = useLoadProgress()
 
   const location = useLocation()
   const [, setSearchParams] = useSearchParams()
@@ -301,6 +365,7 @@ export function OfficeCanvas() {
     <div
       data-office-canvas
       data-ready={ready ? 'true' : 'false'}
+      data-assets={assets.settled ? 'ready' : 'loading'}
       data-camera-mode-state={mode}
       data-focused-floor={focusedFloorKey ?? ''}
       style={{ cursor: hoveredFloorKey || personHovered ? 'pointer' : 'default' }}
@@ -310,6 +375,11 @@ export function OfficeCanvas() {
         frameloop={IS_E2E ? 'demand' : 'always'}
         shadows={IS_E2E ? true : 'soft'}
         dpr={dpr}
+        gl={{
+          toneMapping: THREE.NoToneMapping,
+          outputColorSpace: THREE.SRGBColorSpace,
+          preserveDrawingBuffer: IS_DEBUG_ENABLED,
+        }}
         camera={{ position: [14, 24, 52], fov: 35, near: 0.5, far: 320 }}
       >
         {!IS_E2E && (
@@ -323,6 +393,7 @@ export function OfficeCanvas() {
         <Environment />
         <Lights layout={layout} />
         <Building layout={layout} reducedMotion={reducedMotion} />
+        <ShadowCoordinator layout={layout} />
         <People
           layout={layout}
           elevator={config.building.elevator}
@@ -356,6 +427,7 @@ export function OfficeCanvas() {
         </div>
 
         <div className="flex items-end justify-between gap-4">
+          <LoadProgress progress={assets} />
           <ActivityTicker />
           <ShortcutHint />
         </div>

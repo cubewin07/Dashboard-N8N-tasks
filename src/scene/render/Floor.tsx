@@ -85,6 +85,8 @@ export interface FloorProps {
   animateMount?: boolean
   reducedMotion?: boolean
   chips?: readonly FloorLabelChip[]
+  /** False once the kit models are drawn: the box walls and parapets step aside. */
+  blockoutWalls?: boolean
 }
 
 export function Floor({
@@ -93,6 +95,7 @@ export function Floor({
   animateMount = false,
   reducedMotion = false,
   chips,
+  blockoutWalls = true,
 }: FloorProps) {
   const groupRef = useRef<THREE.Group>(null)
   const fadeContentRef = useRef<THREE.Group>(null)
@@ -113,12 +116,14 @@ export function Floor({
 
   const { w, d } = floor.size
   const wallPieces = useMemo(
-    () => buildWallPieces(floor.walls, w, d),
-    [floor.walls, w, d],
+    () => (blockoutWalls ? buildWallPieces(floor.walls, w, d) : []),
+    [floor.walls, w, d, blockoutWalls],
   )
   const swatchColor = getSwatchColor(floor.colorSwatch)
   const swatchSoftColor = getSwatchSoftColor(floor.colorSwatch)
   const isBoss = floor.kind === 'boss'
+  // Kit walls fill the storey; the blockout walls were shorter.
+  const roofY = blockoutWalls ? WALL_HEIGHT : floor.size.h - SLAB_THICKNESS
 
   useLayoutEffect(() => {
     const mesh = wallInstancedRef.current
@@ -139,6 +144,8 @@ export function Floor({
       const target = getFloorFadeTarget(floor.index, activeFloorIndex)
       opacityRef.current = target.opacity
       applyGroupFade(fadeContentRef.current, target.opacity, target.castShadow)
+      // Floors above the focused one are cut away so its furniture is in plain view.
+      fadeContentRef.current.visible = !target.faded
       invalidate()
     }
   }, [floor.index, activeFloorIndex, invalidate])
@@ -217,19 +224,23 @@ export function Floor({
               <boxGeometry args={[6, SLAB_THICKNESS, d]} />
               <meshStandardMaterial color={SCENE_PALETTE.slabBossTerrace} roughness={0.85} />
             </mesh>
-            {/* Terrace low parapet walls */}
-            <mesh position={[toWorldX(3, w), 0.45, toWorldZ(0.08, d)]} receiveShadow>
-              <boxGeometry args={[6, 0.9, 0.16]} />
-              <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
-            </mesh>
-            <mesh position={[toWorldX(0.08, w), 0.45, toWorldZ(d / 2, d)]} receiveShadow>
-              <boxGeometry args={[0.16, 0.9, d]} />
-              <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
-            </mesh>
-            <mesh position={[toWorldX(3, w), 0.45, toWorldZ(d - 0.08, d)]} receiveShadow>
-              <boxGeometry args={[6, 0.9, 0.16]} />
-              <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
-            </mesh>
+            {/* Terrace low parapet walls (until the kit rails load) */}
+            {blockoutWalls ? (
+              <>
+                <mesh position={[toWorldX(3, w), 0.45, toWorldZ(0.08, d)]} receiveShadow>
+                  <boxGeometry args={[6, 0.9, 0.16]} />
+                  <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
+                </mesh>
+                <mesh position={[toWorldX(0.08, w), 0.45, toWorldZ(d / 2, d)]} receiveShadow>
+                  <boxGeometry args={[0.16, 0.9, d]} />
+                  <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
+                </mesh>
+                <mesh position={[toWorldX(3, w), 0.45, toWorldZ(d - 0.08, d)]} receiveShadow>
+                  <boxGeometry args={[6, 0.9, 0.16]} />
+                  <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.6} />
+                </mesh>
+              </>
+            ) : null}
 
             {/* East 18m indoor executive wood slab (local x: 6..24 -> center x=15) */}
             <mesh
@@ -241,20 +252,24 @@ export function Floor({
               <meshStandardMaterial color={SCENE_PALETTE.slabBossWood} roughness={0.7} />
             </mesh>
 
-            {/* Executive suite roof cap */}
-            <mesh
-              position={[toWorldX(15, w), WALL_HEIGHT + 0.12, toWorldZ(d / 2, d)]}
-              castShadow
-              receiveShadow
-            >
-              <boxGeometry args={[18.3, 0.24, d + 0.3]} />
-              <meshStandardMaterial color={SCENE_PALETTE.bossRoofCap} roughness={0.75} />
-            </mesh>
-            {/* Gold crown trim on roof cap front edge */}
-            <mesh position={[toWorldX(15, w), WALL_HEIGHT + 0.12, toWorldZ(-0.05, d)]}>
-              <boxGeometry args={[18.35, 0.12, 0.22]} />
-              <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.5} />
-            </mesh>
+            {/* Executive suite roof cap: lifts off while this floor is focused */}
+            {isFocused ? null : (
+              <>
+                <mesh
+                  position={[toWorldX(15, w), roofY + 0.12, toWorldZ(d / 2, d)]}
+                  castShadow
+                  receiveShadow
+                >
+                  <boxGeometry args={[18.3, 0.24, d + 0.3]} />
+                  <meshStandardMaterial color={SCENE_PALETTE.bossRoofCap} roughness={0.75} />
+                </mesh>
+                {/* Gold crown trim on roof cap front edge */}
+                <mesh position={[toWorldX(15, w), roofY + 0.12, toWorldZ(-0.05, d)]}>
+                  <boxGeometry args={[18.35, 0.12, 0.22]} />
+                  <meshStandardMaterial color={SCENE_PALETTE.bossGoldTrim} roughness={0.5} />
+                </mesh>
+              </>
+            )}
           </>
         ) : (
           <>
