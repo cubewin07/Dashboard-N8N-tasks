@@ -8,6 +8,10 @@ import { visualLanguage } from '@/office/visualConfig'
 import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
 import { DESK_SLOT_TYPES, deskGlowFor, progressArc, showsProgress } from './deskStatusModel'
+import { getModelParts, isModelReady } from './assets/modelStore'
+import type { Placement } from './assets/placements'
+import { useModelsVersion } from './assets/useModels'
+import { flagInstances, LIFE, placementMatrix, useFurniture } from './liveParts'
 import { getSwatchColor } from './palette'
 import { activeFloorIndexOf, DESK_TOP, isCutAway, placeInSlot } from './place'
 
@@ -21,7 +25,20 @@ interface DeskSpot {
   floorIndex: number
   slot: { x: number; z: number; rotY: number }
   slotId: string
+  /** The desk model drawing this spot's screen, when loaded. */
+  screen: { group: number; index: number; placement: Placement } | null
 }
+
+/** Screens of one desk model: its `screen` node, instanced on every desk of it. */
+interface ScreenGroup {
+  geometry: THREE.BufferGeometry
+  count: number
+  /** Ring centre in model space, just above the screen. */
+  ringLocal: THREE.Vector3
+}
+
+const tmpMatrix = new THREE.Matrix4()
+const tmpVec = new THREE.Vector3()
 
 const RING_VERTEX = /* glsl */ `
 attribute float aProgress;
@@ -69,26 +86,65 @@ export interface DeskStatusProps {
  * changes.
  */
 export function DeskStatus({ layout }: DeskStatusProps) {
-  const desks = useMemo(() => {
+  const furniture = useFurniture(layout)
+  const modelsVersion = useModelsVersion()
+  const { radius, width, swatch, trackSwatch } = visualLanguage.progressRing
+  const half = radius + width / 2
+
+  const { desks, groups } = useMemo(() => {
+    void modelsVersion
+    const byKey = new Map<string, Placement>()
+    for (const p of furniture) if (p.primary && p.slotId) byKey.set(`${p.floorKey}/${p.slotId}`, p)
+    const groupOf = new Map<string, number>()
+    const groups: ScreenGroup[] = []
     const out: DeskSpot[] = []
     for (const floor of layout.floors) {
       for (const slot of floor.slots) {
-        if (DESK_SLOT_TYPES.has(slot.type)) out.push({ floorIndex: floor.index, slot, slotId: slot.id })
+        if (!DESK_SLOT_TYPES.has(slot.type)) continue
+        const placement = byKey.get(`${floor.key}/${slot.id}`)
+        let screen: DeskSpot['screen'] = null
+        if (LIFE && placement && isModelReady(placement.model)) {
+          let g = groupOf.get(placement.model)
+          if (g === undefined) {
+            const part = getModelParts(placement.model, LIFE.deskScreen)?.[0]
+            if (part) {
+              part.geometry.computeBoundingBox()
+              const box = part.geometry.boundingBox!
+              g = groups.length
+              groups.push({
+                geometry: part.geometry,
+                count: 0,
+                ringLocal: new THREE.Vector3(
+                  (box.min.x + box.max.x) / 2,
+                  box.max.y + RING_GAP + half,
+                  (box.min.z + box.max.z) / 2,
+                ),
+              })
+              groupOf.set(placement.model, g)
+            }
+          }
+          const group = g === undefined ? undefined : groups[g]
+          if (group && g !== undefined) {
+            screen = { group: g, index: group.count, placement }
+            group.count += 1
+          }
+        }
+        out.push({ floorIndex: floor.index, slot, slotId: slot.id, screen })
       }
     }
-    return out
-  }, [layout])
+    return { desks: out, groups }
+  }, [layout, furniture, modelsVersion, half])
+
   const capacity = Math.max(1, desks.length)
   const monitorRef = useRef<THREE.InstancedMesh>(null)
   const ringRef = useRef<THREE.InstancedMesh>(null)
+  const screenRefs = useRef<Array<THREE.InstancedMesh | null>>([])
   const lastRef = useRef<{ state: OfficeState | null; active: number | null; desks: DeskSpot[] | null }>({
     state: null,
     active: null,
     desks: null,
   })
 
-  const { radius, width, swatch, trackSwatch } = visualLanguage.progressRing
-  const half = radius + width / 2
   const ringGeometry = useMemo(() => {
     const g = new THREE.PlaneGeometry(half * 2, half * 2)
     g.setAttribute('aProgress', new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1))
@@ -110,6 +166,8 @@ export function DeskStatus({ layout }: DeskStatusProps) {
     [swatch, trackSwatch, radius, width, half],
   )
   const monitorGeometry = useMemo(() => new THREE.BoxGeometry(MONITOR.w, MONITOR.h, MONITOR.d), [])
+  const screenMaterial = useMemo(() => new THREE.MeshBasicMaterial({ toneMapped: false }), [])
+  useLayoutEffect(() => () => screenMaterial.dispose(), [screenMaterial])
   useLayoutEffect(
     () => () => {
       ringGeometry.dispose()
@@ -119,12 +177,21 @@ export function DeskStatus({ layout }: DeskStatusProps) {
     [ringGeometry, ringMaterial, monitorGeometry],
   )
 
-  // Nothing shows until the first state arrives (no boxes at the origin).
+  // Nothing shows until the first state arrives (no boxes at the origin);
+  // model screens start dark so desks never look screenless.
   useLayoutEffect(() => {
     for (const mesh of [monitorRef.current, ringRef.current]) {
       if (!mesh) continue
       for (let i = 0; i < capacity; i += 1) mesh.setMatrixAt(i, ZERO)
       mesh.instanceMatrix.needsUpdate = true
+    }
+    const off = getSwatchColor(visualLanguage.deskGlow.off)
+    for (const desk of desks) {
+      const mesh = desk.screen ? screenRefs.current[desk.screen.group] : null
+      if (!mesh || !desk.screen) continue
+      mesh.setMatrixAt(desk.screen.index, placementMatrix(desk.screen.placement, tmpMatrix))
+      mesh.setColorAt(desk.screen.index, off)
+      flagInstances(mesh)
     }
     lastRef.current = { state: null, active: null, desks: null }
   }, [capacity, desks])
@@ -144,9 +211,11 @@ export function DeskStatus({ layout }: DeskStatusProps) {
     for (let i = 0; i < desks.length; i += 1) {
       const desk = desks[i]!
       const floor = layout.floors[desk.floorIndex]
+      const screenMesh = desk.screen ? screenRefs.current[desk.screen.group] : null
       if (!floor || isCutAway(desk.floorIndex, active)) {
         monitors.setMatrixAt(i, ZERO)
         rings.setMatrixAt(i, ZERO)
+        if (screenMesh && desk.screen) screenMesh.setMatrixAt(desk.screen.index, ZERO)
         continue
       }
       const ownerId: EmployeeId | undefined = floor.occupants[desk.slotId]
@@ -154,18 +223,33 @@ export function DeskStatus({ layout }: DeskStatusProps) {
       const task = person?.taskId ? state.tasks[person.taskId] : undefined
       const look = deskGlowFor(person?.activity, task?.status)
 
-      placeInSlot(tmp, floor, desk.slot, [0, DESK_TOP + MONITOR.h / 2 + MONITOR.lift, MONITOR.z])
-      tmp.scale.set(1, 1, 1)
-      tmp.updateMatrix()
-      monitors.setMatrixAt(i, tmp.matrix)
-      monitors.setColorAt(i, getSwatchColor(glow[look]))
+      const group = desk.screen ? groups[desk.screen.group] : undefined
+      if (screenMesh && desk.screen && group) {
+        // The desk model's own screen glows; no extra monitor box.
+        monitors.setMatrixAt(i, ZERO)
+        screenMesh.setMatrixAt(desk.screen.index, placementMatrix(desk.screen.placement, tmpMatrix))
+        screenMesh.setColorAt(desk.screen.index, getSwatchColor(glow[look]))
+      } else {
+        placeInSlot(tmp, floor, desk.slot, [0, DESK_TOP + MONITOR.h / 2 + MONITOR.lift, MONITOR.z])
+        tmp.scale.set(1, 1, 1)
+        tmp.updateMatrix()
+        monitors.setMatrixAt(i, tmp.matrix)
+        monitors.setColorAt(i, getSwatchColor(glow[look]))
+      }
 
       if (task && showsProgress(task.status)) {
-        placeInSlot(tmp, floor, desk.slot, [
-          0,
-          DESK_TOP + MONITOR.lift + MONITOR.h + RING_GAP + half,
-          MONITOR.z,
-        ])
+        if (desk.screen && group) {
+          placementMatrix(desk.screen.placement, tmpMatrix)
+          tmpVec.copy(group.ringLocal).applyMatrix4(tmpMatrix)
+          tmp.position.copy(tmpVec)
+          tmp.rotation.set(0, desk.screen.placement.rotY, 0)
+        } else {
+          placeInSlot(tmp, floor, desk.slot, [
+            0,
+            DESK_TOP + MONITOR.lift + MONITOR.h + RING_GAP + half,
+            MONITOR.z,
+          ])
+        }
         tmp.scale.set(1, 1, 1)
         tmp.updateMatrix()
         rings.setMatrixAt(i, tmp.matrix)
@@ -178,6 +262,7 @@ export function DeskStatus({ layout }: DeskStatusProps) {
     if (monitors.instanceColor) monitors.instanceColor.needsUpdate = true
     rings.instanceMatrix.needsUpdate = true
     progressAttr.needsUpdate = true
+    screenRefs.current.forEach(flagInstances)
   })
 
   return (
@@ -190,6 +275,16 @@ export function DeskStatus({ layout }: DeskStatusProps) {
       >
         <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
+      {groups.map((g, k) => (
+        <instancedMesh
+          key={`s${k}:${g.count}:${g.geometry.uuid}`}
+          ref={(el) => {
+            screenRefs.current[k] = el
+          }}
+          args={[g.geometry, screenMaterial, Math.max(1, g.count)]}
+          frustumCulled={false}
+        />
+      ))}
       <instancedMesh
         key={`r${capacity}`}
         ref={ringRef}
