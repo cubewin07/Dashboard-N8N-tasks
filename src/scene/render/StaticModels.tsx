@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { getSharedMaterials } from './assets/materials'
 import { getModelParts, isModelSettled, type MaterialKind } from './assets/modelStore'
+import { tintedGeometry } from './assets/tint'
 import type { Placement } from './assets/placements'
 import { useModelsVersion } from './assets/useModels'
 import { InstancedModels } from './InstancedModels'
@@ -33,7 +34,7 @@ function buildMerged(placements: readonly Placement[]): MergedPart[] {
       temp.rotation.set(0, p.rotY, 0)
       temp.scale.set(p.scale[0], p.scale[1], p.scale[2])
       temp.updateMatrix()
-      pieces.push(part.geometry.clone().applyMatrix4(temp.matrix))
+      pieces.push(tintedGeometry(part.geometry, p.tint).clone().applyMatrix4(temp.matrix))
       total += part.geometry.index?.count ?? 0
       endByFloor[p.floorIndex] = total
     }

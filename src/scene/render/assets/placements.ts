@@ -4,6 +4,7 @@ import { toWorldX, toWorldZ } from '../coords'
 import { DESK_SLOT_TYPES } from '../deskStatusModel'
 import type { FurnitureLife, FurnitureMap, ModelRef, SlotArt } from './furnitureMap'
 import type { AssetManifest, ManifestEntry } from './manifest'
+import { deptAccentSwatch } from './paletteCells'
 
 /**
  * One model instance in world space. Pure data: no three.js here, so the whole
@@ -14,6 +15,8 @@ export interface Placement {
   model: string
   /** Optional node filter (one named node of the file). */
   node?: string
+  /** Department accent: the map's `accentTint.from` swatch is drawn in this swatch. */
+  tint?: string
   /** Nodes left out of the static scenery because something animates them. */
   omit?: readonly string[]
   floorKey: string
@@ -103,6 +106,13 @@ export function liveNodesOf(
   return found.length > 0 ? found : undefined
 }
 
+/** The accent swatch a model gets on this floor, if any (R5). */
+export function tintFor(floor: FloorLayout, map: FurnitureMap, model: string): string | undefined {
+  const accent = map.accentTint
+  if (!accent || floor.kind !== 'department' || !accent.models.includes(model)) return undefined
+  return deptAccentSwatch(floor.colorSwatch) ?? undefined
+}
+
 function seatAnchor(entry: ManifestEntry | undefined) {
   return entry?.anchors.find((a) => a.kind === 'seat')
 }
@@ -129,6 +139,7 @@ function slotPlacements(
       ...base,
       model: main.model,
       node: main.node,
+      tint: tintFor(floor, map, main.model),
       omit: main.node
         ? undefined
         : liveNodesOf(map.life, main.model, manifest.files[main.model], DESK_SLOT_TYPES.has(slot.type)),
@@ -176,6 +187,7 @@ function slotPlacements(
         ...base,
         model: comp.model,
         node: comp.node,
+        tint: tintFor(floor, map, comp.model),
         primary: false,
         position: [ox + dx, floor.y + pose.y, oz + dz],
         rotY: theta + pose.rot,
@@ -199,6 +211,7 @@ function extraPlacements(
     out.push({
       model: extra.model,
       node: extra.node,
+      tint: tintFor(floor, map, extra.model),
       omit: extra.node
         ? undefined
         : liveNodesOf(map.life, extra.model, manifest.files[extra.model], false),

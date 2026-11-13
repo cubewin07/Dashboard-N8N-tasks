@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { getSharedMaterials } from './assets/materials'
 import { getManifest, getModelParts, type ModelPart } from './assets/modelStore'
 import type { Placement } from './assets/placements'
+import { tintedGeometry } from './assets/tint'
 import { useModelsVersion } from './assets/useModels'
 
 const temp = new THREE.Object3D()
@@ -81,17 +82,18 @@ export function InstancedModels({ name, placements, activeFloorIndex }: Instance
   const groups = useMemo(() => {
     const byKey = new Map<
       string,
-      { model: string; node?: string; omit?: readonly string[]; all: Placement[] }
+      { model: string; node?: string; omit?: readonly string[]; tint?: string; all: Placement[] }
     >()
     for (const p of placements) {
-      const key = p.node
+      const base = p.node
         ? `${p.model}#${p.node}`
         : p.omit
           ? `${p.model}-${p.omit.join(',')}`
           : p.model
+      const key = p.tint ? `${base}~${p.tint}` : base
       let group = byKey.get(key)
       if (!group) {
-        group = { model: p.model, node: p.node, omit: p.omit, all: [] }
+        group = { model: p.model, node: p.node, omit: p.omit, tint: p.tint, all: [] }
         byKey.set(key, group)
       }
       group.all.push(p)
@@ -120,7 +122,7 @@ export function InstancedModels({ name, placements, activeFloorIndex }: Instance
       for (const part of parts) {
         out.push({
           key: `${key}:${part.kind}:${capacity}`,
-          part,
+          part: { kind: part.kind, geometry: tintedGeometry(part.geometry, group.tint) },
           visible,
           capacity,
           castShadow: shadow && part.kind === 'palette',
