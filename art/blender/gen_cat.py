@@ -27,7 +27,7 @@ def _stripes(m, x, y, z, n, dz, w):
 
 @model("decor", nodes=["pose_sit", "pose_loaf", "pose_stand"])
 def cat_01(m):
-    with m.part("pose_sit", exact=True):
+    with m.part("pose_sit", exact=True, solo=True):
         m.box(0.17, 0.24, 0.2, at=(0, 0, 0.03), sw=FUR, bevel=0.04, taper=(0.75, 0.7), shear=(0, -0.03))
         m.box(0.1, 0.16, 0.02, at=(0, 0.05, -0.062), sw=BELLY, rot=(-10, 0, 0))
         for sx in (-1, 1):
@@ -38,14 +38,14 @@ def cat_01(m):
         _stripes(m, 0, 0.2, 0.02, 2, 0.05, 0.14)
         m.rod((0, 0.03, 0.12), (0.14, 0.03, 0.14), 0.022, sw=FUR, seg=4)
         m.rod((0.14, 0.03, 0.14), (0.2, 0.03, 0.02), 0.02, sw=DARK, seg=4)
-    with m.part("pose_loaf", exact=True):
+    with m.part("pose_loaf", exact=True, solo=True):
         m.box(0.2, 0.14, 0.34, at=(0, 0, 0.02), sw=FUR, bevel=0.045)
         m.box(0.16, 0.02, 0.06, at=(0, 0, -0.14), sw=BELLY)
         _head(m, 0, 0.09, -0.17, tilt=6)
         _stripes(m, 0, 0.133, -0.04, 3, 0.07, 0.17)
         m.rod((0.02, 0.03, 0.18), (0.13, 0.03, 0.14), 0.022, sw=FUR, seg=4)
         m.rod((0.13, 0.03, 0.14), (0.14, 0.03, 0.0), 0.02, sw=DARK, seg=4)
-    with m.part("pose_stand", exact=True):
+    with m.part("pose_stand", exact=True, solo=True):
         m.box(0.14, 0.13, 0.36, at=(0, 0.13, 0.02), sw=FUR, bevel=0.035)
         m.box(0.1, 0.02, 0.26, at=(0, 0.125, 0.02), sw=BELLY)
         for sx in (-1, 1):

@@ -31,7 +31,7 @@ def silhouette():
     m.box(0.36, 0.56, 0.2, at=(0, 0.82, 0), sw=g, taper=(1.15, 1.0), bevel=0.03)
     m.cyl(0.05, 0.08, at=(0, 1.38, 0), sw=g, seg=6)
     m.sphere(0.13, at=(0, 1.57, 0), sw=g, sub=2)
-    root, objs = m.build()
+    root, objs = m.build(bake_ao=False)
     grey = plain_material("silhouette", (0.35, 0.36, 0.38))
     for ob in objs:
         if ob.type == "MESH":
