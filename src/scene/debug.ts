@@ -2,6 +2,7 @@ import type { EmployeeId } from '@/domain/primitives'
 import { usePeopleUi } from '@/office/uiStore'
 import type { DirectorStats, PersonDebug } from '@/scene/director/director'
 import { lodRuntime } from '@/scene/render/lod'
+import { setUnlitQuadVisible, UNLIT_QUAD_POS } from '@/scene/render/Environment'
 import { peopleRuntime, type PersonSight } from '@/scene/render/peopleRuntime'
 
 /** One person as the tests and the perf check see them (world metres). */
@@ -43,6 +44,10 @@ export interface CameraDebug {
   target: () => [number, number, number] | null
   /** Where a person's chest is on the page (client pixels), for click tests. */
   screenOf: (id: string) => [number, number] | null
+  /** Projected client pixels of the debug unlit reference quad. */
+  getUnlitQuadScreen?: () => [number, number] | null
+  /** Show or hide the debug unlit reference quad. */
+  setUnlitQuadVisible?: (visible: boolean) => void
 }
 
 const sight: PersonSight = { x: 0, y: 0, z: 0, floorKey: '', riding: false, visible: false }
@@ -96,5 +101,7 @@ export function makeCameraDebug(
     follow: (id) => usePeopleUi.getState().follow(id as EmployeeId | null),
     followedId: () => usePeopleUi.getState().followedId,
     target: getTarget,
+    getUnlitQuadScreen: () => project(UNLIT_QUAD_POS[0], UNLIT_QUAD_POS[1], UNLIT_QUAD_POS[2]),
+    setUnlitQuadVisible,
   }
 }
