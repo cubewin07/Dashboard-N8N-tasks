@@ -95,15 +95,19 @@ export function stationFor(floor: FloorLayout, slot: Slot, seatIndex = 0): Stati
     approach,
   }
 
+  const artSeats = floor.art?.seats?.[slot.id]
+
   if (DESK_TYPES.has(slot.type)) {
     // The occupant walks to the chair itself: for review desks and offices
     // the slot's approach cell is the visitor side, across the desk.
-    const seat = chairPoint(slot)
+    const art = artSeats?.[0]
+    const seat = art ? { x: art.x, z: art.z } : chairPoint(slot)
+    const heading = art ? art.rotY : headingTo(seat, centre)
     return {
       ...base,
       approach: seat,
       seat,
-      heading: headingTo(seat, centre),
+      heading,
       pose: 'sit_work',
       isDesk: true,
     }
@@ -111,10 +115,17 @@ export function stationFor(floor: FloorLayout, slot: Slot, seatIndex = 0): Stati
 
   const seatPose = SEAT_POSE[slot.type]
   if (seatPose) {
+    const art = artSeats && artSeats.length > 0 ? artSeats[seatIndex % artSeats.length] : undefined
+    const seat = art ? { x: art.x, z: art.z } : centre
+    const heading = art
+      ? art.rotY
+      : slot.type === 'idle_bed'
+        ? slot.rotY
+        : headingTo(centre, approach)
     return {
       ...base,
-      seat: centre,
-      heading: slot.type === 'idle_bed' ? slot.rotY : headingTo(centre, approach),
+      seat,
+      heading,
       pose: seatPose,
       isDesk: false,
     }
@@ -122,6 +133,17 @@ export function stationFor(floor: FloorLayout, slot: Slot, seatIndex = 0): Stati
 
   const tablePose = TABLE_POSE[slot.type]
   if (tablePose) {
+    if (artSeats && artSeats.length > 0) {
+      const art = artSeats[seatIndex % artSeats.length]!
+      const seat = { x: art.x, z: art.z }
+      return {
+        ...base,
+        seat,
+        heading: art.rotY,
+        pose: tablePose,
+        isDesk: false,
+      }
+    }
     const places = Math.max(1, slot.capacity ?? 4)
     const angle = slot.rotY + (Math.PI * 2 * (seatIndex % places)) / places + Math.PI / places
     const radius = slot.type === 'meeting_table' ? 1.05 : 0.8

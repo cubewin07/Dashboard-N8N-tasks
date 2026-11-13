@@ -26,6 +26,7 @@ import { peopleRuntime, resetPeopleRuntime, type PersonSight } from './peopleRun
 import { PersonIndicators } from './PersonIndicators'
 import type { PersonVisualInput, PersonVisualSystem } from './PersonVisual'
 import { isRestingActivity, statusLook } from './statusLook'
+import { useArtLayout } from './assets/useArtLayout'
 
 export interface PeopleProps {
   layout: BuildingLayout
@@ -98,6 +99,7 @@ const lodOverride: LodOverride = { mode: 'overview', focusedFloorIndex: null, fo
  * No React state changes per frame: the store is read inside `useFrame`.
  */
 export function People({ layout, elevator, reducedMotion = false }: PeopleProps) {
+  const artLayout = useArtLayout(layout)
   const invalidate = useThree((s) => s.invalidate)
   const gl = useThree((s) => s.gl)
   const camera = useThree((s) => s.camera)
@@ -111,7 +113,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       warn: IS_DEV ? (m) => console.warn(m) : undefined,
       idle: idleBehaviours,
     }
-    return new Director(layout, elevator, options)
+    return new Director(artLayout, elevator, options)
   },
     // The director outlives layout changes (`setLayout` below keeps everybody).
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,7 +126,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
   const carsRef = useRef<ElevatorCars | null>(null)
   const indicatorsRef = useRef<PersonIndicators | null>(null)
   const namesRef = useRef<NameLabelsHandle | null>(null)
-  const layoutRef = useRef(layout)
+  const layoutRef = useRef(artLayout)
   const reducedMotionRef = useRef(reducedMotion)
 
   const inputsRef = useRef<PersonVisualInput[]>([])
@@ -185,11 +187,11 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
   }, [invalidate])
 
   useEffect(() => {
-    layoutRef.current = layout
-    director.setLayout(layout)
-    carsRef.current?.build(layout)
+    layoutRef.current = artLayout
+    director.setLayout(artLayout)
+    carsRef.current?.build(artLayout)
     invalidate()
-  }, [director, layout, invalidate])
+  }, [director, artLayout, invalidate])
 
   useEffect(() => {
     activeFloorRef.current = activeFloorIndex

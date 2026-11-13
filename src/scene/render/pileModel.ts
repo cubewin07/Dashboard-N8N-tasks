@@ -69,7 +69,7 @@ export interface PileAnchor {
   rotY: number
 }
 
-/** The `.pile` anchor of each owner's desk; owners without a seat are skipped. */
+/** The pile anchor of each owner's desk; owners without a seat are skipped. Reads art data when present. */
 export function pileAnchors(layout: BuildingLayout, ownerIds: readonly EmployeeId[]): PileAnchor[] {
   const out: PileAnchor[] = []
   for (const id of ownerIds) {
@@ -78,7 +78,13 @@ export function pileAnchors(layout: BuildingLayout, ownerIds: readonly EmployeeI
     const floorIndex = layout.byKey[seat.floorKey]
     if (floorIndex === undefined) continue
     const floor = layout.floors[floorIndex]
-    const slot = floor?.slots.find((s) => s.id === `${seat.slotId}.pile`)
+    if (!floor) continue
+    const artPile = floor.art?.piles?.[seat.slotId]
+    if (artPile) {
+      out.push({ employeeId: id, floorIndex, x: artPile.x, z: artPile.z, rotY: artPile.rotY })
+      continue
+    }
+    const slot = floor.slots.find((s) => s.id === `${seat.slotId}.pile`)
     if (!slot) continue
     out.push({ employeeId: id, floorIndex, x: slot.x, z: slot.z, rotY: slot.rotY })
   }
