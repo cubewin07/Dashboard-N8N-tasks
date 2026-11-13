@@ -63,6 +63,7 @@ export interface ObstacleRect {
   halfZ: number
   cos: number
   sin: number
+  slotId?: string | null
 }
 
 /** True when the slot type is furniture that blocks floor area. */
