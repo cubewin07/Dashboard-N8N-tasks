@@ -227,6 +227,20 @@ function extraPlacements(
   return out
 }
 
+/** Furniture and dressing for one floor, in slot then extra order. */
+export function buildFloorFurniturePlacements(
+  floor: FloorLayout,
+  map: FurnitureMap,
+  manifest: AssetManifest,
+): Placement[] {
+  const out: Placement[] = []
+  for (const slot of floor.slots) {
+    out.push(...slotPlacements(floor, slot, map, manifest))
+  }
+  out.push(...extraPlacements(floor, map, manifest))
+  return out
+}
+
 /** Furniture and dressing for the whole building, in floor then slot order. */
 export function buildFurniturePlacements(
   layout: Pick<BuildingLayout, 'floors'>,
@@ -235,10 +249,7 @@ export function buildFurniturePlacements(
 ): Placement[] {
   const out: Placement[] = []
   for (const floor of layout.floors) {
-    for (const slot of floor.slots) {
-      out.push(...slotPlacements(floor, slot, map, manifest))
-    }
-    out.push(...extraPlacements(floor, map, manifest))
+    out.push(...buildFloorFurniturePlacements(floor, map, manifest))
   }
   return out
 }
