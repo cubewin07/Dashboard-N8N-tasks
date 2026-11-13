@@ -6,6 +6,8 @@ import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
 import { toWorldX, toWorldZ } from './coords'
 import { SCENE_PALETTE } from './palette'
+import { LiveNodes, type NodePose } from './LiveNodes'
+import { LIFE, useFurniture, useModelReady } from './liveParts'
 import { activeFloorIndexOf, isCutAway } from './place'
 
 /** Ceiling fans: two per floor, hanging under the slab above. */
@@ -41,8 +43,36 @@ export interface FansProps {
   reducedMotion?: boolean
 }
 
-/** P05-T12 (R11): instanced ceiling fans, still under reduced motion. */
+/** P05-T12 (R11): ceiling fans, still under reduced motion. */
 export function Fans({ layout, reducedMotion = false }: FansProps) {
+  const furniture = useFurniture(layout)
+  const fanModel = LIFE?.fan.model
+  const ready = useModelReady(fanModel)
+  const fans = useMemo(() => furniture.filter((p) => p.model === fanModel), [furniture, fanModel])
+  const pose = useMemo<NodePose>(
+    () => (_p, i, elapsed, rotation) => {
+      const angle = reducedMotion ? 0.4 : elapsed * FAN.turnsPerSecond * Math.PI * 2
+      rotation.set(0, angle + i * 0.9, 0)
+    },
+    [reducedMotion],
+  )
+  if (LIFE && fanModel && ready && fans.length > 0) {
+    return (
+      <LiveNodes
+        name="ceiling-fans"
+        layout={layout}
+        model={fanModel}
+        node={LIFE.fan.blades}
+        placements={fans}
+        pose={pose}
+      />
+    )
+  }
+  return <PrimitiveFans layout={layout} reducedMotion={reducedMotion} />
+}
+
+/** P05 fallback while the fan model is not loaded. */
+function PrimitiveFans({ layout, reducedMotion = false }: FansProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const rodLength = Math.max(0.05, layout.floorHeight - FAN.slabGap - FAN.bladeY)
   const geometry = useMemo(() => buildFanGeometry(rodLength), [rodLength])

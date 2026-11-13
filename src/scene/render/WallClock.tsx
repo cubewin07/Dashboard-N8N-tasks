@@ -7,6 +7,8 @@ import type { BuildingLayout } from '@/scene/layout'
 import { clockAngles } from './clock'
 import { toWorldX, toWorldZ } from './coords'
 import { getSwatchColor } from './palette'
+import { LiveNodes, type NodePose } from './LiveNodes'
+import { LIFE, useFurniture, useModelReady } from './liveParts'
 import { activeFloorIndexOf, isCutAway } from './place'
 
 /** One clock per floor on the back wall (floor-local x share, height, depth). */
@@ -31,6 +33,52 @@ export interface WallClockProps {
  * only when the shown minute or the cutaway changes.
  */
 export function WallClock({ layout }: WallClockProps) {
+  const furniture = useFurniture(layout)
+  const clockModel = LIFE?.clock.model
+  const ready = useModelReady(clockModel)
+  const clocks = useMemo(
+    () => furniture.filter((p) => p.model === clockModel),
+    [furniture, clockModel],
+  )
+  if (LIFE && ready && clocks.length > 0) {
+    return <ModelClockHands layout={layout} clocks={clocks} />
+  }
+  return <PrimitiveClocks layout={layout} />
+}
+
+/** Time shown on the hands: feed time, per minute; hidden before the feed starts. */
+function handPose(which: 'hour' | 'minute'): NodePose {
+  return (_p, _i, _t, rotation) => {
+    const feed = getFeedClock()
+    if (!feed) return false
+    const angles = clockAngles(Math.floor(feed.nowMs / 60000) * 60000)
+    // The face looks down the model's −Z: +Z rotation reads clockwise from there.
+    rotation.set(0, 0, which === 'hour' ? angles.hour : angles.minute)
+    return true
+  }
+}
+const HOUR_POSE = handPose('hour')
+const MINUTE_POSE = handPose('minute')
+
+function ModelClockHands({
+  layout,
+  clocks,
+}: {
+  layout: BuildingLayout
+  clocks: Parameters<typeof LiveNodes>[0]['placements']
+}) {
+  if (!LIFE) return null
+  const { model, hour, minute } = LIFE.clock
+  return (
+    <group name="wall-clocks">
+      <LiveNodes name="clock-hours" layout={layout} model={model} node={hour} placements={clocks} pose={HOUR_POSE} />
+      <LiveNodes name="clock-minutes" layout={layout} model={model} node={minute} placements={clocks} pose={MINUTE_POSE} />
+    </group>
+  )
+}
+
+/** P05 fallback while the clock model is not loaded. */
+function PrimitiveClocks({ layout }: WallClockProps) {
   const faceRef = useRef<THREE.InstancedMesh>(null)
   const handRef = useRef<THREE.InstancedMesh>(null)
   const lastRef = useRef('')
