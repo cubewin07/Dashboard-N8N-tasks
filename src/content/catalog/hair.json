@@ -1,0 +1,68 @@
+{
+  "items": [
+    {
+      "id": "hair_short_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc ngắn", "en": "Short hair" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_short_01.glb",
+        "male": "models/wardrobe/hair_short_01.glb"
+      },
+      "thumb": "thumbs/hair_short_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_bob_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc bob", "en": "Bob cut" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_bob_01.glb",
+        "male": "models/wardrobe/hair_bob_01.glb"
+      },
+      "thumb": "thumbs/hair_bob_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_long_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc dài", "en": "Long hair" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_long_01.glb",
+        "male": "models/wardrobe/hair_long_01.glb"
+      },
+      "thumb": "thumbs/hair_long_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_bun_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc búi", "en": "Hair bun" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_bun_01.glb",
+        "male": "models/wardrobe/hair_bun_01.glb"
+      },
+      "thumb": "thumbs/hair_bun_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["office", "casual"],
+      "credit": "own-generated"
+    }
+  ]
+}

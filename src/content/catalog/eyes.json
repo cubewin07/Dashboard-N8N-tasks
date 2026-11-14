@@ -1,0 +1,46 @@
+{
+  "items": [
+    {
+      "id": "eyes_01",
+      "slot": "eyes",
+      "label": { "vi": "Mắt tròn", "en": "Round eyes" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [0, 0] },
+      "thumb": "thumbs/eyes_01.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "eyes_02",
+      "slot": "eyes",
+      "label": { "vi": "Mắt hạnh nhân", "en": "Almond eyes" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [0, 1] },
+      "thumb": "thumbs/eyes_02.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "eyes_03",
+      "slot": "eyes",
+      "label": { "vi": "Mắt dịu dàng", "en": "Gentle narrow eyes" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [0, 2] },
+      "thumb": "thumbs/eyes_03.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    }
+  ]
+}

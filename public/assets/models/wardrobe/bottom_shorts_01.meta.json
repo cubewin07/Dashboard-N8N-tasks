@@ -1,0 +1,25 @@
+{
+  "id": "bottom_shorts_01",
+  "slot": "bottom",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/bottom_shorts_01_f.glb",
+      "tris": 356,
+      "hideRegions": [
+        "hips"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    },
+    "male": {
+      "file": "models/wardrobe/bottom_shorts_01_m.glb",
+      "tris": 356,
+      "hideRegions": [
+        "hips"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "glasses_round_01",
+  "slot": "glasses",
+  "kind": "rigid",
+  "bone": "Head",
+  "merge": true,
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/glasses_round_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    },
+    "male": {
+      "file": "models/wardrobe/glasses_round_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    }
+  }
+}

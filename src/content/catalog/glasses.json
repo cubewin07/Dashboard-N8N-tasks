@@ -1,0 +1,23 @@
+{
+  "items": [
+    {
+      "id": "glasses_round_01",
+      "slot": "glasses",
+      "label": { "vi": "Kính tròn", "en": "Round glasses" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/glasses_round_01.glb",
+        "male": "models/wardrobe/glasses_round_01.glb"
+      },
+      "thumb": "thumbs/glasses_round_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_black" }
+      },
+      "hides": [],
+      "tags": ["office", "casual"],
+      "credit": "own-generated"
+    }
+  ]
+}

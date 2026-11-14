@@ -1,0 +1,61 @@
+{
+  "items": [
+    {
+      "id": "top_tshirt_crew_01",
+      "slot": "top",
+      "label": { "vi": "Áo thun cổ tròn", "en": "Crew-neck T-shirt" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_tshirt_crew_01_f.glb",
+        "male": "models/wardrobe/top_tshirt_crew_01_m.glb"
+      },
+      "thumb": "thumbs/top_tshirt_crew_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_white" }
+      },
+      "hides": [],
+      "tags": ["casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_shirt_office_01",
+      "slot": "top",
+      "label": { "vi": "Áo sơ mi công sở", "en": "Office dress shirt" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_shirt_office_01_f.glb",
+        "male": "models/wardrobe/top_shirt_office_01_m.glb"
+      },
+      "thumb": "thumbs/top_shirt_office_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "secondary"],
+        "defaults": { "primary": "c_sky", "secondary": "c_white" }
+      },
+      "hides": [],
+      "tags": ["office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_hoodie_01",
+      "slot": "top",
+      "label": { "vi": "Áo hoodie", "en": "Pullover hoodie" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_hoodie_01_f.glb",
+        "male": "models/wardrobe/top_hoodie_01_m.glb"
+      },
+      "thumb": "thumbs/top_hoodie_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_grey", "accent": "c_white" }
+      },
+      "hides": [],
+      "tags": ["casual", "winter"],
+      "credit": "own-generated"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "fullbody_dress_simple_01",
+      "slot": "fullbody",
+      "label": { "vi": "Đầm suông", "en": "Simple shift dress" },
+      "bases": ["female"],
+      "model": {
+        "female": "models/wardrobe/fullbody_dress_simple_01_f.glb"
+      },
+      "thumb": "thumbs/fullbody_dress_simple_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_rose" }
+      },
+      "hides": ["top", "bottom"],
+      "tags": ["office", "casual"],
+      "credit": "own-generated"
+    }
+  ]
+}

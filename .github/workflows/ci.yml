@@ -36,6 +36,9 @@ jobs:
       - name: Validate content
         run: npm run content:validate --if-present
 
+      - name: Validate wardrobe catalogue
+        run: npm run catalog:validate --if-present
+
       - name: Validate assets
         run: npm run assets:check --if-present
 

@@ -1,0 +1,20 @@
+{
+  "id": "fullbody_dress_simple_01",
+  "slot": "fullbody",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/fullbody_dress_simple_01_f.glb",
+      "tris": 528,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "hips",
+        "thigh_l",
+        "thigh_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 2.46
+    }
+  }
+}

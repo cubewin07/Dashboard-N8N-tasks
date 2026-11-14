@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": "neck_necklace_01",
+      "slot": "neck",
+      "label": { "vi": "Dây chuyền", "en": "Necklace" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/neck_necklace_01.glb",
+        "male": "models/wardrobe/neck_necklace_01.glb"
+      },
+      "thumb": "thumbs/neck_necklace_01.webp",
+      "attach": { "bone": "Neck" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    }
+  ]
+}
