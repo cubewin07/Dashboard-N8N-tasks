@@ -98,21 +98,21 @@ Staggered update slots so 5 Hz people do not all tick on the same frame. Imposto
 | Fallback | crash · capsule | **Capsule** | Demo must never break because of one bad asset | – |
 
 ## 5. Tasks
-- [ ] **P07b-T01** Catalogue loader + appearance schema/migrate/hash. *Files:* `src/domain/appearance.ts`, `src/scene/characters/{catalog,appearance}.ts`, tests. *Acceptance:* R10; unit tests: unknown item → default, v0 fixture → v1, stable hash independent of key order.
-- [ ] **P07b-T02** ∥ `bodyMap.ts` + `effectiveLimits`. *Acceptance:* table-driven tests for §3.3 incl. clamping by two items' limits.
-- [ ] **P07b-T03** ∥ `generate.ts`. *Acceptance:* R9 test over the seed org; same id → same doc; only catalogue ids used.
-- [ ] **P07b-T04** `partLoader.ts` (GLB + meta cache, `BASE_URL` paths, preload list from catalogue). *Acceptance:* loading the same part twice hits the network once (mocked loader test).
-- [ ] **P07b-T05** `assemble.ts` steps 1–3, 6 (bake morphs, hide masks, merge, skeleton). *Files:* + `src/scene/characters/__fixtures__/*.glb` (tiny fixture parts made by a P07a script, < 20 KB each). *Acceptance:* R1, R2, R4 unit tests on fixtures: triangle count = sum − hidden; one geometry; skin indices valid.
-- [ ] **P07b-T06** Tint + swatch remap + shared material patch. *Acceptance:* R5 test: vertex colours of a tinted fixture equal the swatch; only one material instance exists for 10 assembled characters.
-- [ ] **P07b-T07** Rigid accessory merge + attach points. *Acceptance:* glasses fixture follows head rotation in a pose test (vertex position check after skeleton update).
-- [ ] **P07b-T08** `animLibrary.ts`: load clips, metadata, action map, walk timeScale. *Acceptance:* R7 unit test of the map (every director action from P04/P05 has a clip; unknown → idle).
-- [ ] **P07b-T09** `CharacterVisual.tsx` implementing `PersonVisual`; mixer with crossfade; height scale + seat offsets; assembly queue (≤ 2 per frame); capsule fallback + feature flag. *Acceptance:* R3, R11, R13; e2e: `#/office` shows people, `window.__office_debug.characters.assembled === people count`.
-- [ ] **P07b-T10** `faceAnim.ts` blink, sleep and expression cells. *Acceptance:* R6; unit test of the blink scheduler with a fake clock; sleeping person uses the closed cell.
-- [ ] **P07b-T11** `props.ts`: held items (document, laptop, phone, tablet, box, camera from P05/P06) on `Attach_HandR`, hidden when seated variants need the desk version. *Acceptance:* prop world position tracks the hand in a pose test.
-- [ ] **P07b-T12** `lod.ts` + culling + staggered updates. *Acceptance:* R8; unit test of rate selection; debug counter shows ≈ expected mixer updates per second in overview.
-- [ ] **P07b-T13** Re-assembly on appearance change, cache by hash, disposal. *Acceptance:* R12 automated: 50 random appearance swaps → geometry count stable.
-- [ ] **P07b-T14** Perf pass against `performance.md`: run `npm run perf:check` with 80 people (sim scenario "đông người"), record numbers in PR. *Acceptance:* budgets met or fallbacks applied and recorded.
-- [ ] **P07b-T15** i18n for any new debug/UI strings; docs: update `performance.md` table row and `contracts.md` only if `AppearanceV1` changed (it should not).
+- [x] **P07b-T01** Catalogue loader + appearance schema/migrate/hash. *Files:* `src/domain/appearance.ts`, `src/scene/characters/{catalog,appearance}.ts`, tests. *Acceptance:* R10; unit tests: unknown item → default, v0 fixture → v1, stable hash independent of key order.
+- [x] **P07b-T02** ∥ `bodyMap.ts` + `effectiveLimits`. *Acceptance:* table-driven tests for §3.3 incl. clamping by two items' limits.
+- [x] **P07b-T03** ∥ `generate.ts`. *Acceptance:* R9 test over the seed org; same id → same doc; only catalogue ids used.
+- [x] **P07b-T04** `partLoader.ts` (GLB + meta cache, `BASE_URL` paths, preload list from catalogue). *Acceptance:* loading the same part twice hits the network once (mocked loader test).
+- [x] **P07b-T05** `assemble.ts` steps 1–3, 6 (bake morphs, hide masks, merge, skeleton). *Files:* + `src/scene/characters/__fixtures__/*.glb` (tiny fixture parts made by a P07a script, < 20 KB each). *Acceptance:* R1, R2, R4 unit tests on fixtures: triangle count = sum − hidden; one geometry; skin indices valid.
+- [x] **P07b-T06** Tint + swatch remap + shared material patch. *Acceptance:* R5 test: vertex colours of a tinted fixture equal the swatch; only one material instance exists for 10 assembled characters.
+- [x] **P07b-T07** Rigid accessory merge + attach points. *Acceptance:* glasses fixture follows head rotation in a pose test (vertex position check after skeleton update).
+- [x] **P07b-T08** `animLibrary.ts`: load clips, metadata, action map, walk timeScale. *Acceptance:* R7 unit test of the map (every director action from P04/P05 has a clip; unknown → idle).
+- [x] **P07b-T09** `CharacterVisual.tsx` implementing `PersonVisual`; mixer with crossfade; height scale + seat offsets; assembly queue (≤ 2 per frame); capsule fallback + feature flag. *Acceptance:* R3, R11, R13; e2e: `#/office` shows people, `window.__office_debug.characters.assembled === people count`.
+- [x] **P07b-T10** `faceAnim.ts` blink, sleep and expression cells. *Acceptance:* R6; unit test of the blink scheduler with a fake clock; sleeping person uses the closed cell.
+- [x] **P07b-T11** `props.ts`: held items (document, laptop, phone, tablet, box, camera from P05/P06) on `Attach_HandR`, hidden when seated variants need the desk version. *Acceptance:* prop world position tracks the hand in a pose test.
+- [x] **P07b-T12** `lod.ts` + culling + staggered updates. *Acceptance:* R8; unit test of rate selection; debug counter shows ≈ expected mixer updates per second in overview.
+- [x] **P07b-T13** Re-assembly on appearance change, cache by hash, disposal. *Acceptance:* R12 automated: 50 random appearance swaps → geometry count stable.
+- [x] **P07b-T14** Perf pass against `performance.md`: run `npm run perf:check` with 80 people (sim scenario "đông người"), record numbers in PR. *Acceptance:* budgets met or fallbacks applied and recorded.
+- [x] **P07b-T15** i18n for any new debug/UI strings; docs: update `performance.md` table row and `contracts.md` only if `AppearanceV1` changed (it should not).
 
 ## 6. Dependencies
 - **Needs:** P07a assets and meta files; P04 `PersonVisual`, pick handling, director actions; P05 action list, props; P06b furniture dimensions (seat/desk heights).
@@ -135,13 +135,13 @@ none (or: …)
 ```
 
 ## 8. Review checklist
-- [ ] `git diff --stat` shows no changes under `scene/director`, `scene/nav`, `scene/layout`, `domain` except `domain/appearance.ts`.
-- [ ] One material instance for all characters; no runtime morph targets in the office scene.
-- [ ] No React state set inside `useFrame`; mixers updated through refs.
-- [ ] Disposal verified (R12); capsule fallback works when a GLB URL is broken (try it).
+- [x] `git diff --stat` shows no changes under `scene/director`, `scene/nav`, `scene/layout`, `domain` except `domain/appearance.ts`.
+- [x] One material instance for all characters; no runtime morph targets in the office scene.
+- [x] No React state set inside `useFrame`; mixers updated through refs.
+- [x] Disposal verified (R12); capsule fallback works when a GLB URL is broken (try it).
 - [ ] Walk has no obvious foot sliding; seated people sit on chairs, not in them, at min and max height.
-- [ ] Perf numbers in the PR body meet `performance.md`; numbers were measured on the stated machine.
-- [ ] Asset URLs use `import.meta.env.BASE_URL`.
+- [x] Perf numbers in the PR body meet `performance.md`; numbers were measured on the stated machine.
+- [x] Asset URLs use `import.meta.env.BASE_URL`.
 
 ## 9. Risks and open questions
 - **CPU morph baking** needs morph deltas in the GLB; meshopt quantisation must keep them accurate (verify in T05; else export deltas in a side buffer).
