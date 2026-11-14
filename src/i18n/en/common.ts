@@ -98,6 +98,6 @@ export const common: typeof vi = {
     alreadyResolved: 'Already handled on Telegram',
   },
   empty: { generic: 'Nothing here yet' },
-  error: { generic: 'Something went wrong. Please try again.' },
+  error: { generic: 'Something went wrong. Please try again.', routeTitle: 'This page could not be loaded', routeHint: 'The app may have just been updated. Reload to get the latest version.', reload: 'Reload page' },
   demo: { badge: 'Demo', note: 'Sample data, not connected to the real system' },
 }

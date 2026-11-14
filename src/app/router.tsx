@@ -1,12 +1,13 @@
-import { createHashRouter, Outlet } from 'react-router-dom'
+import { createHashRouter, Navigate, Outlet } from 'react-router-dom'
 import { LoginPage } from '@/features/login/LoginPage'
 import { OfficePage } from '@/features/office/OfficePage'
 import { AppLayout } from './AppLayout'
 import { AuthGuard } from './auth'
 import { LegacyBoundary } from './LegacyBoundary'
+import { RouteError } from './RouteError'
 
 export const router = createHashRouter([
-  { path: '/login', element: <LoginPage /> },
+  { path: '/login', element: <LoginPage />, errorElement: <RouteError /> },
   {
     path: '/reset-password',
     lazy: async () => ({
@@ -21,8 +22,9 @@ export const router = createHashRouter([
         </AppLayout>
       </AuthGuard>
     ),
+    errorElement: <RouteError />,
     children: [
-      { path: '/', element: <OfficePage /> },
+      { path: '/', element: <OfficePage />, errorElement: <RouteError /> },
       {
         path: '/org',
         lazy: async () => ({
@@ -82,6 +84,8 @@ export const router = createHashRouter([
           },
         ],
       },
+      // Unknown hash (typo, or a dev-only route on the production build): go home.
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
 ])

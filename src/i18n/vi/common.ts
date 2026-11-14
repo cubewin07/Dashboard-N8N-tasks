@@ -97,6 +97,6 @@ export const common = {
     alreadyResolved: 'Việc này đã được xử lý trên Telegram',
   },
   empty: { generic: 'Chưa có gì ở đây' },
-  error: { generic: 'Có lỗi xảy ra. Vui lòng thử lại.' },
+  error: { generic: 'Có lỗi xảy ra. Vui lòng thử lại.', routeTitle: 'Không tải được trang', routeHint: 'Có thể ứng dụng vừa được cập nhật. Hãy tải lại trang để dùng bản mới nhất.', reload: 'Tải lại trang' },
   demo: { badge: 'Bản demo', note: 'Dữ liệu mẫu, chưa kết nối hệ thống thật' },
 }
