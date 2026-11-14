@@ -1,0 +1,37 @@
+{
+  "id": "bottom_jeans_01",
+  "slot": "bottom",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/bottom_jeans_01_f.glb",
+      "tris": 596,
+      "hideRegions": [
+        "hips",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r",
+        "shin_l",
+        "shin_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    },
+    "male": {
+      "file": "models/wardrobe/bottom_jeans_01_m.glb",
+      "tris": 596,
+      "hideRegions": [
+        "hips",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r",
+        "shin_l",
+        "shin_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    }
+  }
+}
