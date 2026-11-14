@@ -174,6 +174,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       mode === 'capsule'
         ? null
         : new CharacterPeople({
+            deferUntilAssetsSettled: true,
             onAssemblyUpdate: () => {
               settleRef.current = Math.max(settleRef.current, 2)
               invalidate()
@@ -485,6 +486,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
     if (factor > 0) invalidate()
     else if (
       characterPeopleRef.current &&
+      characterPeopleRef.current.canProcessQueue &&
       characterPeopleRef.current.getDebugSnapshot().queued > 0
     ) {
       invalidate()

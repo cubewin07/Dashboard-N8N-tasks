@@ -113,6 +113,7 @@ export interface CharactersDebug {
   readonly failed: number
   readonly cacheSize: number
   readonly mixersPerSec: number
+  readonly avgAssemblyMs: number
   setAppearance: (employeeId: EmployeeId, doc: unknown) => unknown
   setFailUrlForTest: (pattern: string | null) => void
 }
@@ -124,6 +125,7 @@ const emptyCharactersSnapshot = {
   failed: 0,
   cacheSize: 0,
   mixersPerSec: 0,
+  avgAssemblyMs: 0,
 }
 
 function snapshotCharacters() {
@@ -139,6 +141,7 @@ export const charactersDebug: CharactersDebug = Object.defineProperties(
     failed: 0,
     cacheSize: 0,
     mixersPerSec: 0,
+    avgAssemblyMs: 0,
     setAppearance(employeeId: EmployeeId, doc: unknown) {
       return peopleRuntime.characters?.setAppearance(employeeId, doc) ?? null
     },
@@ -153,5 +156,6 @@ export const charactersDebug: CharactersDebug = Object.defineProperties(
     failed: { get: () => snapshotCharacters().failed, enumerable: true },
     cacheSize: { get: () => snapshotCharacters().cacheSize, enumerable: true },
     mixersPerSec: { get: () => snapshotCharacters().mixersPerSec, enumerable: true },
+    avgAssemblyMs: { get: () => snapshotCharacters().avgAssemblyMs, enumerable: true },
   },
 )

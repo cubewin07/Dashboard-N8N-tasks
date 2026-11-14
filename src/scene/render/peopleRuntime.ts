@@ -27,6 +27,7 @@ export interface CharactersRuntimeSnapshot {
   failed: number
   cacheSize: number
   mixersPerSec: number
+  avgAssemblyMs: number
 }
 
 export interface CharactersRuntime {
@@ -79,5 +80,4 @@ export function resetPeopleRuntime(): void {
   peopleRuntime.indicators = noIndicators()
   peopleRuntime.namesInUse = 0
   peopleRuntime.ringPulse = 0
-  peopleRuntime.characters = null
 }

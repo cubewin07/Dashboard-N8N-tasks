@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import type { AppearanceV1 } from '@/domain/appearance'
 import type { EmployeeId } from '@/domain/primitives'
 import { hashString } from '@/scene/director/rng'
+import { getLoadProgress, subscribeModels } from '@/scene/render/assets/modelStore'
 import { CapsulePeople } from '@/scene/render/CapsulePeople'
 import { SCENE_PALETTE } from '@/scene/render/palette'
 import type { PersonVisualInput, PersonVisualSystem } from '@/scene/render/PersonVisual'
@@ -55,6 +56,7 @@ export interface CharacterDebugSnapshot {
   failed: number
   cacheSize: number
   mixersPerSec: number
+  avgAssemblyMs: number
 }
 
 export interface CharacterPeopleDeps {
@@ -70,6 +72,7 @@ export interface CharacterPeopleDeps {
   loadWardrobeMetaFn?: (idOrPath: string) => Promise<WardrobeMeta>
   preloadFn?: () => Promise<unknown>
   onAssemblyUpdate?: () => void
+  deferUntilAssetsSettled?: boolean
   maxAssembliesPerFrame?: number
   capacity?: number
   logger?: Pick<Console, 'error' | 'warn'>
@@ -216,6 +219,8 @@ export class CharacterPeople implements PersonVisualSystem {
 
   private animClips: Map<string, THREE.AnimationClip> | null = null
   private animLoadPromise: Promise<Map<string, THREE.AnimationClip>> | null = null
+  private unsubscribeModels: (() => void) | null = null
+  private assetsGateOpen = false
   private preloaded = false
   private disposed = false
 
@@ -226,6 +231,8 @@ export class CharacterPeople implements PersonVisualSystem {
   private time = 0
   private frame = 0
   private totalDisposedCount = 0
+  private totalAssemblyMs = 0
+  private totalAssemblyCount = 0
   private inFlightCount = 0
 
   constructor(deps: CharacterPeopleDeps = {}) {
@@ -239,6 +246,7 @@ export class CharacterPeople implements PersonVisualSystem {
     )
     this.logger = deps.logger ?? console
     this.capacity = deps.capacity ?? DEFAULT_CAPACITY
+    this.assetsGateOpen = !deps.deferUntilAssetsSettled || getLoadProgress().settled
 
     this.fallbackCapsules = new CapsulePeople(this.capacity)
     this.object.add(this.fallbackCapsules.object)
@@ -314,6 +322,10 @@ export class CharacterPeople implements PersonVisualSystem {
     this.failUrlPattern = pattern
   }
 
+  get canProcessQueue(): boolean {
+    return this.assetsGateOpen
+  }
+
   get disposeCount(): number {
     return this.totalDisposedCount
   }
@@ -330,6 +342,11 @@ export class CharacterPeople implements PersonVisualSystem {
         ? Math.round((this.mixerWindowUpdates / this.mixerWindowDt) * 10) / 10
         : 0
 
+    const avgAssemblyMs =
+      this.totalAssemblyCount > 0
+        ? Math.round((this.totalAssemblyMs / this.totalAssemblyCount) * 100) / 100
+        : 0
+
     return {
       assembled,
       total: this.lastCount > 0 ? this.lastCount : this.slots.size,
@@ -337,6 +354,7 @@ export class CharacterPeople implements PersonVisualSystem {
       failed,
       cacheSize: assembled,
       mixersPerSec,
+      avgAssemblyMs,
     }
   }
 
@@ -557,6 +575,10 @@ export class CharacterPeople implements PersonVisualSystem {
   dispose(): void {
     if (this.disposed) return
     this.disposed = true
+    if (this.unsubscribeModels) {
+      this.unsubscribeModels()
+      this.unsubscribeModels = null
+    }
 
     for (const slot of this.slots.values()) {
       this.disposeSlot(slot)
@@ -659,6 +681,7 @@ export class CharacterPeople implements PersonVisualSystem {
   }
 
   private processQueue(): void {
+    if (!this.assetsGateOpen) return
     let started = 0
     while (started < this.maxAssembliesPerFrame && this.assemblyQueue.length > 0) {
       const id = this.assemblyQueue.shift()!
@@ -674,6 +697,25 @@ export class CharacterPeople implements PersonVisualSystem {
 
   private ensurePreloaded(): void {
     if (this.preloaded) return
+    if (!this.assetsGateOpen) {
+      if (getLoadProgress().settled) {
+        this.assetsGateOpen = true
+      } else if (!this.unsubscribeModels) {
+        this.unsubscribeModels = subscribeModels(() => {
+          if (this.disposed || !getLoadProgress().settled) return
+          if (this.unsubscribeModels) {
+            this.unsubscribeModels()
+            this.unsubscribeModels = null
+          }
+          this.assetsGateOpen = true
+          this.ensurePreloaded()
+          this.deps.onAssemblyUpdate?.()
+        })
+        return
+      } else {
+        return
+      }
+    }
     this.preloaded = true
     void this.ensureAnimClips().catch(() => {})
     if (this.deps.preloadFn) {
@@ -686,6 +728,9 @@ export class CharacterPeople implements PersonVisualSystem {
       !this.deps.loadWardrobePartFn &&
       !this.deps.loadWardrobeMetaFn
     ) {
+      void this.loadBodyMetaSafe().catch(() => {})
+      void this.loadBodyAssetSafe('female').catch(() => {})
+      void this.loadBodyAssetSafe('male').catch(() => {})
       void preloadCatalogParts(this.deps.partLoaderDeps).catch(() => {})
       void preloadHeldProps(this.deps.propDeps).catch(() => {})
     }
@@ -791,6 +836,7 @@ export class CharacterPeople implements PersonVisualSystem {
       const limits = effectiveLimits(appearance, this.catalog, metasById)
       const mappedBody = mapBodySliders(appearance.body, limits)
 
+      const tAssembleStart = performance.now()
       const assembled = this.assembleFn({
         appearance,
         body: bodyAsset,
@@ -800,6 +846,8 @@ export class CharacterPeople implements PersonVisualSystem {
         bodyRegions: bodyMeta.regions,
         faceAtlas: this.catalog.faceAtlas,
       })
+      this.totalAssemblyMs += performance.now() - tAssembleStart
+      this.totalAssemblyCount += 1
 
       if (this.disposed || slot.disposed) {
         assembled.dispose()
