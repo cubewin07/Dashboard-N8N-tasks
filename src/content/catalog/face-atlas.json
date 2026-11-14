@@ -1,0 +1,25 @@
+{
+  "size": 512,
+  "grid": 8,
+  "defaults": {
+    "eyes": [0, 0],
+    "brows": [0, 4],
+    "mouth": [0, 5]
+  },
+  "eyeStates": {
+    "open": 0,
+    "half": 1,
+    "closed": 2,
+    "happy": 3
+  },
+  "cells": {
+    "eyes_01": [0, 0],
+    "eyes_02": [0, 1],
+    "eyes_03": [0, 2],
+    "brows_01": [0, 4],
+    "brows_02": [1, 4],
+    "mouth_01": [0, 5],
+    "mouth_02": [1, 5],
+    "mouth_03": [2, 5]
+  }
+}
