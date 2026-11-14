@@ -10,7 +10,9 @@ const onlyIdx = args.indexOf('--only')
 const only = onlyIdx >= 0 ? args.splice(onlyIdx, 2)[1] : null
 const dir = join(ROOT, 'art', 'blender')
 const all = readdirSync(dir).filter((f) => /^gen_.*\.py$/.test(f) && f !== 'gen_palette.py').map((f) => f.slice(4, -3)).sort()
-const families = args.length === 0 || args.includes('all') ? all : args
+const CHAR_FAMILIES = ['body', 'face_atlas', 'anims', 'wardrobe_starter', 'wardrobe']
+const expanded = args.flatMap((a) => (a === 'characters' ? CHAR_FAMILIES.filter((f) => all.includes(f)) : [a]))
+const families = args.length === 0 || args.includes('all') ? all : [...new Set(expanded)]
 
 const version = execFileSync(BLENDER, ['--version'], { encoding: 'utf8' }).match(/Blender (\d+)\.(\d+)/)
 if (!version || Number(version[1]) * 100 + Number(version[2]) < 402) {
