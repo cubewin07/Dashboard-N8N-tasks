@@ -16,17 +16,8 @@
         "forearm_l",
         "forearm_r"
       ],
-      "bodyLimits": {
-        "Heavy": [
-          0.0,
-          0.4
-        ],
-        "Muscle": [
-          0.0,
-          0.45
-        ]
-      },
-      "maxPenetrationMm": 4.85
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.4
     },
     "male": {
       "file": "models/wardrobe/top_shirt_office_01_m.glb",

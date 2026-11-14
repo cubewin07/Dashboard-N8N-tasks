@@ -13,17 +13,8 @@
         "thigh_l",
         "thigh_r"
       ],
-      "bodyLimits": {
-        "Heavy": [
-          0.0,
-          0.45
-        ],
-        "Muscle": [
-          0.0,
-          0.45
-        ]
-      },
-      "maxPenetrationMm": 4.12
+      "bodyLimits": {},
+      "maxPenetrationMm": 2.46
     }
   }
 }

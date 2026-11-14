@@ -111,7 +111,7 @@
     "bottom_shorts_01_m": {"file":"models/wardrobe/bottom_shorts_01_m.glb","tris":356,"bytes":51016,"bbox":{"min":[-0.179,0.56,-0.137],"max":[0.179,1.048,0.115]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
     "bottom_trousers_01_f": {"file":"models/wardrobe/bottom_trousers_01_f.glb","tris":596,"bytes":70792,"bbox":{"min":[-0.181,0.075,-0.156],"max":[0.181,1.048,0.119]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
     "bottom_trousers_01_m": {"file":"models/wardrobe/bottom_trousers_01_m.glb","tris":596,"bytes":70580,"bbox":{"min":[-0.18,0.077,-0.138],"max":[0.18,1.048,0.116]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
-    "fullbody_dress_simple_01_f": {"file":"models/wardrobe/fullbody_dress_simple_01_f.glb","tris":528,"bytes":83460,"bbox":{"min":[-0.325,0.505,-0.198],"max":[0.325,1.408,0.166]},"footprint":[1,0.5],"anchors":[],"nodes":["geo"]},
+    "fullbody_dress_simple_01_f": {"file":"models/wardrobe/fullbody_dress_simple_01_f.glb","tris":528,"bytes":84796,"bbox":{"min":[-0.325,0.505,-0.198],"max":[0.325,1.41,0.166]},"footprint":[1,0.5],"anchors":[],"nodes":["geo"]},
     "glasses_round_01": {"file":"models/wardrobe/glasses_round_01.glb","tris":260,"bytes":9588,"bbox":{"min":[-0.135,1.558,-0.035],"max":[0.135,1.626,0.145]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "hair_bob_01": {"file":"models/wardrobe/hair_bob_01.glb","tris":284,"bytes":14724,"bbox":{"min":[-0.202,1.437,-0.213],"max":[0.202,1.764,0.136]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
     "hair_bun_01": {"file":"models/wardrobe/hair_bun_01.glb","tris":344,"bytes":17248,"bbox":{"min":[-0.138,1.547,-0.197],"max":[0.137,1.778,0.126]},"footprint":[0.5,0.5],"anchors":[],"nodes":[]},
@@ -122,11 +122,11 @@
     "shoes_loafer_01_m": {"file":"models/wardrobe/shoes_loafer_01_m.glb","tris":108,"bytes":19412,"bbox":{"min":[-0.153,-0.007,-0.075],"max":[0.153,0.083,0.194]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
     "shoes_sneaker_01_f": {"file":"models/wardrobe/shoes_sneaker_01_f.glb","tris":108,"bytes":19684,"bbox":{"min":[-0.151,-0.007,-0.071],"max":[0.151,0.085,0.19]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
     "shoes_sneaker_01_m": {"file":"models/wardrobe/shoes_sneaker_01_m.glb","tris":108,"bytes":19668,"bbox":{"min":[-0.153,-0.007,-0.075],"max":[0.153,0.085,0.194]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
-    "top_hoodie_01_f": {"file":"models/wardrobe/top_hoodie_01_f.glb","tris":700,"bytes":99280,"bbox":{"min":[-0.538,0.965,-0.167],"max":[0.538,1.422,0.141]},"footprint":[1.5,0.5],"anchors":[],"nodes":["geo"]},
+    "top_hoodie_01_f": {"file":"models/wardrobe/top_hoodie_01_f.glb","tris":700,"bytes":100476,"bbox":{"min":[-0.538,0.965,-0.167],"max":[0.538,1.422,0.141]},"footprint":[1.5,0.5],"anchors":[],"nodes":["geo"]},
     "top_hoodie_01_m": {"file":"models/wardrobe/top_hoodie_01_m.glb","tris":700,"bytes":100924,"bbox":{"min":[-0.539,0.965,-0.176],"max":[0.539,1.424,0.137]},"footprint":[1.5,0.5],"anchors":[],"nodes":["geo"]},
-    "top_shirt_office_01_f": {"file":"models/wardrobe/top_shirt_office_01_f.glb","tris":684,"bytes":98588,"bbox":{"min":[-0.538,0.965,-0.149],"max":[0.538,1.418,0.14]},"footprint":[1.5,0.5],"anchors":[],"nodes":["geo"]},
+    "top_shirt_office_01_f": {"file":"models/wardrobe/top_shirt_office_01_f.glb","tris":684,"bytes":99828,"bbox":{"min":[-0.538,0.965,-0.149],"max":[0.538,1.418,0.14]},"footprint":[1.5,0.5],"anchors":[],"nodes":["geo"]},
     "top_shirt_office_01_m": {"file":"models/wardrobe/top_shirt_office_01_m.glb","tris":684,"bytes":100344,"bbox":{"min":[-0.538,0.965,-0.137],"max":[0.538,1.42,0.126]},"footprint":[1.5,0.5],"anchors":[],"nodes":["geo"]},
-    "top_tshirt_crew_01_f": {"file":"models/wardrobe/top_tshirt_crew_01_f.glb","tris":496,"bytes":79520,"bbox":{"min":[-0.377,0.965,-0.149],"max":[0.377,1.416,0.14]},"footprint":[1,0.5],"anchors":[],"nodes":["geo"]},
+    "top_tshirt_crew_01_f": {"file":"models/wardrobe/top_tshirt_crew_01_f.glb","tris":496,"bytes":80720,"bbox":{"min":[-0.377,0.965,-0.149],"max":[0.377,1.416,0.14]},"footprint":[1,0.5],"anchors":[],"nodes":["geo"]},
     "top_tshirt_crew_01_m": {"file":"models/wardrobe/top_tshirt_crew_01_m.glb","tris":496,"bytes":81044,"bbox":{"min":[-0.379,0.965,-0.137],"max":[0.379,1.418,0.126]},"footprint":[1,0.5],"anchors":[],"nodes":["geo"]}
   }
 }
