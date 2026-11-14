@@ -11,6 +11,7 @@ import argparse
 import math
 import os
 import struct
+import sys
 import zlib
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -387,9 +388,13 @@ def build(out_path=DEFAULT_OUT, preview_path=DEFAULT_PREVIEW):
 
 
 if __name__ == "__main__":
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
     p = argparse.ArgumentParser(description="Generate the 512x512 face ink-mask atlas.")
     p.add_argument("--out", default=DEFAULT_OUT)
     p.add_argument("--preview", default=DEFAULT_PREVIEW)
+    p.add_argument("--only", default=None)
     p.add_argument("--no-preview", action="store_true")
-    args = p.parse_args()
-    build(args.out, None if args.no_preview else args.preview)
+    args = p.parse_args(argv)
+    out_path = DEFAULT_OUT if os.path.isdir(args.out) else args.out
+    build(out_path, None if args.no_preview else args.preview)
+    print(f"BUILT {os.path.basename(out_path)}")
