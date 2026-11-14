@@ -155,10 +155,15 @@ function useReducedMotion(): boolean {
   return reduced
 }
 
+/** Never render more pixels than the screen has: a 1x monitor stays at 1x. */
+function maxDpr(): number {
+  return Math.min(2, Math.max(1, window.devicePixelRatio || 1))
+}
+
 export function OfficeCanvas() {
   const config = useConfigStore((s) => s.config)
   const [ready, setReady] = useState(false)
-  const [dpr, setDpr] = useState(IS_E2E ? 1 : 1.5)
+  const [dpr, setDpr] = useState(IS_E2E ? 1 : Math.min(1.5, maxDpr()))
   const reducedMotion = useReducedMotion()
 
   const location = useLocation()
@@ -246,9 +251,11 @@ export function OfficeCanvas() {
       >
         {!IS_E2E && (
           <PerformanceMonitor
+            flipflops={3}
+            onFallback={() => setDpr(1)}
             onChange={({ factor }) => {
               const nextDpr = Math.round((1 + factor) * 100) / 100
-              setDpr(nextDpr)
+              setDpr(Math.min(maxDpr(), nextDpr))
             }}
           />
         )}

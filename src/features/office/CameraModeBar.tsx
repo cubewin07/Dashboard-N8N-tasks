@@ -39,7 +39,7 @@ export function CameraModeBar({ floorKeys }: CameraModeBarProps) {
         aria-pressed={mode === 'overview'}
         onClick={setOverview}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+          'inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
           mode === 'overview'
             ? 'bg-primary text-primary-foreground'
             : 'text-foreground hover:bg-muted',
@@ -55,7 +55,7 @@ export function CameraModeBar({ floorKeys }: CameraModeBarProps) {
         aria-pressed={mode === 'free'}
         onClick={setFree}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+          'inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
           mode === 'free'
             ? 'bg-primary text-primary-foreground'
             : 'text-foreground hover:bg-muted',
@@ -71,7 +71,7 @@ export function CameraModeBar({ floorKeys }: CameraModeBarProps) {
         aria-pressed={mode === 'floor'}
         onClick={handleFloorMode}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+          'inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
           mode === 'floor'
             ? 'bg-primary text-primary-foreground'
             : 'text-foreground hover:bg-muted',
