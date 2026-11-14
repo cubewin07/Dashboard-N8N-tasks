@@ -22,3 +22,8 @@ supabase/.branches/
 .idea/
 *.log
 npm-debug.log*
+
+# test / coverage
+coverage/
+playwright-report/
+test-results/

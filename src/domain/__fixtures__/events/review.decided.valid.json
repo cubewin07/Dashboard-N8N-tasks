@@ -1,0 +1,17 @@
+{
+  "v": 1,
+  "id": "evt_01JTEST000000000000000001",
+  "seq": 1,
+  "at": "2026-11-10T08:00:00Z",
+  "type": "review.decided",
+  "actor": {
+    "kind": "system",
+    "id": null
+  },
+  "causedBy": null,
+  "payload": {
+    "reviewId": "rev_01JTEST000000000000000001",
+    "decision": "approved",
+    "note": "Nội dung tốt, duyệt đăng"
+  }
+}

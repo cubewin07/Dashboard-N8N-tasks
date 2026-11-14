@@ -11,6 +11,23 @@ export const settings: typeof viSettings = {
     en: 'English',
     enSubtitle: 'English UI mode',
   },
+  deviceTier: {
+    title: 'Office display mode (3D / 2D)',
+    description: 'Automatically use 3D on desktop and 2D list on phones, or force a mode',
+    activeLabel: 'Currently active: {mode}',
+    activeModes: {
+      full3d: '3D scene',
+      fallback: '2D list',
+    },
+    options: {
+      auto: 'Auto',
+      autoSubtitle: '3D on large screens · 2D on phones',
+      full3d: 'Always 3D',
+      full3dSubtitle: 'Always render the 3D scene on all devices',
+      fallback: 'Always 2D',
+      fallbackSubtitle: 'Always use compact 2D list to save battery',
+    },
+  },
   drive: {
     title: 'Google Drive',
     description: 'Storage and previews for AI-generated images, banners and videos',

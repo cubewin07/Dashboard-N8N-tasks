@@ -1,0 +1,38 @@
+{
+  "staffing": {
+    "tempCap": 10,
+    "dropOrder": "longest_idle_first",
+    "minIdleMinutesBeforeDrop": 60
+  },
+  "help": {
+    "timeoutMinutes": 30,
+    "maxRounds": 2,
+    "escalateTo": "dept_manager"
+  },
+  "priority": {
+    "weights": {
+      "urgent": 400,
+      "high": 300,
+      "normal": 200,
+      "low": 100
+    },
+    "agingPointsPerHour": 20,
+    "agingCapPoints": 150
+  },
+  "approvals": {
+    "defaultLevel": "dept_manager",
+    "chain": "every_level_up_to_required",
+    "questionSeatThreshold": 3
+  },
+  "work": {
+    "oneActiveTaskPerWorker": true,
+    "maxRetries": 2,
+    "maxQuestionsPerTask": 1
+  },
+  "calendar": {
+    "timezone": "Asia/Ho_Chi_Minh",
+    "workStart": "08:00",
+    "workEnd": "17:30",
+    "lunch": ["12:00", "13:00"]
+  }
+}

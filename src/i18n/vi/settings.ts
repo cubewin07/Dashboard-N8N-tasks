@@ -10,6 +10,23 @@ export const settings = {
     en: 'English',
     enSubtitle: 'Giao diện tiếng Anh',
   },
+  deviceTier: {
+    title: 'Chế độ hiển thị Văn phòng (3D / 2D)',
+    description: 'Tự động dùng 3D trên máy tính và danh sách 2D trên điện thoại, hoặc cố định chế độ',
+    activeLabel: 'Đang áp dụng: {mode}',
+    activeModes: {
+      full3d: 'Không gian 3D',
+      fallback: 'Danh sách 2D',
+    },
+    options: {
+      auto: 'Tự động',
+      autoSubtitle: '3D trên màn hình lớn · 2D trên điện thoại',
+      full3d: 'Luôn 3D',
+      full3dSubtitle: 'Luôn mở khung cảnh 3D trên mọi thiết bị',
+      fallback: 'Luôn 2D',
+      fallbackSubtitle: 'Luôn dùng danh sách rút gọn, tiết kiệm pin',
+    },
+  },
   drive: {
     title: 'Google Drive',
     description: 'Lưu trữ và xem trước hình ảnh, banner và video do AI tạo ra',

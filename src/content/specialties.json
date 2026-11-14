@@ -1,0 +1,92 @@
+[
+  {
+    "key": "customer_chat",
+    "label": { "vi": "Trả lời tin nhắn", "en": "Customer Chat" },
+    "icon": "MessageSquare",
+    "homeDepartmentKey": "cs"
+  },
+  {
+    "key": "review_reply",
+    "label": { "vi": "Phản hồi đánh giá", "en": "Review Reply" },
+    "icon": "Star",
+    "homeDepartmentKey": "cs"
+  },
+  {
+    "key": "follow_up",
+    "label": { "vi": "Chăm sóc sau bán", "en": "Follow-up" },
+    "icon": "HeartHandshake",
+    "homeDepartmentKey": "cs"
+  },
+  {
+    "key": "copywriting",
+    "label": { "vi": "Viết nội dung", "en": "Copywriting" },
+    "icon": "PenTool",
+    "homeDepartmentKey": "marketing"
+  },
+  {
+    "key": "social_scheduling",
+    "label": { "vi": "Lên lịch đăng bài", "en": "Social Scheduling" },
+    "icon": "CalendarClock",
+    "homeDepartmentKey": "marketing"
+  },
+  {
+    "key": "ads",
+    "label": { "vi": "Quảng cáo", "en": "Advertising" },
+    "icon": "Target",
+    "homeDepartmentKey": "marketing"
+  },
+  {
+    "key": "promotions",
+    "label": { "vi": "Khuyến mãi sàn", "en": "Promotions" },
+    "icon": "Tag",
+    "homeDepartmentKey": "marketing"
+  },
+  {
+    "key": "reporting",
+    "label": { "vi": "Báo cáo số liệu", "en": "Reporting" },
+    "icon": "BarChart3",
+    "homeDepartmentKey": "marketing"
+  },
+  {
+    "key": "image",
+    "label": { "vi": "Thiết kế ảnh", "en": "Image Design" },
+    "icon": "Image",
+    "homeDepartmentKey": "design"
+  },
+  {
+    "key": "video",
+    "label": { "vi": "Dựng video ngắn", "en": "Short Video" },
+    "icon": "Film",
+    "homeDepartmentKey": "design"
+  },
+  {
+    "key": "product_photo",
+    "label": { "vi": "Ảnh sản phẩm", "en": "Product Photography" },
+    "icon": "Camera",
+    "homeDepartmentKey": "design"
+  },
+  {
+    "key": "invoicing",
+    "label": { "vi": "Xuất hoá đơn", "en": "Invoicing" },
+    "icon": "Receipt",
+    "homeDepartmentKey": "accounting"
+  },
+  {
+    "key": "bookkeeping",
+    "label": { "vi": "Sổ sách kế toán", "en": "Bookkeeping" },
+    "icon": "BookOpen",
+    "homeDepartmentKey": "accounting"
+  },
+  {
+    "key": "tax",
+    "label": { "vi": "Kê khai thuế", "en": "Tax Filing" },
+    "icon": "Landmark",
+    "homeDepartmentKey": "accounting"
+  },
+  {
+    "key": "qc",
+    "label": { "vi": "Kiểm duyệt chất lượng", "en": "Quality Control" },
+    "icon": "ShieldCheck",
+    "homeDepartmentKey": null
+  }
+]

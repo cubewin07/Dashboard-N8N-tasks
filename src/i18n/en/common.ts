@@ -3,6 +3,9 @@ import type { common as vi } from '../vi/common'
 export const common: typeof vi = {
   app: { name: 'Shop HQ', tagline: 'An AI team running 5 online shops' },
   nav: {
+    office: 'Office',
+    org: 'Org chart',
+    legacyGroup: 'Classic',
     overview: 'Overview',
     inbox: 'Needs you',
     inboxShort: 'Inbox',
@@ -95,6 +98,6 @@ export const common: typeof vi = {
     alreadyResolved: 'Already handled on Telegram',
   },
   empty: { generic: 'Nothing here yet' },
-  error: { generic: 'Something went wrong. Please try again.' },
+  error: { generic: 'Something went wrong. Please try again.', routeTitle: 'This page could not be loaded', routeHint: 'The app may have just been updated. Reload to get the latest version.', reload: 'Reload page' },
   demo: { badge: 'Demo', note: 'Sample data, not connected to the real system' },
 }

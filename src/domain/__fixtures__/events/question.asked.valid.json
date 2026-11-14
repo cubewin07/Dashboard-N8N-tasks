@@ -1,0 +1,25 @@
+{
+  "v": 1,
+  "id": "evt_01JTEST000000000000000001",
+  "seq": 1,
+  "at": "2026-11-10T08:00:00Z",
+  "type": "question.asked",
+  "actor": {
+    "kind": "system",
+    "id": null
+  },
+  "causedBy": null,
+  "payload": {
+    "question": {
+      "id": "q_01JTEST000000000000000001",
+      "taskId": "task_01JTEST000000000000000001",
+      "fromId": "emp_mai",
+      "toId": "emp_linh",
+      "text": "Khách yêu cầu đổi mẫu khác thì xử lý sao ạ?",
+      "status": "open",
+      "inPerson": true,
+      "createdAt": "2026-11-10T08:00:00Z",
+      "answeredAt": null
+    }
+  }
+}

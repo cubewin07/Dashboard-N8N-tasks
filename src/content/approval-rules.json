@@ -1,0 +1,76 @@
+[
+  {
+    "id": "boss_sensitive",
+    "order": 1,
+    "enabled": true,
+    "label": {
+      "vi": "Việc nhạy cảm cần Sếp duyệt",
+      "en": "Sensitive actions require Boss approval"
+    },
+    "when": {
+      "tagsAny": [
+        "money",
+        "tax",
+        "legal",
+        "refund",
+        "angry_customer",
+        "irreversible",
+        "new_account",
+        "hire_over_cap"
+      ]
+    },
+    "level": "boss"
+  },
+  {
+    "id": "boss_big_amount",
+    "order": 2,
+    "enabled": true,
+    "label": {
+      "vi": "Khoản chi từ 2.000.000đ trở lên",
+      "en": "Transactions of 2,000,000 VND or more"
+    },
+    "when": {
+      "amountVndGte": 2000000
+    },
+    "level": "boss"
+  },
+  {
+    "id": "dm_public",
+    "order": 3,
+    "enabled": true,
+    "label": {
+      "vi": "Bài đăng công khai & chiến dịch",
+      "en": "Public posts and campaigns"
+    },
+    "when": {
+      "tagsAny": ["public_post", "campaign"]
+    },
+    "level": "dept_manager"
+  },
+  {
+    "id": "dm_cross_dept",
+    "order": 4,
+    "enabled": true,
+    "label": {
+      "vi": "Phối hợp liên phòng ban",
+      "en": "Cross-department collaboration"
+    },
+    "when": {
+      "crossDepartment": true
+    },
+    "level": "dept_manager"
+  },
+  {
+    "id": "reviewer_routine",
+    "order": 5,
+    "enabled": true,
+    "label": {
+      "vi": "Việc thường ngày & bản nháp mẫu",
+      "en": "Routine drafts and FAQ replies"
+    },
+    "when": {
+      "tagsAny": ["routine_draft", "faq_reply", "internal_note"]
+    },
+    "level": "reviewer"
+  }
+]

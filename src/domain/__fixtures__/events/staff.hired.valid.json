@@ -1,0 +1,35 @@
+{
+  "v": 1,
+  "id": "evt_01JTEST000000000000000001",
+  "seq": 1,
+  "at": "2026-11-10T08:00:00Z",
+  "type": "staff.hired",
+  "actor": {
+    "kind": "system",
+    "id": null
+  },
+  "causedBy": null,
+  "payload": {
+    "employee": {
+      "id": "emp_temp_01",
+      "name": "Bình",
+      "departmentId": "dep_cs",
+      "roleKey": "worker",
+      "specialties": [
+        "customer_chat"
+      ],
+      "kind": "temp",
+      "state": "active",
+      "reviewMode": "always",
+      "modelTierOverride": null,
+      "bio": null,
+      "createdAt": "2026-11-10T08:00:00Z",
+      "createdBy": "manager",
+      "archivedAt": null
+    },
+    "appearance": {
+      "v": 1,
+      "base": "male"
+    }
+  }
+}

@@ -1,0 +1,104 @@
+[
+  {
+    "key": "owner",
+    "label": { "vi": "Chủ sở hữu", "en": "Owner" },
+    "scope": "building",
+    "caps": {
+      "assignTasks": true,
+      "approveLevel": "boss",
+      "distributeReviews": false,
+      "answerQuestions": true,
+      "doWork": false,
+      "humanOwner": true
+    },
+    "modelTier": "strong",
+    "maxPerDepartment": null,
+    "workspace": "boss_office",
+    "sortOrder": 0
+  },
+  {
+    "key": "manager",
+    "label": { "vi": "Quản lý điều hành", "en": "General Manager" },
+    "scope": "building",
+    "caps": {
+      "assignTasks": true,
+      "approveLevel": null,
+      "distributeReviews": false,
+      "answerQuestions": true,
+      "doWork": false,
+      "humanOwner": false
+    },
+    "modelTier": "strong",
+    "maxPerDepartment": null,
+    "workspace": "manager_office",
+    "sortOrder": 1
+  },
+  {
+    "key": "dept_manager",
+    "label": { "vi": "Trưởng phòng", "en": "Department Manager" },
+    "scope": "department",
+    "caps": {
+      "assignTasks": true,
+      "approveLevel": "dept_manager",
+      "distributeReviews": false,
+      "answerQuestions": true,
+      "doWork": false,
+      "humanOwner": false
+    },
+    "modelTier": "strong",
+    "maxPerDepartment": 1,
+    "workspace": "private_office",
+    "sortOrder": 2
+  },
+  {
+    "key": "lead",
+    "label": { "vi": "Trưởng nhóm", "en": "Team Lead" },
+    "scope": "department",
+    "caps": {
+      "assignTasks": false,
+      "approveLevel": null,
+      "distributeReviews": true,
+      "answerQuestions": true,
+      "doWork": true,
+      "humanOwner": false
+    },
+    "modelTier": "standard",
+    "maxPerDepartment": 1,
+    "workspace": "review_desk",
+    "sortOrder": 3
+  },
+  {
+    "key": "reviewer",
+    "label": { "vi": "Kiểm duyệt", "en": "Reviewer" },
+    "scope": "department",
+    "caps": {
+      "assignTasks": false,
+      "approveLevel": "reviewer",
+      "distributeReviews": false,
+      "answerQuestions": false,
+      "doWork": false,
+      "humanOwner": false
+    },
+    "modelTier": "cheap",
+    "maxPerDepartment": null,
+    "workspace": "review_desk",
+    "sortOrder": 4
+  },
+  {
+    "key": "worker",
+    "label": { "vi": "Nhân viên", "en": "Worker" },
+    "scope": "department",
+    "caps": {
+      "assignTasks": false,
+      "approveLevel": null,
+      "distributeReviews": false,
+      "answerQuestions": false,
+      "doWork": true,
+      "humanOwner": false
+    },
+    "modelTier": "standard",
+    "maxPerDepartment": null,
+    "workspace": "desk",
+    "sortOrder": 5
+  }
+]
