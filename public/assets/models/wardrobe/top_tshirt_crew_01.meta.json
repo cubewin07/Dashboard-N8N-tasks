@@ -1,0 +1,40 @@
+{
+  "id": "top_tshirt_crew_01",
+  "slot": "top",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/top_tshirt_crew_01_f.glb",
+      "tris": 496,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "upper_arm_l",
+        "upper_arm_r"
+      ],
+      "bodyLimits": {
+        "Heavy": [
+          0.0,
+          0.4
+        ],
+        "Muscle": [
+          0.0,
+          0.45
+        ]
+      },
+      "maxPenetrationMm": 4.85
+    },
+    "male": {
+      "file": "models/wardrobe/top_tshirt_crew_01_m.glb",
+      "tris": 496,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "upper_arm_l",
+        "upper_arm_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 4.28
+    }
+  }
+}
