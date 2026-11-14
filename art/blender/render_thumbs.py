@@ -236,9 +236,9 @@ def _apply_wardrobe_colors(mesh_objs, item, swatches):
 
     for ob in mesh_objs:
         me = ob.data
+        uv_layer = me.uv_layers.active.data if (me.uv_layers and me.uv_layers.active) else None
         # Hair UVs sit in hair_black / hair_black_hi (row 9, col 0..1) -> shift +4 cols to hair_brown
-        if slot == "hair" and me.uv_layers:
-            uv_layer = me.uv_layers.active.data
+        if slot == "hair" and uv_layer is not None:
             v_lo = 1.0 - 10.0 / 16.0 - 1e-4
             v_hi = 1.0 - 9.0 / 16.0 + 1e-4
             u_hi = 2.0 / 16.0 + 1e-4
@@ -250,6 +250,20 @@ def _apply_wardrobe_colors(mesh_objs, item, swatches):
         col_attr = me.color_attributes.active_color or (me.color_attributes[0] if me.color_attributes else None)
         if col_attr is None:
             continue
+        # Tinted vertices replace palette.png with tint_rgb * shade, so point their UVs to
+        # the pure white cell (row=1, col=11, #FFFFFF) to avoid double-multiplying palette.png.
+        white_uv = (11.5 / 16.0, 1.0 - 1.5 / 16.0)
+        if tint is not None and uv_layer is not None:
+            if col_attr.domain == "CORNER":
+                for idx, c in enumerate(col_attr.data):
+                    r, g, b, _a = c.color
+                    if r + g + b > 0.01:
+                        uv_layer[idx].uv = white_uv
+            else:
+                for loop in me.loops:
+                    r, g, b, _a = col_attr.data[loop.vertex_index].color
+                    if r + g + b > 0.01:
+                        uv_layer[loop.index].uv = white_uv
         for c in col_attr.data:
             r, g, b, a = c.color
             w = r + g + b
@@ -363,7 +377,7 @@ def render_3d_thumb(glb_path, out_path, item=None, swatches=None):
     bpy.ops.import_scene.gltf(filepath=os.path.abspath(glb_path))
     bpy.context.view_layer.update()
 
-    mesh_objs = [ob for ob in bpy.data.objects if ob.type == "MESH"]
+    mesh_objs = [ob for ob in bpy.context.scene.objects if ob.type == "MESH" and ob.visible_get()]
     if not mesh_objs:
         raise RuntimeError(f"No mesh found in GLB: {glb_path}")
 
