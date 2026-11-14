@@ -1,0 +1,27 @@
+{
+  "id": "hair_fixture",
+  "slot": "hair",
+  "kind": "rigid",
+  "bone": "Head",
+  "merge": true,
+  "bases": {
+    "female": {
+      "file": "hair_fixture.glb",
+      "offset": [
+        0,
+        0.01,
+        0
+      ],
+      "scale": 1
+    },
+    "male": {
+      "file": "hair_fixture.glb",
+      "offset": [
+        0,
+        0.01,
+        0
+      ],
+      "scale": 1
+    }
+  }
+}
