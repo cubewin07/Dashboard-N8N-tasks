@@ -1,5 +1,7 @@
 {
   "targets": [
+    {"name": "body_female", "family": "body", "script": "art/blender/gen_body.py", "out": "public/assets/models/characters/body_female.glb", "budget": "body", "anchors": [], "nodes": [], "source": "generated"},
+    {"name": "body_male", "family": "body", "script": "art/blender/gen_body.py", "out": "public/assets/models/characters/body_male.glb", "budget": "body", "anchors": [], "nodes": [], "source": "generated"},
     {"name": "bookshelf_tall_01", "family": "boss", "script": "art/blender/gen_boss.py", "out": "public/assets/models/props/bookshelf_tall_01.glb", "budget": "large", "anchors": [], "nodes": ["lamp"], "source": "generated"},
     {"name": "rug_large_01", "family": "boss", "script": "art/blender/gen_boss.py", "out": "public/assets/models/props/rug_large_01.glb", "budget": "furniture", "anchors": [], "nodes": [], "source": "generated"},
     {"name": "sculpture_01", "family": "boss", "script": "art/blender/gen_boss.py", "out": "public/assets/models/decor/sculpture_01.glb", "budget": "furniture", "anchors": [], "nodes": [], "source": "generated"},
