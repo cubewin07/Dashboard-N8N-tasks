@@ -9,6 +9,7 @@ import math
 
 import bmesh
 from mathutils import Vector
+from mathutils.bvhtree import BVHTree
 
 from . import charexport, rig
 
@@ -629,45 +630,66 @@ def _build_bmesh_from_specs(base, sk):
     # Fix normals per connected shell / overall outward
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
 
-    # 6. Five Face Quads (material 1 = M_Face, front -Y, 2 mm off head surface)
-    # Note: added AFTER recalc_face_normals so their -Y normal is guaranteed!
-    def _face_quad_y(x, z):
-        # Interpolate front-face ellipse surface across the chunky head and step 2.5 mm forward
-        rx_h, ry_h, y_off_h, flat_h = 0.125, 0.130, 0.004, 0.34
-        ux = _clamp(x / rx_h, -0.95, 0.95)
-        cy_u = -math.sqrt(max(0.01, 1.0 - ux * ux))
-        y_ell = y_off_h + ry_h * cy_u
-        y_flat = y_off_h - ry_h
-        w = (-cy_u) ** 1.6
-        # Slight chin/forehead vertical taper around z=1.595
-        tz = ((z - 1.595) / 0.14) ** 2
-        return (y_ell * (1.0 - flat_h * w) + y_flat * (flat_h * w)) + tz * 0.014 - 0.003
+    # 6. Five Face Patches (material 1 = M_Face, front -Y, ~1.7 mm off head skin)
+    # Note: added AFTER recalc_face_normals and skin BVH build so -Y normal & skin clearance are guaranteed!
+    skin_bvh = BVHTree.FromBMesh(bm)
 
-    face_quads = [
-        # (name, slot, x0, x1, z0, z1, col, row, mirror_u)
-        ("eye_l",  "eye",    0.022,  0.078, 1.564, 1.620, 0, 0, False),
-        ("eye_r",  "eye",   -0.078, -0.022, 1.564, 1.620, 0, 0, True),
-        ("brow_l", "brow",   0.020,  0.080, 1.624, 1.648, 0, 4, False),
-        ("brow_r", "brow",  -0.080, -0.020, 1.624, 1.648, 0, 4, True),
-        ("mouth",  "mouth", -0.036,  0.036, 1.496, 1.532, 0, 5, False),
+    def _skin_y(x, z):
+        loc, _norm, _fidx, _dist = skin_bvh.ray_cast(Vector((x, -1.0, z)), Vector((0.0, 1.0, 0.0)), 2.0)
+        return loc.y if loc is not None else -0.120
+
+    def _face_surf_y(x, z, offset=0.00175):
+        # Symmetrize across x=0 so left/right sides match identically despite asymmetric quad triangulation
+        y_l = _skin_y(abs(x), z)
+        y_r = _skin_y(-abs(x), z)
+        return min(y_l, y_r) - offset
+
+    # Conform along the 12-gon head front ridge lines (x=0, x=+-0.060..0.0615, z=1.595)
+    # so every sub-quad sits consistently ~1-2 mm in front of the skin it overlays.
+    face_patches = [
+        # (name, slot, xs, zs, col, row, mirror_u)
+        ("eye_l",  "eye",   [ 0.022,  0.0615,  0.078], [1.564, 1.595, 1.620], 0, 0, False),
+        ("eye_r",  "eye",   [-0.078, -0.0615, -0.022], [1.564, 1.595, 1.620], 0, 0, True),
+        ("brow_l", "brow",  [ 0.020,  0.0600,  0.080], [1.624, 1.648],        0, 4, False),
+        ("brow_r", "brow",  [-0.080, -0.0600, -0.020], [1.624, 1.648],        0, 4, True),
+        ("mouth",  "mouth", [-0.036,  0.000,   0.036], [1.496, 1.532],        0, 5, False),
     ]
-    quad_info = []
-    for _qname, slot, x0, x1, z0, z1, col, row, mirror_u in face_quads:
-        # Front-facing (-Y) CCW order: (x0,z0) -> (x1,z0) -> (x1,z1) -> (x0,z1)
-        # Normal = (+X) x (+Z) = -Y!
-        v0 = add_vert(Vector((x0, _face_quad_y(x0, z0), z0)), head_rid, head_wt)
-        v1 = add_vert(Vector((x1, _face_quad_y(x1, z0), z0)), head_rid, head_wt)
-        v2 = add_vert(Vector((x1, _face_quad_y(x1, z1), z1)), head_rid, head_wt)
-        v3 = add_vert(Vector((x0, _face_quad_y(x0, z1), z1)), head_rid, head_wt)
-        fq = add_face((v0, v1, v2, v3), None, mat_idx=1, slot=slot, smooth=False)
-        quad_info.append((fq, col, row, mirror_u))
+    patch_uv_info = []
+    for _qname, slot, xs, zs, col, row, mirror_u in face_patches:
+        x0, x1 = xs[0], xs[-1]
+        z0, z1 = zs[0], zs[-1]
+        grid = [
+            [add_vert(Vector((x, _face_surf_y(x, z), z)), head_rid, head_wt) for x in xs]
+            for z in zs
+        ]
+        patch_faces = []
+        for iz in range(len(zs) - 1):
+            for ix in range(len(xs) - 1):
+                # Front-facing (-Y) CCW order: (x_i,z_j) -> (x_{i+1},z_j) -> (x_{i+1},z_{j+1}) -> (x_i,z_{j+1})
+                fq = add_face(
+                    (grid[iz][ix], grid[iz][ix + 1], grid[iz + 1][ix + 1], grid[iz + 1][ix]),
+                    None, mat_idx=1, slot=slot, smooth=False,
+                )
+                patch_faces.append(fq)
+        patch_uv_info.append((patch_faces, x0, x1, z0, z1, col, row, mirror_u))
 
-    # Paint UVs: palette swatches for M_Palette faces, atlas cells for M_Face quads
+    # Paint UVs: palette swatches for M_Palette faces, atlas cells across full patch bounds for M_Face
     for f, sw in face_swatches.items():
         if sw is not None:
             charexport.paint_palette(bm, [f], sw)
-    for fq, col, row, mirror_u in quad_info:
-        charexport.paint_face_quad(bm, fq, col, row, grid=8, mirror_u=mirror_u)
+    uvl = bm.loops.layers.uv.verify()
+    for patch_faces, x0, x1, z0, z1, col, row, mirror_u in patch_uv_info:
+        u0, u1 = col / 8.0, (col + 1.0) / 8.0
+        v_top, v_bot = 1.0 - row / 8.0, 1.0 - (row + 1.0) / 8.0
+        if mirror_u:
+            u0, u1 = u1, u0
+        dx = max(x1 - x0, 1e-6)
+        dz = max(z1 - z0, 1e-6)
+        for fq in patch_faces:
+            for loop in fq.loops:
+                tx = _clamp((loop.vert.co.x - x0) / dx, 0.0, 1.0)
+                tz = _clamp((loop.vert.co.z - z0) / dz, 0.0, 1.0)
+                loop[uvl].uv = (u0 + tx * (u1 - u0), v_bot + tz * (v_top - v_bot))
 
     # Sort faces by region ID (keeping M_Face quads at the end) so hide ranges are compact
     def _face_sort_key(f):

@@ -26,9 +26,9 @@
   ],
   "bases": {
     "female": {
-      "tris": 1772,
+      "tris": 1790,
       "regionVertexCounts": {
-        "head": 127,
+        "head": 143,
         "neck": 36,
         "chest": 60,
         "belly": 24,
@@ -54,9 +54,9 @@
       }
     },
     "male": {
-      "tris": 1772,
+      "tris": 1790,
       "regionVertexCounts": {
-        "head": 127,
+        "head": 143,
         "neck": 36,
         "chest": 60,
         "belly": 24,

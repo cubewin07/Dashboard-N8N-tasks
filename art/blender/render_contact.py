@@ -394,6 +394,52 @@ def render_regions(body_path, garment_paths, out_dir, prefix):
     _render_ortho(scene, out_path, 0.0, 12.0, width=1600)
 
 
+def render_head(body_path, garment_paths, out_dir, prefix):
+    """Render tight orthographic head close-ups from 4 angles (front, +35deg, -35deg, side)."""
+    clear_scene()
+    scene = bpy.context.scene
+    views = [
+        ("Front", 0.0),
+        ("3/4 L", -32.0),
+        ("3/4 R", 32.0),
+        ("Side", -82.0),
+    ]
+    dx = 0.36
+    for idx, (label, yaw_deg) in enumerate(views):
+        root, _arm, _meshes = _import_character(body_path, garment_paths)
+        px = (idx - (len(views) - 1) / 2.0) * dx
+        root.location = Vector((px, 0.0, 0.0))
+        root.rotation_mode = "XYZ"
+        root.rotation_euler = Euler((0.0, 0.0, math.radians(yaw_deg)), "XYZ")
+        _place_label(label, px, -0.14, fz=1.39, size=0.032, flat=False)
+
+    bpy.context.view_layer.update()
+    lo = Vector((-0.78, -0.22, 1.37))
+    hi = Vector((0.78, 0.22, 1.77))
+    cam_data = bpy.data.cameras.new("cam")
+    cam_data.type = "ORTHO"
+    cam = bpy.data.objects.new("cam", cam_data)
+    scene.collection.objects.link(cam)
+    scene.camera = cam
+
+    direction = Vector((0.0, -1.0, 0.04)).normalized()
+    centre = (lo + hi) / 2
+    cam.location = centre + direction * 10.0
+    cam.rotation_euler = (-direction).to_track_quat("-Z", "Y").to_euler()
+    bpy.context.view_layer.update()
+
+    wv = (hi.x - lo.x) + 0.06
+    hv = (hi.z - lo.z) + 0.06
+    out_path = os.path.join(out_dir, f"{prefix}_head_closeup.png")
+    scene.render.resolution_x = 1600
+    scene.render.resolution_y = max(360, int(1600 * hv / wv))
+    cam_data.ortho_scale = wv
+    cam_data.clip_end = 50.0
+    studio(scene, out_path, sun_rot=(-52, 18, 28))
+    bpy.ops.render.render(write_still=True)
+    print(f"RENDERED {out_path} ({scene.render.resolution_x}x{scene.render.resolution_y})")
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     body_path = None
@@ -429,6 +475,8 @@ def main():
         render_poses(body_path, garment_paths, out_dir, prefix)
     if mode in ("all", "regions"):
         render_regions(body_path, garment_paths, out_dir, prefix)
+    if mode in ("all", "head"):
+        render_head(body_path, garment_paths, out_dir, prefix)
 
 
 if __name__ == "__main__":
