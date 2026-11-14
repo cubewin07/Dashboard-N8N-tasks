@@ -13,11 +13,15 @@ export interface CameraPoseAndLimits {
 }
 
 const DEG2RAD = Math.PI / 180
+/** Visible height per metre of distance at the canvas fov of 35 degrees. */
+const VIEW_HEIGHT_PER_METRE = 2 * Math.tan((35 / 2) * DEG2RAD)
 
 export function computeCameraPose(
   mode: CameraMode,
   layout: BuildingLayout,
   focusedFloorKey: string | null,
+  /** Canvas width / height; lets the overview fit narrow canvases too. */
+  aspect: number = 16 / 10,
 ): CameraPoseAndLimits {
   const totalH = layout.totalHeight
 
@@ -40,7 +44,11 @@ export function computeCameraPose(
     }
   }
 
-  const fitDist = Math.max(60, totalH * 1.9)
+  // Fit the whole building with a margin for the HTML overlays (mode bar on
+  // top, ticker and hints below), in height and, on narrow canvases, in width.
+  const fitHeight = totalH * 2.15
+  const fitWidth = (layout.footprint.w * 1.5) / (VIEW_HEIGHT_PER_METRE * Math.max(0.4, aspect))
+  const fitDist = Math.max(60, fitHeight, fitWidth)
   const centerY = totalH * 0.48
   const overviewPos: [number, number, number] = [
     fitDist * 0.18,

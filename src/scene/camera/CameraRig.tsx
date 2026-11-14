@@ -19,6 +19,16 @@ const tempForward = new THREE.Vector3()
 const tempRight = new THREE.Vector3()
 const worldUp = new THREE.Vector3(0, 1, 0)
 
+/** Physical keys, so Caps Lock or a Vietnamese input source cannot change them. */
+const MOVE_KEYS: Record<string, string | undefined> = {
+  KeyW: 'w',
+  KeyA: 'a',
+  KeyS: 's',
+  KeyD: 'd',
+  KeyQ: 'q',
+  KeyE: 'e',
+}
+
 function isEditableElement(el: Element | null): boolean {
   if (!el) return false
   const tag = el.tagName.toLowerCase()
@@ -34,7 +44,9 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
   const hasMountedRef = useRef(false)
   const prevModeRef = useRef<string | null>(null)
   const prevFloorRef = useRef<string | null>(null)
+  const prevHeightRef = useRef<number | null>(null)
   const invalidate = useThree((s) => s.invalidate)
+  const getThree = useThree((s) => s.get)
 
   const mode = useViewStore((s) => s.mode)
   const focusedFloorKey = useViewStore((s) => s.focusedFloorKey)
@@ -42,13 +54,19 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (isEditableElement(document.activeElement)) return
-      const key = e.key.toLowerCase()
-      if (['w', 'a', 's', 'd', 'q', 'e'].includes(key)) {
-        pressedKeysRef.current.add(key)
-      }
+      // Cmd+S and friends are not movement, and macOS never sends the keyup
+      // for a letter released while Cmd is held: the camera would drift.
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const key = MOVE_KEYS[e.code]
+      if (key) pressedKeysRef.current.add(key)
     }
     const onKeyUp = (e: KeyboardEvent) => {
-      pressedKeysRef.current.delete(e.key.toLowerCase())
+      if (e.key === 'Meta' || e.key === 'Control' || e.key === 'Alt') {
+        pressedKeysRef.current.clear()
+        return
+      }
+      const key = MOVE_KEYS[e.code]
+      if (key) pressedKeysRef.current.delete(key)
     }
     const onBlur = () => {
       pressedKeysRef.current.clear()
@@ -57,10 +75,12 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
     window.addEventListener('blur', onBlur)
+    document.addEventListener('visibilitychange', onBlur)
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('blur', onBlur)
+      document.removeEventListener('visibilitychange', onBlur)
     }
   }, [])
 
@@ -68,7 +88,9 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
     const controls = controlsRef.current
     if (!controls) return
 
-    const pose = computeCameraPose(mode, layout, focusedFloorKey)
+    const { size } = getThree()
+    const aspect = size.height > 0 ? size.width / size.height : undefined
+    const pose = computeCameraPose(mode, layout, focusedFloorKey, aspect)
     controls.minAzimuthAngle = pose.minAzimuthAngle
     controls.maxAzimuthAngle = pose.maxAzimuthAngle
     controls.minPolarAngle = pose.minPolarAngle
@@ -81,7 +103,9 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
       !hasMountedRef.current ||
       prevModeRef.current !== mode ||
       prevFloorRef.current !== focusedFloorKey ||
-      mode === 'overview'
+      // A new layout in overview re-frames only when the building grew or
+      // shrank; a hire must not undo the user's orbit and zoom.
+      (mode === 'overview' && prevHeightRef.current !== layout.totalHeight)
 
     // When switching from overview/floor into free mode, keep current camera angle
     // unless this is the initial mount.
@@ -104,8 +128,9 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
     hasMountedRef.current = true
     prevModeRef.current = mode
     prevFloorRef.current = focusedFloorKey
+    prevHeightRef.current = layout.totalHeight
     invalidate()
-  }, [mode, focusedFloorKey, layout, reducedMotion, invalidate])
+  }, [mode, focusedFloorKey, layout, reducedMotion, invalidate, getThree])
 
   useFrame((_, delta) => {
     const controls = controlsRef.current
