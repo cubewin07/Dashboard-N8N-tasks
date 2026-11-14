@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { vi, type Messages } from './vi'
 import { en } from './en'
 
@@ -23,13 +23,16 @@ function initialLang(): Lang {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initialLang)
+  // Also on first load: a stored 'en' must not keep the hard-coded lang="vi".
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
   const value = useMemo<I18nValue>(
     () => ({
       lang,
       t: dictionaries[lang],
       setLang: (l) => {
         setLangState(l)
-        document.documentElement.lang = l
         try {
           localStorage.setItem(STORAGE_KEY, l)
         } catch {
