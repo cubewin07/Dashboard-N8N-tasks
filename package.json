@@ -21,6 +21,7 @@
     "director:stats": "node scripts/director-stats.mjs",
     "art:build": "node scripts/art-build.mjs",
     "art:sheets": "node scripts/art-sheets.mjs",
+    "thumbs:render": "node scripts/thumbs-render.mjs",
     "assets:optimize": "node scripts/assets-optimize.mjs",
     "assets:manifest": "node scripts/assets-manifest.mjs",
     "assets:credits": "node scripts/assets-credits.mjs",
