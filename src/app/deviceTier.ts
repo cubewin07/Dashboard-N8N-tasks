@@ -37,6 +37,18 @@ export function setDeviceTierOverride(override: DeviceTierOverride): void {
   notifyListeners()
 }
 
+let webgl2Probe: boolean | null = null
+
+/** Forget the cached WebGL2 probe (tests only). */
+export function resetWebGL2Probe(): void {
+  webgl2Probe = null
+}
+
+/**
+ * Probes once and caches the answer. Every probe creates a WebGL context and
+ * browsers cap live contexts (about 16), so probing on each resize could evict
+ * the office canvas.
+ */
 export function hasWebGL2Support(): boolean {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return false
@@ -44,13 +56,15 @@ export function hasWebGL2Support(): boolean {
   if (typeof window.WebGL2RenderingContext === 'undefined') {
     return false
   }
+  if (webgl2Probe !== null) return webgl2Probe
   try {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('webgl2')
-    return Boolean(ctx)
+    webgl2Probe = Boolean(ctx)
   } catch {
-    return false
+    webgl2Probe = false
   }
+  return webgl2Probe
 }
 
 export function detectTier(): DeviceTier {

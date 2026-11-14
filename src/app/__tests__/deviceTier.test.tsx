@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   DEVICE_TIER_STORAGE_KEY,
   detectTier,
+  resetWebGL2Probe,
   setDeviceTierOverride,
   useDeviceTier,
   useDeviceTierPreference,
@@ -14,6 +15,7 @@ describe('deviceTier (R13)', () => {
 
   beforeEach(() => {
     localStorage.removeItem(DEVICE_TIER_STORAGE_KEY)
+    resetWebGL2Probe()
     isMobileViewport = false
     webgl2Available = true
 
@@ -54,6 +56,14 @@ describe('deviceTier (R13)', () => {
     expect(detectTier()).toBe('full3d')
   })
 
+  it('probes WebGL2 once, however often the tier is re-detected', () => {
+    const getContext = vi.mocked(HTMLCanvasElement.prototype.getContext)
+    detectTier()
+    detectTier()
+    detectTier()
+    expect(getContext).toHaveBeenCalledTimes(1)
+  })
+
   it('returns fallback when viewport <= 768px', () => {
     isMobileViewport = true
     expect(detectTier()).toBe('fallback')
@@ -88,6 +98,7 @@ describe('deviceTier (R13)', () => {
 
     isMobileViewport = false
     webgl2Available = true
+    resetWebGL2Probe()
     act(() => {
       window.dispatchEvent(new Event('resize'))
     })
