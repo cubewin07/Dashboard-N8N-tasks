@@ -19,6 +19,8 @@ const errors = []
 const err = (file, msg) => errors.push(`${file}: ${msg}`)
 
 const targets = new Map(loadTargets().map((t) => [t.name, t]))
+const rigPath = join(ROOT, 'art', 'rig.json')
+const rig = existsSync(rigPath) ? JSON.parse(readFileSync(rigPath, 'utf8')) : null
 const manifestPath = join(ASSETS_DIR, 'manifest.json')
 const manifest = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')).files : {}
 const io = await createIO()
@@ -28,7 +30,9 @@ const byFamily = new Map()
 for (const file of glbs) {
   const name = basename(file, '.glb')
   const r = rel(file)
-  if (!/^[a-z0-9]+(_[a-z0-9]+)*_\d{2}$/.test(name)) err(r, 'name must be category_name_NN in snake_case')
+  if (!/^(body_(female|male)|[a-z0-9]+(_[a-z0-9]+)*_\d{2}(_[fm])?)$/.test(name)) {
+    err(r, 'name must be category_name_NN[_f|_m] in snake_case or body_female/body_male')
+  }
   const t = targets.get(name)
   if (!t) { err(r, 'not registered in art/targets.json'); continue }
   if (t.out !== r) err(r, `targets.json expects it at ${t.out}`)
@@ -39,11 +43,46 @@ for (const file of glbs) {
   if (i.tris > TRI_BUDGET[t.budget]) err(r, `${i.tris} tris > ${TRI_BUDGET[t.budget]} (${t.budget})`)
   if (i.bytes > MAX_FILE) err(r, `${i.bytes} bytes > 1.5 MB`)
   for (const m of i.materials) if (!ALLOWED_MATERIALS.includes(m)) err(r, `foreign material ${m}`)
-  if (i.textures.length > 1) err(r, `${i.textures.length} textures (only the palette is allowed)`)
-  for (const tx of i.textures) if (tx.size?.[0] !== 256 || tx.size?.[1] !== 256) err(r, 'embedded texture is not the 256 px palette')
+  const hasFace = i.materials.includes('M_Face')
+  const maxTextures = hasFace ? 2 : 1
+  if (i.textures.length > maxTextures) err(r, `${i.textures.length} textures (max ${maxTextures} allowed)`)
+  for (const tx of i.textures) {
+    const [tw, th] = tx.size ?? []
+    const ok256 = tw === 256 && th === 256
+    const ok512 = hasFace && tw === 512 && th === 512
+    if (!ok256 && !ok512) {
+      err(r, `embedded texture size ${tw}x${th} not allowed (expected 256x256 palette${hasFace ? ' or 512x512 face_atlas' : ''})`)
+    }
+  }
   if (i.maxUvSets > 1) err(r, 'more than one UV set')
   if (i.noVertexColor.length) {
     err(r, `${i.noVertexColor.length} of ${i.primitives} primitive(s) have no COLOR_0 (baked AO) in mesh ${[...new Set(i.noVertexColor)].join(', ')}; rebuild with npm run assets:all`)
+  }
+  if (i.hasExtraWeights) err(r, 'more than 4 bone influences per vertex (JOINTS_1/WEIGHTS_1 present)')
+  if (i.invalidWeightSums > 0) err(r, `${i.invalidWeightSums} vertex skin weight sum(s) invalid`)
+  if (rig && i.skins.length) {
+    for (const skin of i.skins) {
+      const sameLen = skin.joints.length === rig.bones.length
+      const sameOrder = sameLen && skin.joints.every((jn, idx) => jn === rig.bones[idx])
+      if (!sameOrder) {
+        err(r, `skin "${skin.name}" joints (${skin.joints.length}) do not match art/rig.json bones (${rig.bones.length}) order`)
+      }
+    }
+  }
+  if (rig && i.morphTargetSets.length) {
+    for (const mt of i.morphTargetSets) {
+      const sameKeys = mt.names.length === rig.shapeKeys.length && mt.names.every((k, idx) => k === rig.shapeKeys[idx])
+      if (!sameKeys) {
+        err(r, `mesh "${mt.mesh}" morph targets [${mt.names.join(',')}] do not match rig.shapeKeys [${rig.shapeKeys.join(',')}]`)
+      }
+    }
+  }
+  if (name === 'body_female' || name === 'body_male') {
+    if (i.skins.length !== 1) err(r, `body model must have exactly 1 skin (found ${i.skins.length})`)
+    if (!i.materials.includes('M_Palette') || !i.materials.includes('M_Face')) {
+      err(r, `body model must include both M_Palette and M_Face (found ${i.materials.join(', ')})`)
+    }
+    if (!i.morphTargetSets.length) err(r, 'body model has no morph targets')
   }
   for (const kind of t.anchors) {
     const isAnchor = i.anchors.some((a) => a.kind === kind)

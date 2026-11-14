@@ -52,24 +52,58 @@ export async function inspectGlb(io, file) {
   let tris = 0
   let maxUvSets = 0
   let primitives = 0
+  let hasExtraWeights = false
+  let invalidWeightSums = 0
   const noVertexColor = [] // mesh names with a primitive that lacks COLOR_0 (the baked AO)
+  const morphTargetSets = []
   for (const mesh of root.listMeshes()) {
+    const extrasNames = Array.isArray(mesh.getExtras()?.targetNames) ? mesh.getExtras().targetNames : []
     for (const prim of mesh.listPrimitives()) {
       primitives++
       if (!prim.getAttribute('COLOR_0')) noVertexColor.push(mesh.getName() || '(unnamed mesh)')
       const idx = prim.getIndices()
       const pos = prim.getAttribute('POSITION')
       tris += (idx ? idx.getCount() : pos.getCount()) / 3
-      maxUvSets = Math.max(maxUvSets, prim.listSemantics().filter((s) => s.startsWith('TEXCOORD_')).length)
+      const semantics = prim.listSemantics()
+      maxUvSets = Math.max(maxUvSets, semantics.filter((s) => s.startsWith('TEXCOORD_')).length)
+      if (semantics.includes('JOINTS_1') || semantics.includes('WEIGHTS_1')) hasExtraWeights = true
+      const wAttr = prim.getAttribute('WEIGHTS_0')
+      if (wAttr) {
+        const w = [0, 0, 0, 0]
+        for (let vi = 0; vi < wAttr.getCount(); vi++) {
+          wAttr.getElement(vi, w)
+          const sum = w[0] + w[1] + w[2] + w[3]
+          if (w[0] < -1e-4 || w[1] < -1e-4 || w[2] < -1e-4 || w[3] < -1e-4 || Math.abs(sum - 1.0) > 0.02) {
+            invalidWeightSums++
+          }
+        }
+      }
+      const targets = prim.listTargets()
+      if (targets.length > 0) {
+        const primTargetNames = targets.map((t, ti) => extrasNames[ti] ?? t.getName() ?? '')
+        morphTargetSets.push({
+          mesh: mesh.getName() || '(unnamed mesh)',
+          count: targets.length,
+          names: primTargetNames,
+        })
+      }
     }
   }
+  const jointNodes = new Set()
+  const skins = root.listSkins().map((skin) => ({
+    name: skin.getName() || '(unnamed skin)',
+    joints: skin.listJoints().map((j) => {
+      jointNodes.add(j)
+      return j.getName()
+    }),
+  }))
   const rootNodes = scene.listChildren()
   const rootName = rootNodes.length === 1 ? rootNodes[0].getName() : null
   const anchors = []
   const nodes = []
   scene.traverse((node) => {
     const name = node.getName()
-    if (name === rootName) return
+    if (name === rootName || jointNodes.has(node)) return
     const isLeafEmpty = !node.getMesh() && node.listChildren().length === 0
     const short = rootName && name.startsWith(rootName + '_') ? name.slice(rootName.length + 1) : name
     if (isLeafEmpty) {
@@ -99,5 +133,9 @@ export async function inspectGlb(io, file) {
     maxUvSets,
     primitives,
     noVertexColor,
+    skins,
+    morphTargetSets,
+    hasExtraWeights,
+    invalidWeightSums,
   }
 }
