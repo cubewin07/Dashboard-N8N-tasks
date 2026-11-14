@@ -122,6 +122,8 @@ let n = 0
 for (const file of walk(RAW_DIR).filter((f) => f.endsWith('.glb'))) {
   if (names.size && !names.has(basename(file, '.glb'))) continue
   const relPath = relative(RAW_DIR, file).split('\\').join('/')
+  // Animations live at public/assets/anim/ (optimized via scripts/anim-check.mjs --optimize), not models/anim/.
+  if (relPath.startsWith('anim/')) continue
   const out = join(MODELS_DIR, relPath)
   const isChar = relPath.startsWith('characters/') || relPath.startsWith('wardrobe/')
   const doc = await io.read(file)
