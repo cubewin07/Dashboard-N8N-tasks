@@ -14,12 +14,12 @@ export const SheetContent = forwardRef<ElementRef<typeof DialogPrimitive.Content
     const { t } = useI18n()
     return (
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/40 data-[state=open]:animate-fade-in" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/40 data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out" />
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
             'fixed inset-y-0 right-0 z-50 flex h-dvh w-full flex-col overflow-y-auto bg-surface text-foreground shadow-[var(--shadow-soft)] sm:max-w-xl sm:border-l sm:border-border',
-            'data-[state=open]:animate-slide-in-right',
+            'data-[state=open]:animate-slide-in-right data-[state=closed]:animate-slide-out-right',
             className,
           )}
           {...props}

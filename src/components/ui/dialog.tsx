@@ -12,7 +12,7 @@ export const DialogPortal = DialogPrimitive.Portal
 export const DialogOverlay = forwardRef<ElementRef<typeof DialogPrimitive.Overlay>, ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>>(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn('fixed inset-0 z-50 bg-foreground/40 transition-opacity data-[state=open]:animate-fade-in', className)}
+    className={cn('fixed inset-0 z-50 bg-foreground/40 data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out', className)}
     {...props}
   />
 ))
@@ -27,7 +27,7 @@ export const DialogContent = forwardRef<ElementRef<typeof DialogPrimitive.Conten
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-[var(--radius-card)] border border-border bg-surface p-5 text-foreground shadow-[var(--shadow-soft)] data-[state=open]:animate-fade-in sm:p-6',
+            'fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-[var(--radius-card)] border border-border bg-surface p-5 text-foreground shadow-[var(--shadow-soft)] data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out sm:p-6',
             className,
           )}
           {...props}
