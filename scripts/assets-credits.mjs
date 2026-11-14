@@ -20,12 +20,10 @@ for (const file of walk(MODELS_DIR).filter((f) => f.endsWith('.glb'))) {
 }
 for (const meta of walk(MODELS_DIR).filter((f) => f.endsWith('.meta.json'))) {
   const stem = basename(meta, '.meta.json')
-  const isBody = stem === 'body'
-  generated.push({
-    file: meta,
-    title: `${stem} metadata`,
-    source: isBody ? 'art/blender/gen_body.py' : 'art/blender/gen_wardrobe.py',
-  })
+  // A meta sidecar comes from the same script as its GLB(s): `<stem>.glb` (rigid) or `<stem>_f/_m.glb` (skinned).
+  const t = targets.get(stem) ?? targets.get(`${stem}_f`) ?? targets.get(`${stem}_m`)
+  const source = stem === 'body' ? 'art/blender/gen_body.py' : (t?.script ?? 'art/blender/gen_wardrobe.py')
+  generated.push({ file: meta, title: `${stem} metadata`, source })
 }
 for (const animName of ['library.glb', 'library.json']) {
   const af = join(ASSETS_DIR, 'anim', animName)

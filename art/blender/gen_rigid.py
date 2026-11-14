@@ -1390,6 +1390,21 @@ def main() -> None:
         extra = f" minScalpMm={min_scalp_mm:.2f} faceClear={face_clear}" if slot == "hair" else ""
         print(f"BUILT {item_id} tris={tris} bone={bone}{extra}")
 
+    target_entries = [
+        {
+            "name": item_id,
+            "family": "rigid",
+            "script": "art/blender/gen_rigid.py",
+            "out": f"public/assets/models/wardrobe/{item_id}.glb",
+            "budget": "hair" if slot == "hair" else "accessory",
+            "anchors": [],
+            "nodes": [],
+            "source": "generated",
+        }
+        for item_id, slot, _bone in ITEMS
+    ]
+    charexport.register_targets("rigid", target_entries)
+
 
 if __name__ == "__main__":
     main()
