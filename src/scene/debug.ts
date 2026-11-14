@@ -105,3 +105,53 @@ export function makeCameraDebug(
     setUnlitQuadVisible,
   }
 }
+
+export interface CharactersDebug {
+  readonly assembled: number
+  readonly total: number
+  readonly queued: number
+  readonly failed: number
+  readonly cacheSize: number
+  readonly mixersPerSec: number
+  setAppearance: (employeeId: EmployeeId, doc: unknown) => unknown
+  setFailUrlForTest: (pattern: string | null) => void
+}
+
+const emptyCharactersSnapshot = {
+  assembled: 0,
+  total: 0,
+  queued: 0,
+  failed: 0,
+  cacheSize: 0,
+  mixersPerSec: 0,
+}
+
+function snapshotCharacters() {
+  return peopleRuntime.characters?.snapshot() ?? emptyCharactersSnapshot
+}
+
+/** Dev and E2E only: what `window.__office_debug.characters` exposes. */
+export const charactersDebug: CharactersDebug = Object.defineProperties(
+  {
+    assembled: 0,
+    total: 0,
+    queued: 0,
+    failed: 0,
+    cacheSize: 0,
+    mixersPerSec: 0,
+    setAppearance(employeeId: EmployeeId, doc: unknown) {
+      return peopleRuntime.characters?.setAppearance(employeeId, doc) ?? null
+    },
+    setFailUrlForTest(pattern: string | null) {
+      peopleRuntime.characters?.setFailUrlForTest(pattern)
+    },
+  },
+  {
+    assembled: { get: () => snapshotCharacters().assembled, enumerable: true },
+    total: { get: () => snapshotCharacters().total, enumerable: true },
+    queued: { get: () => snapshotCharacters().queued, enumerable: true },
+    failed: { get: () => snapshotCharacters().failed, enumerable: true },
+    cacheSize: { get: () => snapshotCharacters().cacheSize, enumerable: true },
+    mixersPerSec: { get: () => snapshotCharacters().mixersPerSec, enumerable: true },
+  },
+)

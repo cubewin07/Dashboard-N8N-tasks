@@ -20,6 +20,21 @@ export interface PersonSight {
   visible: boolean
 }
 
+export interface CharactersRuntimeSnapshot {
+  assembled: number
+  total: number
+  queued: number
+  failed: number
+  cacheSize: number
+  mixersPerSec: number
+}
+
+export interface CharactersRuntime {
+  snapshot: () => CharactersRuntimeSnapshot
+  setAppearance: (employeeId: EmployeeId, doc: unknown) => unknown
+  setFailUrlForTest: (pattern: string | null) => void
+}
+
 export interface PeopleRuntime {
   director: Director | null
   /** Interpolated position of one person; false when they are not in the building. */
@@ -35,6 +50,8 @@ export interface PeopleRuntime {
   namesInUse: number
   /** Status ring pulse amplitude (0 under reduced motion, R14). */
   ringPulse: number
+  /** Full 3D character visual runtime telemetry & overrides (P07b). */
+  characters: CharactersRuntime | null
 }
 
 function noIndicators(): IndicatorCounts {
@@ -50,6 +67,7 @@ export const peopleRuntime: PeopleRuntime = {
   indicators: noIndicators(),
   namesInUse: 0,
   ringPulse: 0,
+  characters: null,
 }
 
 export function resetPeopleRuntime(): void {
@@ -61,4 +79,5 @@ export function resetPeopleRuntime(): void {
   peopleRuntime.indicators = noIndicators()
   peopleRuntime.namesInUse = 0
   peopleRuntime.ringPulse = 0
+  peopleRuntime.characters = null
 }

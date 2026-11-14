@@ -16,6 +16,7 @@ import { Director, type DirectorOptions } from '@/scene/director/director'
 import { moveFactor, TUNING } from '@/scene/director/tuning'
 import { watchIdleDebug } from '@/scene/dev/idleDebug'
 import type { BuildingLayout } from '@/scene/layout'
+import { CharacterPeople, resolveCharacterMode } from '@/scene/characters/CharacterVisual'
 import { CapsulePeople } from './CapsulePeople'
 import { toWorldX, toWorldZ } from './coords'
 import { ElevatorCars } from './ElevatorCars'
@@ -123,6 +124,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
   // remount never ends up drawing something that was already disposed.
   const rootRef = useRef<THREE.Group>(null)
   const visualRef = useRef<PersonVisualSystem | null>(null)
+  const characterPeopleRef = useRef<CharacterPeople | null>(null)
   const carsRef = useRef<ElevatorCars | null>(null)
   const indicatorsRef = useRef<PersonIndicators | null>(null)
   const namesRef = useRef<NameLabelsHandle | null>(null)
@@ -167,7 +169,17 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
-    const visual: PersonVisualSystem = new CapsulePeople()
+    const mode = resolveCharacterMode()
+    const characterPeople =
+      mode === 'capsule'
+        ? null
+        : new CharacterPeople({
+            onAssemblyUpdate: () => {
+              settleRef.current = Math.max(settleRef.current, 2)
+              invalidate()
+            },
+          })
+    const visual: PersonVisualSystem = characterPeople ?? new CapsulePeople()
     const cars = new ElevatorCars()
     const indicators = new PersonIndicators()
     visual.setReducedMotion(reducedMotionRef.current)
@@ -175,11 +187,28 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
     cars.build(layoutRef.current)
     root.add(visual.object, cars.object, indicators.object)
     visualRef.current = visual
+    characterPeopleRef.current = characterPeople
     carsRef.current = cars
     indicatorsRef.current = indicators
+    peopleRuntime.characters = characterPeople
+      ? {
+          snapshot: () => characterPeople.getDebugSnapshot(),
+          setAppearance: (id, doc) => {
+            const updated = characterPeople.setAppearance(id, doc)
+            settleRef.current = Math.max(settleRef.current, 2)
+            invalidate()
+            return updated
+          },
+          setFailUrlForTest: (pattern) => {
+            characterPeople.setFailUrlForTest(pattern)
+          },
+        }
+      : null
     invalidate()
     return () => {
+      peopleRuntime.characters = null
       visualRef.current = null
+      characterPeopleRef.current = null
       carsRef.current = null
       indicatorsRef.current = null
       root.remove(visual.object, cars.object, indicators.object)
@@ -317,6 +346,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
         map: buildTints(state.config),
         names: nameMap(state.config),
       }
+      characterPeopleRef.current?.setEmployeeNames(tintsRef.current.names)
     }
     indicators.setPlatforms(state.config.platforms)
 
@@ -407,6 +437,10 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       input.opacity = hidden ? 0 : sim.opacity
       input.lod = 0
     }
+    if (characterPeopleRef.current) {
+      characterPeopleRef.current.setCamera(frame.camera)
+      characterPeopleRef.current.setFocusedFloorIndex(active)
+    }
     const animDt = factor > 0 ? dt : 0
     visual.sync(inputs, sims.length, dt, animDt)
     cars.update(director.elevators(), alpha)
@@ -446,9 +480,15 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       }
     }
 
-    // Keep drawing while anything moves; a few extra frames let fades finish.
+    // Keep drawing while anything moves; a few extra frames let fades finish
+    // or queued 3D character assemblies complete.
     if (factor > 0) invalidate()
-    else if (settleRef.current > 0) {
+    else if (
+      characterPeopleRef.current &&
+      characterPeopleRef.current.getDebugSnapshot().queued > 0
+    ) {
+      invalidate()
+    } else if (settleRef.current > 0) {
       settleRef.current -= 1
       invalidate()
     }
