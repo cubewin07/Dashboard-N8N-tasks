@@ -32,9 +32,11 @@ export function FloorLabel({ floor, opacity = 1, chips }: FloorLabelProps) {
     <group position={[toWorldX(1.2, w), 0.52, toWorldZ(-0.22, d)]}>
       <mesh position={[-0.45, 0, 0]} userData={{ ignoreFade: true }}>
         <boxGeometry args={[0.32, 0.32, 0.06]} />
+        {/* Always transparent: flipping the flag later would need a recompile. */}
         <meshStandardMaterial
           color={swatchColor}
-          transparent={opacity < 0.99}
+          transparent
+          depthWrite={opacity >= 0.99}
           opacity={opacity}
         />
       </mesh>

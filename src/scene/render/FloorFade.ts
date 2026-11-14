@@ -12,8 +12,9 @@ export function stepFadeOpacity(
   if (reducedMotion || Math.abs(target - current) < 0.005) {
     return target
   }
-  const speed = 8
-  const t = Math.min(1, deltaSeconds * speed)
+  // Exponential approach: the same curve at 30, 60 or 120 Hz.
+  const speed = 9
+  const t = 1 - Math.exp(-speed * Math.max(0, deltaSeconds))
   return current + (target - current) * t
 }
 

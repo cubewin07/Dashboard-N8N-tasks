@@ -21,6 +21,7 @@ const DOOR_HEIGHT = 2.15
 const SLAB_THICKNESS = 0.3
 const IS_E2E = Boolean(import.meta.env.VITE_E2E)
 const tempWallObj = new THREE.Object3D()
+const noRaycast = () => {}
 
 function buildWallPieces(
   walls: readonly WallSegment[],
@@ -98,17 +99,20 @@ export function Floor({
   const wallInstancedRef = useRef<THREE.InstancedMesh>(null)
   const pointerDownPosRef = useRef<{ x: number; y: number } | null>(null)
   const opacityRef = useRef(1)
+  const fadeInitRef = useRef(false)
   const scaleProgressRef = useRef(animateMount && !reducedMotion && !IS_E2E ? 0.01 : 1)
   const targetFade = getFloorFadeTarget(floor.index, activeFloorIndex)
   const invalidate = useThree((s) => s.invalidate)
 
   const hoveredFloorKey = useViewStore((s) => s.hoveredFloorKey)
-  const focusedFloorKey = useViewStore((s) => s.focusedFloorKey)
+  // Free mode keeps the last focused key for the F shortcut; only floor mode shows it.
+  const isFocused = useViewStore(
+    (s) => s.mode === 'floor' && s.focusedFloorKey === floor.key,
+  )
   const setHoveredFloor = useViewStore((s) => s.setHoveredFloor)
   const focusFloor = useViewStore((s) => s.focusFloor)
 
   const isHovered = hoveredFloorKey === floor.key
-  const isFocused = focusedFloorKey === floor.key
 
   const { w, d } = floor.size
   const wallPieces = useMemo(
@@ -136,11 +140,16 @@ export function Floor({
   useEffect(() => {
     if (fadeContentRef.current) {
       const target = getFloorFadeTarget(floor.index, activeFloorIndex)
-      opacityRef.current = target.opacity
-      applyGroupFade(fadeContentRef.current, target.opacity, target.castShadow)
+      // Snap only when motion is unwanted or on first mount; otherwise the
+      // frame loop below eases towards the target.
+      if (reducedMotion || IS_E2E || !fadeInitRef.current) {
+        opacityRef.current = target.opacity
+        applyGroupFade(fadeContentRef.current, target.opacity, target.castShadow)
+      }
+      fadeInitRef.current = true
       invalidate()
     }
-  }, [floor.index, activeFloorIndex, invalidate])
+  }, [floor.index, activeFloorIndex, invalidate, reducedMotion])
 
   useFrame((_, delta) => {
     const target = getFloorFadeTarget(floor.index, activeFloorIndex)
@@ -153,6 +162,7 @@ export function Floor({
       )
       opacityRef.current = nextOpacity
       applyGroupFade(fadeContentRef.current, nextOpacity, target.castShadow)
+      invalidate()
     }
 
     if (scaleProgressRef.current < 1 && groupRef.current) {
@@ -294,7 +304,7 @@ export function Floor({
       </group>
 
       {/* Hover / Focus front edge highlight bar */}
-      {isHovered || isFocused ? (
+      {(isHovered || isFocused) && !targetFade.faded ? (
         <mesh
           position={[0, -0.06, toWorldZ(-0.06, d)]}
           userData={{ ignoreFade: true }}
@@ -312,6 +322,9 @@ export function Floor({
       {/* Invisible pick volume for floor hover and click-to-focus */}
       <mesh
         position={[0, WALL_HEIGHT / 2, 0]}
+        // A faded floor sits between the camera and the focused floor: it must
+        // not swallow clicks or hovers meant for what is behind it.
+        raycast={targetFade.faded ? noRaycast : THREE.Mesh.prototype.raycast}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerOver={handlePointerOver}
