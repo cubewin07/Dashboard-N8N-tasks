@@ -1,0 +1,59 @@
+{
+  "skin": [
+    { "key": "skin_01", "label": { "vi": "Trắng sứ", "en": "Porcelain" } },
+    { "key": "skin_02", "label": { "vi": "Trắng hồng", "en": "Fair warm" } },
+    { "key": "skin_03", "label": { "vi": "Sáng ấm", "en": "Light warm" } },
+    { "key": "skin_04", "label": { "vi": "Trung bình sáng", "en": "Medium light" } },
+    { "key": "skin_05", "label": { "vi": "Mật ong", "en": "Honey" } },
+    { "key": "skin_06", "label": { "vi": "Nâu sáng", "en": "Tan" } },
+    { "key": "skin_07", "label": { "vi": "Nâu ấm", "en": "Warm brown" } },
+    { "key": "skin_08", "label": { "vi": "Nâu đậm", "en": "Deep brown" } }
+  ],
+  "hair": [
+    { "key": "hair_black", "label": { "vi": "Đen", "en": "Black" } },
+    { "key": "hair_brown_dark", "label": { "vi": "Nâu đậm", "en": "Dark brown" } },
+    { "key": "hair_brown", "label": { "vi": "Nâu", "en": "Brown" } },
+    { "key": "hair_chestnut", "label": { "vi": "Nâu hạt dẻ", "en": "Chestnut" } },
+    { "key": "hair_auburn", "label": { "vi": "Nâu đỏ", "en": "Auburn" } },
+    { "key": "hair_blonde", "label": { "vi": "Vàng", "en": "Blonde" } },
+    { "key": "hair_grey", "label": { "vi": "Xám", "en": "Grey" } },
+    { "key": "hair_white", "label": { "vi": "Bạch kim", "en": "White" } },
+    { "key": "hair_pink", "label": { "vi": "Hồng phấn", "en": "Pastel pink" }, "fashion": true },
+    { "key": "hair_blue", "label": { "vi": "Xanh dương", "en": "Ocean blue" }, "fashion": true },
+    { "key": "hair_purple", "label": { "vi": "Tím oải hương", "en": "Violet" }, "fashion": true },
+    { "key": "hair_green", "label": { "vi": "Xanh bạc hà", "en": "Mint green" }, "fashion": true }
+  ],
+  "eyes": [
+    { "key": "eye_brown", "label": { "vi": "Nâu", "en": "Brown" } },
+    { "key": "eye_dark", "label": { "vi": "Đen nâu", "en": "Dark brown" } },
+    { "key": "eye_hazel", "label": { "vi": "Hổ phách", "en": "Hazel" } },
+    { "key": "eye_green", "label": { "vi": "Xanh lá", "en": "Green" } },
+    { "key": "eye_blue", "label": { "vi": "Xanh dương", "en": "Blue" } },
+    { "key": "eye_grey", "label": { "vi": "Xám", "en": "Grey" } }
+  ],
+  "fabric": [
+    { "key": "c_white", "label": { "vi": "Trắng", "en": "White" } },
+    { "key": "c_black", "label": { "vi": "Đen", "en": "Black" } },
+    { "key": "c_grey", "label": { "vi": "Xám", "en": "Grey" } },
+    { "key": "c_charcoal", "label": { "vi": "Than chì", "en": "Charcoal" } },
+    { "key": "c_navy", "label": { "vi": "Xanh navy", "en": "Navy" } },
+    { "key": "c_denim", "label": { "vi": "Xanh denim", "en": "Denim" } },
+    { "key": "c_sky", "label": { "vi": "Xanh trời", "en": "Sky blue" } },
+    { "key": "c_jade", "label": { "vi": "Xanh ngọc bích", "en": "Jade" } },
+    { "key": "c_green", "label": { "vi": "Xanh lá", "en": "Green" } },
+    { "key": "c_khaki", "label": { "vi": "Kaki", "en": "Khaki" } },
+    { "key": "c_brown", "label": { "vi": "Nâu", "en": "Brown" } },
+    { "key": "c_red", "label": { "vi": "Đỏ", "en": "Red" } },
+    { "key": "c_rose", "label": { "vi": "Hồng đậm", "en": "Rose" } },
+    { "key": "c_orange", "label": { "vi": "Cam", "en": "Orange" } },
+    { "key": "c_yellow", "label": { "vi": "Vàng", "en": "Yellow" } },
+    { "key": "c_purple", "label": { "vi": "Tím", "en": "Purple" } }
+  ],
+  "lip": [
+    { "key": "skin_01_lip", "label": { "vi": "Hồng đào", "en": "Soft peach" } },
+    { "key": "skin_03_lip", "label": { "vi": "Cam đất", "en": "Warm coral" } },
+    { "key": "skin_05_lip", "label": { "vi": "Nâu gạch", "en": "Warm brick" } },
+    { "key": "c_rose", "label": { "vi": "Hồng cánh sen", "en": "Rose" } },
+    { "key": "c_red", "label": { "vi": "Đỏ cổ điển", "en": "Classic red" } }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "items": [
+    {
+      "id": "shoes_sneaker_01",
+      "slot": "shoes",
+      "label": { "vi": "Giày thể thao", "en": "Sneakers" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/shoes_sneaker_01_f.glb",
+        "male": "models/wardrobe/shoes_sneaker_01_m.glb"
+      },
+      "thumb": "thumbs/shoes_sneaker_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_white", "accent": "c_jade" }
+      },
+      "hides": [],
+      "tags": ["casual", "sport"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "shoes_loafer_01",
+      "slot": "shoes",
+      "label": { "vi": "Giày lười", "en": "Loafers" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/shoes_loafer_01_f.glb",
+        "male": "models/wardrobe/shoes_loafer_01_m.glb"
+      },
+      "thumb": "thumbs/shoes_loafer_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_brown" }
+      },
+      "hides": [],
+      "tags": ["office"],
+      "credit": "own-generated"
+    }
+  ]
+}

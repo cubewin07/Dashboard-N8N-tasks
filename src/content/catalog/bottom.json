@@ -1,0 +1,61 @@
+{
+  "items": [
+    {
+      "id": "bottom_jeans_01",
+      "slot": "bottom",
+      "label": { "vi": "Quần jean", "en": "Jeans" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/bottom_jeans_01_f.glb",
+        "male": "models/wardrobe/bottom_jeans_01_m.glb"
+      },
+      "thumb": "thumbs/bottom_jeans_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_denim" }
+      },
+      "hides": [],
+      "tags": ["casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "bottom_trousers_01",
+      "slot": "bottom",
+      "label": { "vi": "Quần tây", "en": "Dress trousers" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/bottom_trousers_01_f.glb",
+        "male": "models/wardrobe/bottom_trousers_01_m.glb"
+      },
+      "thumb": "thumbs/bottom_trousers_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_charcoal" }
+      },
+      "hides": [],
+      "tags": ["office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "bottom_shorts_01",
+      "slot": "bottom",
+      "label": { "vi": "Quần short", "en": "Shorts" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/bottom_shorts_01_f.glb",
+        "male": "models/wardrobe/bottom_shorts_01_m.glb"
+      },
+      "thumb": "thumbs/bottom_shorts_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_khaki" }
+      },
+      "hides": [],
+      "tags": ["casual", "sport"],
+      "credit": "own-generated"
+    }
+  ]
+}
