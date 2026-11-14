@@ -837,6 +837,9 @@ def _build_dress_mesh(
         for c in range(N):
             ang = 2.0 * math.pi * c / N
             pt = sampler.torso_point(ang, qz, boff)
+            # Clear back scapulae chord across the long upper-bodice span on Muscle+Shoulders
+            if bz == z_arm_top and math.sin(ang) > 0.20:
+                pt.y += 0.006
             pt.z = bz
             bring.append(bm.verts.new(pt))
         rings.append(bring)
@@ -1120,6 +1123,53 @@ def _build_item(item_id: str, base: str, sampler: BodySampler, body: fit.BodyDat
             return torso_regs
         return leg_l_regs if co.x >= 0.0 else leg_r_regs
 
+    # On female, lateral chest is narrower than shoulder pivot so lower underarm vertices get
+    # arm-region -X deltas while the ribcage expands +X on Heavy/Muscle/Chest. Keep the underarm
+    # gusset band tracking lateral chest expansion and drop it slightly under the armpit crease.
+    chest_low_dx: dict[str, float] = {
+        k: max(
+            (
+                body.shape_deltas[k][vi].x
+                for vi, reg in enumerate(body.vert_regions)
+                if reg == "chest" and body_verts[vi].z < chest_mx.z - 0.050 and body_verts[vi].x > chest_mx.x * 0.70
+            ),
+            default=0.0,
+        )
+        for k in ("Heavy", "Muscle", "Chest", "Shoulders")
+    }
+
+    def make_armhole_delta_scale():
+        x_in = chest_mx.x - 0.005
+        x_full = chest_mx.x + 0.018
+        x_out = chest_mx.x + 0.048
+        y_span = 0.064
+
+        def delta_scale_fn(co: Vector, key: str, d: Vector) -> Vector:
+            if key not in chest_low_dx:
+                return d
+            if co.z < chest_mn.z - 0.010 or co.z > chest_mx.z - 0.045:
+                return d
+            ax = abs(co.x)
+            if ax < x_in or ax > x_out or abs(co.y) > y_span:
+                return d
+            t_x = 1.0 - max(0.0, (ax - x_full) / (x_out - x_full))
+            t_y = 1.0 - (abs(co.y) / y_span)
+            wt = max(0.0, min(1.0, t_x)) * max(0.0, min(1.0, t_y))
+            if wt <= 1e-5:
+                return d
+            side = 1.0 if co.x >= 0.0 else -1.0
+            out = d.copy()
+            want_out = chest_low_dx[key] * wt * 1.12
+            if side * out.x < want_out:
+                out.x = side * want_out
+            if key in ("Heavy", "Muscle"):
+                out.z = min(out.z, -0.020 * wt)
+            return out
+
+        return delta_scale_fn
+
+    armhole_delta_fn = make_armhole_delta_scale() if base == "female" else None
+
     def make_top_offset(base_off: float, hem_off: float):
         # Flare lower hem band outward over bottoms waistband (>= 10 mm gap even on N=16 chords)
         z_full = hips_mx.z + 0.010
@@ -1149,6 +1199,7 @@ def _build_item(item_id: str, base: str, sampler: BodySampler, body: fit.BodyDat
             "offset_fn": make_top_offset(0.0175, 0.0235),
             "smooth_weight_iters": 1,
             "vert_region_filter_fn": top_region_filter,
+            "delta_scale_fn": armhole_delta_fn,
         }
 
     if item_id == "top_shirt_office_01":
@@ -1167,6 +1218,7 @@ def _build_item(item_id: str, base: str, sampler: BodySampler, body: fit.BodyDat
             "offset_fn": make_top_offset(0.0175, 0.0235),
             "smooth_weight_iters": 1,
             "vert_region_filter_fn": top_region_filter,
+            "delta_scale_fn": armhole_delta_fn,
         }
 
     if item_id == "top_hoodie_01":
@@ -1186,6 +1238,7 @@ def _build_item(item_id: str, base: str, sampler: BodySampler, body: fit.BodyDat
             "offset_fn": make_top_offset(0.0185, 0.024),
             "smooth_weight_iters": 1,
             "vert_region_filter_fn": top_region_filter,
+            "delta_scale_fn": armhole_delta_fn,
         }
 
     # Smooth hip-to-thigh AND thigh-to-shin skinning around actual hip pivot (z ~ hips_mn.z + 0.025)
@@ -1343,10 +1396,11 @@ def _build_item(item_id: str, base: str, sampler: BodySampler, body: fit.BodyDat
             return w
 
         return "fullbody", bm, {
-            "offset_fn": lambda co: 0.016 if co.z < hips_mx.z else 0.0145,
+            "offset_fn": lambda co: 0.016 if co.z < hips_mx.z else 0.0165,
             "smooth_weight_iters": 1,
             "vert_region_filter_fn": dress_region_filter,
             "weight_override_fn": dress_weights,
+            "delta_scale_fn": armhole_delta_fn,
         }
 
     if item_id == "shoes_sneaker_01":
