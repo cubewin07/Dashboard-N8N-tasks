@@ -1,0 +1,46 @@
+{
+  "items": [
+    {
+      "id": "mouth_01",
+      "slot": "mouth",
+      "label": { "vi": "Miệng cười mỉm", "en": "Gentle smile" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [0, 5] },
+      "thumb": "thumbs/mouth_01.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "mouth_02",
+      "slot": "mouth",
+      "label": { "vi": "Miệng bình thản", "en": "Neutral mouth" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [1, 5] },
+      "thumb": "thumbs/mouth_02.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "mouth_03",
+      "slot": "mouth",
+      "label": { "vi": "Miệng cười tươi", "en": "Open toothy smile" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [2, 5] },
+      "thumb": "thumbs/mouth_03.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    }
+  ]
+}
