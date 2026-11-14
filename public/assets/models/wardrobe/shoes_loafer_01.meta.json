@@ -1,0 +1,27 @@
+{
+  "id": "shoes_loafer_01",
+  "slot": "shoes",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/shoes_loafer_01_f.glb",
+      "tris": 108,
+      "hideRegions": [
+        "foot_l",
+        "foot_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    },
+    "male": {
+      "file": "models/wardrobe/shoes_loafer_01_m.glb",
+      "tris": 108,
+      "hideRegions": [
+        "foot_l",
+        "foot_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    }
+  }
+}
