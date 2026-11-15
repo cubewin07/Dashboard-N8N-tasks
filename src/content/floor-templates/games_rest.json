@@ -1,0 +1,280 @@
+{
+  "key": "games_rest",
+  "size": { "w": 24, "d": 14 },
+  "gridCell": 0.5,
+  "fixedSlots": [
+    {
+      "id": "elevator_door_1",
+      "type": "elevator_door",
+      "x": 20.5,
+      "z": 9,
+      "rotY": -1.5708,
+      "footprint": [[41, 18]],
+      "approach": [40, 18]
+    },
+    {
+      "id": "elevator_door_2",
+      "type": "elevator_door",
+      "x": 20.5,
+      "z": 11,
+      "rotY": -1.5708,
+      "footprint": [[41, 22]],
+      "approach": [40, 22]
+    },
+    {
+      "id": "stairs_entry",
+      "type": "stairs_entry",
+      "x": 21,
+      "z": 4,
+      "rotY": -1.5708,
+      "footprint": [[42, 8]],
+      "approach": [40, 8]
+    },
+    {
+      "id": "idle_pingpong",
+      "type": "idle_pingpong",
+      "x": 5.5,
+      "z": 4,
+      "rotY": 0,
+      "footprint": [
+        [10, 8],
+        [11, 8],
+        [12, 8]
+      ],
+      "approach": [11, 6]
+    },
+    {
+      "id": "idle_arcade_1",
+      "type": "idle_arcade",
+      "x": 2.5,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [[5, 23]],
+      "approach": [5, 22]
+    },
+    {
+      "id": "idle_arcade_2",
+      "type": "idle_arcade",
+      "x": 4.5,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [[9, 23]],
+      "approach": [9, 22]
+    },
+    {
+      "id": "idle_arcade_3",
+      "type": "idle_arcade",
+      "x": 6.5,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [[13, 23]],
+      "approach": [13, 22]
+    },
+    {
+      "id": "idle_boardgame_1",
+      "type": "idle_boardgame",
+      "x": 9,
+      "z": 4.5,
+      "rotY": 0,
+      "footprint": [[18, 9]],
+      "approach": [18, 8]
+    },
+    {
+      "id": "idle_boardgame_2",
+      "type": "idle_boardgame",
+      "x": 9,
+      "z": 8.5,
+      "rotY": 0,
+      "footprint": [[18, 17]],
+      "approach": [18, 16]
+    },
+    {
+      "id": "idle_karaoke",
+      "type": "idle_karaoke",
+      "x": 2.5,
+      "z": 7.5,
+      "rotY": 1.5708,
+      "footprint": [
+        [4, 14],
+        [4, 15],
+        [5, 14],
+        [5, 15]
+      ],
+      "approach": [6, 15]
+    },
+    {
+      "id": "idle_bed_1",
+      "type": "idle_bed",
+      "x": 13.5,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [
+        [27, 22],
+        [27, 23]
+      ],
+      "approach": [27, 21]
+    },
+    {
+      "id": "idle_bed_2",
+      "type": "idle_bed",
+      "x": 15,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [
+        [30, 22],
+        [30, 23]
+      ],
+      "approach": [30, 21]
+    },
+    {
+      "id": "idle_bed_3",
+      "type": "idle_bed",
+      "x": 16.5,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [
+        [33, 22],
+        [33, 23]
+      ],
+      "approach": [33, 21]
+    },
+    {
+      "id": "idle_bed_4",
+      "type": "idle_bed",
+      "x": 18,
+      "z": 11.5,
+      "rotY": 0,
+      "footprint": [
+        [36, 22],
+        [36, 23]
+      ],
+      "approach": [36, 21]
+    },
+    {
+      "id": "idle_bed_5",
+      "type": "idle_bed",
+      "x": 13.5,
+      "z": 8,
+      "rotY": 0,
+      "footprint": [
+        [27, 15],
+        [27, 16]
+      ],
+      "approach": [27, 14]
+    },
+    {
+      "id": "idle_bed_6",
+      "type": "idle_bed",
+      "x": 15,
+      "z": 8,
+      "rotY": 0,
+      "footprint": [
+        [30, 15],
+        [30, 16]
+      ],
+      "approach": [30, 14]
+    },
+    {
+      "id": "idle_bed_7",
+      "type": "idle_bed",
+      "x": 16.5,
+      "z": 8,
+      "rotY": 0,
+      "footprint": [
+        [33, 15],
+        [33, 16]
+      ],
+      "approach": [33, 14]
+    },
+    {
+      "id": "idle_bed_8",
+      "type": "idle_bed",
+      "x": 18,
+      "z": 8,
+      "rotY": 0,
+      "footprint": [
+        [36, 15],
+        [36, 16]
+      ],
+      "approach": [36, 14]
+    },
+    {
+      "id": "idle_massage_chair_1",
+      "type": "idle_massage_chair",
+      "x": 13.5,
+      "z": 4,
+      "rotY": 0,
+      "footprint": [[27, 8]],
+      "approach": [27, 7]
+    },
+    {
+      "id": "idle_massage_chair_2",
+      "type": "idle_massage_chair",
+      "x": 15.5,
+      "z": 4,
+      "rotY": 0,
+      "footprint": [[31, 8]],
+      "approach": [31, 7]
+    },
+    {
+      "id": "idle_sofa_1",
+      "type": "idle_sofa",
+      "x": 18,
+      "z": 4,
+      "rotY": 0,
+      "footprint": [[36, 8]],
+      "approach": [36, 7]
+    },
+    {
+      "id": "idle_sofa_2",
+      "type": "idle_sofa",
+      "x": 18,
+      "z": 1.5,
+      "rotY": 3.1416,
+      "footprint": [[36, 3]],
+      "approach": [36, 4]
+    },
+    {
+      "id": "decor_plant_1",
+      "type": "decor",
+      "x": 1,
+      "z": 1,
+      "rotY": 0,
+      "footprint": [[2, 2]],
+      "approach": [3, 2]
+    },
+    {
+      "id": "decor_plant_2",
+      "type": "decor",
+      "x": 1,
+      "z": 13,
+      "rotY": 0,
+      "footprint": [[2, 26]],
+      "approach": [3, 25]
+    },
+    {
+      "id": "decor_plant_3",
+      "type": "decor",
+      "x": 23,
+      "z": 1,
+      "rotY": 0,
+      "footprint": [[46, 2]],
+      "approach": [45, 2]
+    },
+    {
+      "id": "decor_plant_4",
+      "type": "decor",
+      "x": 23,
+      "z": 13,
+      "rotY": 0,
+      "footprint": [[46, 26]],
+      "approach": [45, 25]
+    }
+  ],
+  "walls": [
+    { "x1": 0, "z1": 14, "x2": 24, "z2": 14 },
+    { "x1": 0, "z1": 0, "x2": 0, "z2": 14 },
+    { "x1": 24, "z1": 0, "x2": 24, "z2": 14 },
+    { "x1": 11.5, "z1": 2, "x2": 11.5, "z2": 14, "door": { "offset": 3.5, "width": 1 } }
+  ]
+}

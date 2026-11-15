@@ -27,9 +27,8 @@ test.describe('P01 foundation smoke', () => {
         timeout: 15_000,
       })
       await expect(page.locator('[data-office-canvas] canvas')).toBeVisible()
-      await expect(
-        page.getByText('Toà nhà sẽ xuất hiện ở giai đoạn 2'),
-      ).toBeVisible()
+      await expect(page.locator('[data-floor-picker]')).toBeVisible()
+      await expect(page.locator('[data-camera-mode-bar]')).toBeVisible()
     }
 
     // Navigate to #/org

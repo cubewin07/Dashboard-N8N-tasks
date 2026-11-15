@@ -1,0 +1,246 @@
+{
+  "key": "boss",
+  "size": { "w": 24, "d": 14 },
+  "gridCell": 0.5,
+  "fixedSlots": [
+    {
+      "id": "elevator_door_1",
+      "type": "elevator_door",
+      "x": 20.5,
+      "z": 9,
+      "rotY": -1.5708,
+      "footprint": [[41, 18]],
+      "approach": [40, 18]
+    },
+    {
+      "id": "elevator_door_2",
+      "type": "elevator_door",
+      "x": 20.5,
+      "z": 11,
+      "rotY": -1.5708,
+      "footprint": [[41, 22]],
+      "approach": [40, 22]
+    },
+    {
+      "id": "stairs_entry",
+      "type": "stairs_entry",
+      "x": 21,
+      "z": 4,
+      "rotY": -1.5708,
+      "footprint": [[42, 8]],
+      "approach": [40, 8]
+    },
+    {
+      "id": "boss_desk_1",
+      "type": "boss_desk",
+      "x": 9.5,
+      "z": 3.5,
+      "rotY": 0,
+      "roleHint": "owner",
+      "footprint": [
+        [18, 7],
+        [19, 7],
+        [20, 7]
+      ],
+      "approach": [19, 6]
+    },
+    {
+      "id": "boss_desk_2",
+      "type": "boss_desk",
+      "x": 13,
+      "z": 3.5,
+      "rotY": 0,
+      "roleHint": "owner",
+      "footprint": [
+        [25, 7],
+        [26, 7],
+        [27, 7]
+      ],
+      "approach": [26, 6]
+    },
+    {
+      "id": "boss_desk_3",
+      "type": "boss_desk",
+      "x": 16.5,
+      "z": 3.5,
+      "rotY": 0,
+      "roleHint": "owner",
+      "footprint": [
+        [32, 7],
+        [33, 7],
+        [34, 7]
+      ],
+      "approach": [33, 6]
+    },
+    {
+      "id": "idle_sofa_1",
+      "type": "idle_sofa",
+      "x": 10,
+      "z": 9.5,
+      "rotY": 0,
+      "footprint": [
+        [19, 19],
+        [20, 19],
+        [21, 19]
+      ],
+      "approach": [20, 18]
+    },
+    {
+      "id": "idle_sofa_2",
+      "type": "idle_sofa",
+      "x": 10,
+      "z": 12,
+      "rotY": 3.1416,
+      "footprint": [
+        [19, 24],
+        [20, 24],
+        [21, 24]
+      ],
+      "approach": [20, 23]
+    },
+    {
+      "id": "waiting_seat_1",
+      "type": "waiting_seat",
+      "x": 18,
+      "z": 7.5,
+      "rotY": 1.5708,
+      "footprint": [[36, 15]],
+      "approach": [37, 15]
+    },
+    {
+      "id": "waiting_seat_2",
+      "type": "waiting_seat",
+      "x": 18,
+      "z": 8.5,
+      "rotY": 1.5708,
+      "footprint": [[36, 17]],
+      "approach": [37, 17]
+    },
+    {
+      "id": "waiting_seat_3",
+      "type": "waiting_seat",
+      "x": 18,
+      "z": 9.5,
+      "rotY": 1.5708,
+      "footprint": [[36, 19]],
+      "approach": [37, 19]
+    },
+    {
+      "id": "waiting_seat_4",
+      "type": "waiting_seat",
+      "x": 18,
+      "z": 10.5,
+      "rotY": 1.5708,
+      "footprint": [[36, 21]],
+      "approach": [37, 21]
+    },
+    {
+      "id": "waiting_seat_5",
+      "type": "waiting_seat",
+      "x": 18,
+      "z": 11.5,
+      "rotY": 1.5708,
+      "footprint": [[36, 23]],
+      "approach": [37, 23]
+    },
+    {
+      "id": "waiting_seat_6",
+      "type": "waiting_seat",
+      "x": 18,
+      "z": 12.5,
+      "rotY": 1.5708,
+      "footprint": [[36, 25]],
+      "approach": [37, 25]
+    },
+    {
+      "id": "idle_window_1",
+      "type": "idle_window",
+      "x": 14,
+      "z": 13.5,
+      "rotY": 3.1416,
+      "footprint": [[28, 27]],
+      "approach": [28, 26]
+    },
+    {
+      "id": "terrace_sofa_1",
+      "type": "idle_sofa",
+      "x": 3,
+      "z": 5,
+      "rotY": 1.5708,
+      "footprint": [
+        [6, 9],
+        [6, 10],
+        [6, 11]
+      ],
+      "approach": [7, 10]
+    },
+    {
+      "id": "terrace_window_1",
+      "type": "idle_window",
+      "x": 1.5,
+      "z": 10.5,
+      "rotY": -1.5708,
+      "footprint": [[3, 21]],
+      "approach": [4, 21]
+    },
+    {
+      "id": "decor_terrace_plant_1",
+      "type": "decor",
+      "x": 1,
+      "z": 1.5,
+      "rotY": 0,
+      "footprint": [[2, 3]],
+      "approach": [3, 3]
+    },
+    {
+      "id": "decor_terrace_plant_2",
+      "type": "decor",
+      "x": 1,
+      "z": 12.5,
+      "rotY": 0,
+      "footprint": [[2, 25]],
+      "approach": [3, 25]
+    },
+    {
+      "id": "decor_terrace_plant_3",
+      "type": "decor",
+      "x": 4.5,
+      "z": 12.5,
+      "rotY": 0,
+      "footprint": [[9, 25]],
+      "approach": [9, 24]
+    },
+    {
+      "id": "decor_plant_4",
+      "type": "decor",
+      "x": 23,
+      "z": 1,
+      "rotY": 0,
+      "footprint": [[46, 2]],
+      "approach": [45, 2]
+    },
+    {
+      "id": "decor_plant_5",
+      "type": "decor",
+      "x": 23,
+      "z": 13,
+      "rotY": 0,
+      "footprint": [[46, 26]],
+      "approach": [45, 25]
+    },
+    {
+      "id": "cat_spot",
+      "type": "cat_spot",
+      "x": 13,
+      "z": 9.5,
+      "rotY": 0,
+      "footprint": [[26, 19]],
+      "approach": [26, 18]
+    }
+  ],
+  "walls": [
+    { "x1": 6, "z1": 14, "x2": 24, "z2": 14 },
+    { "x1": 24, "z1": 0, "x2": 24, "z2": 14 },
+    { "x1": 6, "z1": 0, "x2": 6, "z2": 14, "door": { "offset": 6.5, "width": 1 } }
+  ]
+}

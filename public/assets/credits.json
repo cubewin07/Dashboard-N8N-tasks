@@ -1,0 +1,13 @@
+{
+  "assets": [
+    {
+      "path": "assets/fonts/BeVietnamPro-SemiBold.ttf",
+      "title": "Be Vietnam Pro (SemiBold)",
+      "author": "Be Vietnam Pro Project Authors (BeGroup, Gabriel Lam, Tony Le, Vietanh Nguyen)",
+      "source": "https://fonts.google.com/specimen/Be+Vietnam+Pro",
+      "license": "OFL-1.1",
+      "licenseFile": "assets/fonts/OFL.txt",
+      "sha256": "e7fd842bc1ba8ce4ed0972077fc1b3022a1b43b816d88116f0fa12ba5ed291a1"
+    }
+  ]
+}
