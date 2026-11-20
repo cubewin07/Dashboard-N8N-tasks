@@ -117,6 +117,19 @@ describe('applyItem', () => {
     expect(g.doc.accessories.glasses).toBe('x_glasses_b')
   })
 
+  it('shipped outer/fullbody conflicts (P08a-T10): the last one put on wins, both ways', () => {
+    const dressed = applyItem(base(), 'fullbody', 'fullbody_dress_office_01', DEFAULT_CATALOG).doc
+    const withCardigan = applyItem(dressed, 'outer', 'outer_cardigan_01', DEFAULT_CATALOG)
+    expect(withCardigan.doc.outfit.outer).toBe('outer_cardigan_01')
+    expect(withCardigan.doc.outfit.fullbody).toBeNull()
+    expect(withCardigan.removed).toContainEqual({ slot: 'fullbody', itemId: 'fullbody_dress_office_01', reason: 'conflict' })
+    expect(withCardigan.doc.outfit.top).not.toBeNull()
+
+    const backInDress = applyItem(withCardigan.doc, 'fullbody', 'fullbody_dress_office_01', DEFAULT_CATALOG)
+    expect(backInDress.doc.outfit.fullbody).toBe('fullbody_dress_office_01')
+    expect(backInDress.doc.outfit.outer).toBeNull()
+  })
+
   it('refuses unknown, wrong-base and retired items', () => {
     expect(applyItem(base(), 'top', 'nope', CATALOG).refused).toBe('unknown_item')
     expect(applyItem(base(), 'bottom', 'top_hoodie_01', CATALOG).refused).toBe('unknown_item')
