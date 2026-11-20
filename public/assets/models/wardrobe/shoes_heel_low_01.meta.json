@@ -1,0 +1,15 @@
+{
+  "id": "shoes_heel_low_01",
+  "slot": "shoes",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/shoes_heel_low_01_f.glb",
+      "tris": 304,
+      "hideRegions": [],
+      "bodyLimits": {},
+      "maxPenetrationMm": 1.57
+    }
+  },
+  "heelLift": 0
+}

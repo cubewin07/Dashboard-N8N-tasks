@@ -1,0 +1,27 @@
+{
+  "id": "shoes_boot_01",
+  "slot": "shoes",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/shoes_boot_01_f.glb",
+      "tris": 472,
+      "hideRegions": [
+        "ankle_l",
+        "ankle_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 4.76
+    },
+    "male": {
+      "file": "models/wardrobe/shoes_boot_01_m.glb",
+      "tris": 472,
+      "hideRegions": [
+        "ankle_l",
+        "ankle_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 4.93
+    }
+  }
+}

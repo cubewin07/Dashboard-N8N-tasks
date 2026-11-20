@@ -3,7 +3,10 @@
     {
       "id": "shoes_sneaker_01",
       "slot": "shoes",
-      "label": { "vi": "Giày thể thao", "en": "Sneakers" },
+      "label": {
+        "vi": "Giày thể thao",
+        "en": "Sneakers"
+      },
       "bases": ["female", "male"],
       "model": {
         "female": "models/wardrobe/shoes_sneaker_01_f.glb",
@@ -13,7 +16,10 @@
       "attach": "skinned",
       "tint": {
         "regions": ["primary", "accent"],
-        "defaults": { "primary": "c_white", "accent": "c_jade" }
+        "defaults": {
+          "primary": "c_white",
+          "accent": "c_jade"
+        }
       },
       "hides": [],
       "tags": ["casual", "sport"],
@@ -22,7 +28,10 @@
     {
       "id": "shoes_loafer_01",
       "slot": "shoes",
-      "label": { "vi": "Giày lười", "en": "Loafers" },
+      "label": {
+        "vi": "Giày lười",
+        "en": "Loafers"
+      },
       "bases": ["female", "male"],
       "model": {
         "female": "models/wardrobe/shoes_loafer_01_f.glb",
@@ -32,10 +41,111 @@
       "attach": "skinned",
       "tint": {
         "regions": ["primary"],
-        "defaults": { "primary": "c_brown" }
+        "defaults": {
+          "primary": "c_brown"
+        }
       },
       "hides": [],
       "tags": ["office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "shoes_heel_low_01",
+      "slot": "shoes",
+      "label": {
+        "vi": "Giày cao gót thấp",
+        "en": "Low heels"
+      },
+      "bases": ["female"],
+      "model": {
+        "female": "models/wardrobe/shoes_heel_low_01_f.glb"
+      },
+      "thumb": "thumbs/shoes_heel_low_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {
+          "primary": "c_black",
+          "accent": "c_black"
+        }
+      },
+      "hides": [],
+      "tags": ["office", "formal"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "shoes_boot_01",
+      "slot": "shoes",
+      "label": {
+        "vi": "Bốt cổ ngắn",
+        "en": "Ankle boots"
+      },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/shoes_boot_01_f.glb",
+        "male": "models/wardrobe/shoes_boot_01_m.glb"
+      },
+      "thumb": "thumbs/shoes_boot_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {
+          "primary": "c_brown",
+          "accent": "c_black"
+        }
+      },
+      "hides": [],
+      "tags": ["winter", "street"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "shoes_sandal_01",
+      "slot": "shoes",
+      "label": {
+        "vi": "Dép quai hậu",
+        "en": "Strap sandals"
+      },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/shoes_sandal_01_f.glb",
+        "male": "models/wardrobe/shoes_sandal_01_m.glb"
+      },
+      "thumb": "thumbs/shoes_sandal_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {
+          "primary": "c_brown",
+          "accent": "c_beige"
+        }
+      },
+      "hides": [],
+      "tags": ["summer", "casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "shoes_slipper_01",
+      "slot": "shoes",
+      "label": {
+        "vi": "Dép lê",
+        "en": "House slippers"
+      },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/shoes_slipper_01_f.glb",
+        "male": "models/wardrobe/shoes_slipper_01_m.glb"
+      },
+      "thumb": "thumbs/shoes_slipper_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {
+          "primary": "c_navy",
+          "accent": "c_grey_l"
+        }
+      },
+      "hides": [],
+      "tags": ["casual"],
       "credit": "own-generated"
     }
   ]
