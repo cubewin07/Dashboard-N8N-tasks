@@ -6,6 +6,12 @@ import { TUNING } from '@/scene/director/tuning'
 import { toWorldX, toWorldZ } from './coords'
 import { SCENE_PALETTE } from './palette'
 
+/** Door opening between two ticks: 0 closed … 1 open, interpolated like positions are. */
+export function doorOpening(prev: number, current: number, alpha: number): number {
+  const d = prev + (current - prev) * alpha
+  return d < 0 ? 0 : d > 1 ? 1 : d
+}
+
 const CAR = { depth: 1.7, height: 2.3, plate: 0.08, door: 0.05 } as const
 
 interface CarVisual {
@@ -15,6 +21,7 @@ interface CarVisual {
   light: THREE.Mesh
   width: number
   prev: number
+  prevDoor: number
 }
 
 /**
@@ -81,7 +88,7 @@ export class ElevatorCars {
       doorB.position.set(-CAR.depth / 2, (CAR.height - 0.2) / 2, width / 4)
       group.add(base, roof, wall, light, doorA, doorB)
       this.object.add(group)
-      this.cars.push({ group, doorA, doorB, light, width, prev: 0 })
+      this.cars.push({ group, doorA, doorB, light, width, prev: 0, prevDoor: 0 })
     }
   }
 
@@ -89,7 +96,9 @@ export class ElevatorCars {
   remember(cars: readonly CarState[]): void {
     for (let i = 0; i < this.cars.length; i += 1) {
       const car = cars[i]
-      if (car) this.cars[i]!.prev = car.position
+      if (!car) continue
+      this.cars[i]!.prev = car.position
+      this.cars[i]!.prevDoor = car.door01
     }
   }
 
@@ -105,11 +114,12 @@ export class ElevatorCars {
       const position = visual.prev + (car.position - visual.prev) * alpha
       visual.group.position.y = position * this.floorHeight
       // Leaves slide apart along the door line.
-      const open = car.door01 * car.door01 * (3 - 2 * car.door01)
+      const door = doorOpening(visual.prevDoor, car.door01, alpha)
+      const open = door * door * (3 - 2 * door)
       const slide = (visual.width / 4) * (1 + open * 0.96)
       visual.doorA.position.z = -slide
       visual.doorB.position.z = slide
-      visual.light.visible = car.riders.length > 0 || car.door01 > 0.05
+      visual.light.visible = car.riders.length > 0 || door > 0.05
     }
   }
 
