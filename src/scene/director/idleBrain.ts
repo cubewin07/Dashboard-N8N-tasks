@@ -449,3 +449,13 @@ export function chooseIdle(person: IdlePerson, world: IdleWorld): IdleDecision {
     spot,
   }
 }
+
+/**
+ * A department's away share if one more person is (or stays) away. `away`
+ * already counts the chooser when they are away now (`selfAway`), so they
+ * are taken out first and never counted twice.
+ */
+export function awayShareIfAway(away: number, total: number, selfAway: boolean): number {
+  if (total <= 0) return 1
+  return (Math.max(0, away - (selfAway ? 1 : 0)) + 1) / total
+}

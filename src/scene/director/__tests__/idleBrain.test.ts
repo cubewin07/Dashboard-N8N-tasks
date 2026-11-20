@@ -4,6 +4,7 @@ import { makeEvent } from '@/domain/__fixtures__/builders'
 import type { EmployeeId } from '@/domain/primitives'
 import { parseIdleBehaviours } from '@/domain/visual'
 import type { PersonActivity } from '@/domain/work'
+import { awayShareIfAway } from '../idleBrain'
 import { isLeisureIntent } from '../intents'
 import { golden, makeWorld, runDirector } from './harness'
 
@@ -128,5 +129,19 @@ describe('P05 calendar (P05-T11)', () => {
 
   it('leisure intents stay classified as leisure', () => {
     expect(isLeisureIntent({ kind: 'IdleAtDesk', pose: 'coffee' })).toBe(true)
+  })
+})
+
+describe('awayShareIfAway', () => {
+  it('counts the chooser once, whether they are away already or not', () => {
+    // 10 people, 2 away, chooser at the desk: 3 would be away.
+    expect(awayShareIfAway(2, 10, false)).toBeCloseTo(0.3)
+    // chooser is one of the 2 away and stays: still 2 away, not 3.
+    expect(awayShareIfAway(2, 10, true)).toBeCloseTo(0.2)
+  })
+
+  it('is safe for an empty department', () => {
+    expect(awayShareIfAway(0, 0, false)).toBe(1)
+    expect(awayShareIfAway(0, 5, true)).toBeCloseTo(0.2)
   })
 })

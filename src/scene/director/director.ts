@@ -17,6 +17,7 @@ import type { NavGrid, Vec2 } from '@/scene/nav/types'
 import { heldItemFor } from './held'
 import type { EmoteKey, IdleBehaviours } from '@/domain/visual'
 import {
+  awayShareIfAway,
   calendarPhase,
   chooseIdle,
   chooseIdleIntent,
@@ -761,14 +762,24 @@ export class Director {
     }
   }
 
-  private idleContext(agent: Agent): IdleContext {
+  /**
+   * The department's away share if this person went (or stayed) away. The
+   * chooser already counts in `away` when they are on a leisure floor now,
+   * so they must not be added a second time.
+   */
+  private awayShareIfAway(agent: Agent): number {
     const c = this.deptCounts.get(agent.departmentId ?? '_')
+    if (!c) return 1
+    return awayShareIfAway(c.away, c.total, agent.intent.kind === 'RestOnLeisureFloor')
+  }
+
+  private idleContext(agent: Agent): IdleContext {
     return {
       layout: this.layout,
       ledger: this.ledger,
       rng: agent.rng,
       homeFloorIndex: agent.desk.floorIndex,
-      deptAwayShare: c && c.total > 0 ? (c.away + 1) / c.total : 1,
+      deptAwayShare: this.awayShareIfAway(agent),
     }
   }
 
@@ -875,7 +886,6 @@ export class Director {
     const dept = agent.departmentId
       ? state.config.departments.find((d) => d.id === agent.departmentId)
       : undefined
-    const c = this.deptCounts.get(agent.departmentId ?? '_')
     const decision = chooseIdle(
       {
         id: agent.id,
@@ -885,7 +895,7 @@ export class Director {
         history: agent.idleHistory,
         is247: dept?.hours === '24_7',
         owner,
-        deptAwayShare: c && c.total > 0 ? (c.away + 1) / c.total : 1,
+        deptAwayShare: this.awayShareIfAway(agent),
       },
       {
         config,
