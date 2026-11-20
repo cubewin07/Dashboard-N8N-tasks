@@ -39,7 +39,7 @@ import {
 } from './intents'
 import { entrancePoint, plan, type PlanContext, type WaitingPlace } from './planner'
 import { isSeatedPose, type PoseKey } from './poses'
-import { makeRng, type Rng } from './rng'
+import { hashString, makeRng, type Rng } from './rng'
 import { allocateSeats, benchOf, linePoint, nearestFree, type SeatPlace } from './seating'
 import { SlotLedger } from './slots'
 import { deskStationOf, headingTo } from './stations'
@@ -133,9 +133,24 @@ interface Agent {
   idleHistory: string[]
   partnerId: EmployeeId | null
   idlePhase: string | null
+  /** `idleKey` the current plan was made for: a partner invited this tick still has the old plan. */
+  planIdleKey: string | null
 }
 
 const TWO_PI = Math.PI * 2
+
+/**
+ * Whether `me` has the speech bubble now in a chatting pair. The two take
+ * turns every `turnSeconds`; each pair starts at its own phase so a room full
+ * of pairs does not blink in step.
+ */
+export function talkTurn(visualT: number, me: string, other: string, turnSeconds: number): boolean {
+  const lower = me < other ? me : other
+  const higher = me < other ? other : me
+  const offset = ((hashString(`${lower}|${higher}`) % 1000) / 1000) * 2 * turnSeconds
+  const window = Math.floor((visualT + offset) / turnSeconds) % 2
+  return (window === 0) === me < other
+}
 
 interface Waiting {
   floorIndex: number
@@ -177,6 +192,8 @@ export class Director {
   private readonly idleConfig: IdleBehaviours | null
   /** Visual seconds since start (alternates the chat bubbles of a pair). */
   private visualT = 0
+  /** Reduced motion: chat bubbles stay on instead of taking turns. */
+  private reducedMotion = false
 
   private grids = new Map<number, NavGrid>()
   private elevatorSystem: ElevatorSystem
@@ -249,6 +266,10 @@ export class Director {
   }
 
   /** Which floors the camera shows (catch-up rule 3). Default: all. */
+  setReducedMotion(reduced: boolean): void {
+    this.reducedMotion = reduced
+  }
+
   setVisibility(visible: ((floorIndex: number) => boolean) | null): void {
     this.visible = visible ?? (() => true)
   }
@@ -534,6 +555,7 @@ export class Director {
       idleHistory: [],
       partnerId: null,
       idlePhase: null,
+      planIdleKey: null,
     }
     if (arriving) {
       const door = entrancePoint(this.layout)
@@ -816,7 +838,10 @@ export class Director {
 
     const intent = deriveIntent(person, state, this.layout, memory)
     const key = intentKey(intent)
-    if (key === agent.intentKey) return
+    if (key === agent.intentKey) {
+      agent.planIdleKey = agent.idleKey
+      return
+    }
 
     if (this.isVertical(agent)) {
       // Mid-ride or in the stairwell: finish the vertical move, then re-plan.
@@ -1091,6 +1116,7 @@ export class Director {
     }
     agent.intent = intent
     agent.intentKey = key
+    agent.planIdleKey = agent.idleKey
     agent.plan = plan(
       intent,
       {
@@ -1336,14 +1362,45 @@ export class Director {
     )
   }
 
-  /** The bubble shown while settled on an idle choice; a chatting pair takes turns. */
+  /**
+   * The bubble shown now. A plan's `emote` step shows its own kind (the
+   * legend explains `stuck` and `wave` because they can be drawn); while
+   * settled on an idle choice it is the option's emote. A chat bubble needs
+   * somebody to chat with, and a chatting pair takes turns (a pair's turns
+   * are offset from other pairs), except under reduced motion, where the
+   * bubble stays on instead of blinking.
+   */
   private emoteOf(agent: Agent): EmoteKey | null {
-    if (!agent.idleEmote || agent.plan[agent.step]?.k !== 'hold' || !isLeisureIntent(agent.intent)) return null
-    if (agent.idleEmote === 'talk' && agent.partnerId) {
-      const window = Math.floor(this.visualT / TUNING.idle.talkTurnSeconds) % 2
-      return (window === 0) === agent.id < agent.partnerId ? 'talk' : null
+    const step = agent.plan[agent.step]
+    if (step?.k === 'emote') return step.seconds > 0 ? step.kind : null
+    if (!agent.idleEmote || step?.k !== 'hold' || !isLeisureIntent(agent.intent)) return null
+    // Just chosen this tick: the plan to get there is not made yet.
+    if (agent.planIdleKey !== agent.idleKey) return null
+    if (agent.idleEmote !== 'talk') return agent.idleEmote
+    if (!this.hasCompany(agent)) return null
+    const partner = agent.partnerId ? this.agents.get(agent.partnerId) : undefined
+    if (!partner || this.reducedMotion) return 'talk'
+    return talkTurn(this.visualT, agent.id, partner.id, TUNING.idle.talkTurnSeconds) ? 'talk' : null
+  }
+
+  /** Someone settled on the same idle choice, close by: the person to talk to. */
+  private hasCompany(agent: Agent): boolean {
+    const settled = (other: Agent): boolean =>
+      other !== agent &&
+      !other.gone &&
+      other.idleKey === agent.idleKey &&
+      other.planIdleKey === other.idleKey &&
+      other.sim.floorIndex === agent.sim.floorIndex &&
+      other.plan[other.step]?.k === 'hold' &&
+      isLeisureIntent(other.intent)
+    if (agent.partnerId) {
+      const partner = this.agents.get(agent.partnerId)
+      return partner !== undefined && settled(partner)
     }
-    return agent.idleEmote
+    for (const other of this.order) {
+      if (settled(other) && Math.hypot(other.bx - agent.bx, other.bz - agent.bz) < TUNING.idle.chatReachMetres) return true
+    }
+    return false
   }
 
   private walkPose(agent: Agent): PoseKey {

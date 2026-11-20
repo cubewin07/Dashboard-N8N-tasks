@@ -203,12 +203,13 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
 
   useEffect(() => {
     reducedMotionRef.current = reducedMotion
+    director.setReducedMotion(reducedMotion)
     visualRef.current?.setReducedMotion(reducedMotion)
     indicatorsRef.current?.setReducedMotion(reducedMotion)
     peopleRuntime.ringPulse = indicatorsRef.current?.rings.pulseAmplitude ?? 0
     settleRef.current = 30
     invalidate()
-  }, [reducedMotion, invalidate])
+  }, [director, reducedMotion, invalidate])
 
   // Dev only: `#/office?debug=idle` opens the idle pose / emote gallery.
   useEffect(() => {

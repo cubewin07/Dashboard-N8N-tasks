@@ -18,6 +18,7 @@ export const TUNING = {
   fadeSeconds: 0.3,
   dropWaitSeconds: 1,
   askChatSeconds: 3,
+  askWaveSeconds: 1.2,
   pickSeconds: 0.35,
 
   /** Sim-speed → movement factor anchors (rate, factor), log-interpolated. */
@@ -55,6 +56,8 @@ export const TUNING = {
     firstDwellScale: 0.5,
     /** P05: a chatting pair takes turns showing the speech bubble. */
     talkTurnSeconds: 2.5,
+    /** A chat bubble needs a settled person within this distance on the same choice. */
+    chatReachMetres: 3,
   },
 
   separation: {

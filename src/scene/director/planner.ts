@@ -220,6 +220,7 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
       standUp(out, me)
       travel(out, cursor, ctx, target.floorIndex, visitorPoint(ctx, target, me.id), mode)
       out.push({ k: 'face', toward: target.seat })
+      out.push({ k: 'emote', kind: 'wave', seconds: TUNING.askWaveSeconds })
       out.push({
         k: 'emote',
         kind: 'talk',
