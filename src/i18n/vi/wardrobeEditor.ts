@@ -78,6 +78,7 @@ export const wardrobeEditor = {
     skin: 'Màu da',
     hair: 'Màu tóc',
     eyes: 'Màu mắt',
+    blush: 'Má hồng',
     forItem: 'Màu cho {item}',
     region: { primary: 'Chính', secondary: 'Phụ', accent: 'Điểm nhấn' },
     group: 'Chọn màu {name}',

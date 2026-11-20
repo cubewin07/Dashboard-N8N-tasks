@@ -161,6 +161,17 @@ function SlotTab({ spec, doc, catalog, onPick, onEdit }: SlotTabProps) {
           onPick={(key) => onEdit({ ...doc, face: { ...doc.face, eyeColor: key } })}
         />
       ) : null}
+      {spec.key === 'face' ? (
+        <label className="flex min-h-11 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            className="size-4 accent-primary"
+            checked={doc.face.blush}
+            onChange={(e) => onEdit({ ...doc, face: { ...doc.face, blush: e.target.checked } })}
+          />
+          {text.colors.blush}
+        </label>
+      ) : null}
       {spec.key === 'hair' ? (
         <CharacterColor
           group="hair"

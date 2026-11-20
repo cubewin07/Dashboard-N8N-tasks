@@ -80,6 +80,7 @@ export const wardrobeEditor: typeof vi = {
     skin: 'Skin tone',
     hair: 'Hair colour',
     eyes: 'Eye colour',
+    blush: 'Blush',
     forItem: 'Colour for {item}',
     region: { primary: 'Main', secondary: 'Secondary', accent: 'Accent' },
     group: 'Choose {name} colour',

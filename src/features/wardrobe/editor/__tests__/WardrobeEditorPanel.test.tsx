@@ -140,6 +140,16 @@ describe('colour pickers', () => {
     expect(within(group).getByRole('radio', { name: second.label.vi }).getAttribute('aria-checked')).toBe('true')
   })
 
+  it('toggles blush on the face tab', () => {
+    const doc = load()
+    renderPanel()
+    openTab('Mặt')
+    const box = screen.getByRole('checkbox', { name: 'Má hồng' })
+    expect((box as HTMLInputElement).checked).toBe(doc.face.blush)
+    fireEvent.click(box)
+    expect(useWardrobeEditor.getState().draft!.face.blush).toBe(!doc.face.blush)
+  })
+
   it('offers fabric swatches for a tinted top and stores the region colour', () => {
     load()
     renderPanel()
