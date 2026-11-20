@@ -463,7 +463,8 @@ def _hip_rings(ctx) -> list[float]:
 def build_skirt_mini(ctx):
     z_hem = ctx.hips_mn.z - 0.150
     rings = _hip_rings(ctx) + [ctx.hips_mn.z - 0.060]
-    bm = _build_skirt(ctx, z_hem=z_hem, ring_zs=rings, n=24, hip_off=0.030, flare=0.070, swatch="c_denim", yoke=0.030)
+    # Yoke 18 mm (was 30): the top ring sits at the shortest top hem line, and tops are only 17-24 mm thick there.
+    bm = _build_skirt(ctx, z_hem=z_hem, ring_zs=rings, n=24, hip_off=0.030, flare=0.070, swatch="c_denim", yoke=0.018)
     return _skirt_fit(ctx, bm, _skirt_leg_weights(ctx))
 
 
