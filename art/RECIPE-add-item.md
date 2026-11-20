@@ -11,7 +11,8 @@ no logos or copied brand designs).
 
 ```bash
 npm ci                                  # once (the build scripts use @gltf-transform)
-npm run art:build -- body               # once: base bodies into art/.cache/raw/characters
+npm run art:build -- body               # once: base bodies into art/.cache/raw/characters (needed for §7)
+npm run art:build -- wardrobe           # once, ~15 s: every raw item (the layering test in §6 needs all of them)
 ```
 
 Blender lives at `/Applications/Blender.app/Contents/MacOS/Blender` (override with `BLENDER_BIN`). Everything in
@@ -33,7 +34,9 @@ Blender lives at `/Applications/Blender.app/Contents/MacOS/Blender` (override wi
 
 ## 2. Write the builder
 
-Copy the nearest existing item in the same module (or in `starters.py`) and change its parameters. Put new helpers in
+Copy the nearest existing item (`starters.py`, or `tops.py` for tops) and change its parameters. A new module file in
+`items_skinned/` (or `items_rigid/`) is picked up automatically; it can import helpers from a sibling module
+(`from items_skinned.tops import _build_top, _fit_kwargs`). Put new helpers in
 your module; do not change the shared libs (`art/blender/lib/*.py`) for one item.
 
 **Skinned** (`items_skinned/`): `build(ctx) -> (bmesh, fit_kwargs)`. `ctx` holds one base body's measurements and
@@ -62,6 +65,12 @@ def build_top_example_01(ctx):
 
 register("top_example_01", "top", ("female", "male"), build_top_example_01)
 ```
+
+Tops: `tops._build_top(ctx, parts={...}, sleeve="long"|"short"|"none", sleeve_len=…, neck="crew"|"shirt"|"v"|"scoop"|"high",
+collar=None|"rim"|"shirt"|"polo"|"turtle", placket=…, buttons=…, off_hips=…, …)` is richer than the
+`lib.garments.build_top_mesh` of the example above; `parts` maps a part name to `(swatch, tint slot)`, and the tint slot
+names (`primary`/`secondary`/`accent`) must match the catalogue row's `tint.regions`. You can post-process the returned
+bmesh (e.g. delete faces for a slit) before returning it.
 
 Layer offsets (skin to garment surface): bottoms 9.5–10.5 mm at the waist, tops 17–24 mm torso / ≤ 19 mm sleeves,
 outer layers ≥ 32 mm torso / ≥ 27 mm sleeves. Skirts and long panels use the leg blend
@@ -94,13 +103,17 @@ npm run art:build -- rigid --only glasses_example_01     # rigid
 
 The skinned pipeline fits the mesh to each base, tests clipping on 34 shape-key combos and 3 poses, narrows
 `bodyLimits` where needed, and writes `art/.cache/raw/wardrobe/<id>_<f|m>.glb`, `<id>.meta.json` and
-`art/out/reports/<id>.json`. Read the `OK` line: `tris`, `pen` (max penetration, must be ≤ 5 mm), `limits`.
+`art/out/reports/<id>.json`. The npm output only prints `tris`; read `pen` (`maxPenetrationMm`, must be ≤ 5 mm), `bodyLimits` and `hideRegions`
+per base from `art/out/reports/<id>.json`.
 Then copy into the app and refresh the generated lists:
 
 ```bash
 npm run assets:optimize -- top_example_01_f top_example_01_m   # GLB stems; rigid: glasses_example_01
 npm run assets:manifest && npm run assets:credits              # manifest + licence ledger + credits.json
 ```
+
+Run `assets:manifest && assets:credits` again after §5 (the thumbnail needs its own credits row, otherwise
+`assets:check` fails).
 
 ## 4. Catalogue row
 
@@ -158,8 +171,13 @@ Render a contact sheet on both bases and open the PNGs:
   --out-dir art/out/contact --prefix top_example_01_f
 ```
 
-Pass several comma-separated GLBs to `--garments` to see layers together (e.g. a top over a bottom). Look for floating
+Check both bases (`_f`/`_m` with `body_female`/`body_male`). Read `*_shapes_front.png` and `*_shapes_3q.png` to judge the
+shape; garments show the untinted red debug colour. The `*_poses_*.png` sheets show the body torso poking through
+every top (also the shipped ones), so they are not a clipping verdict; the pipeline's `pen` per pose is. Pass several comma-separated GLBs to `--garments` to see layers together (e.g. a top over a bottom). Look for floating
 parts, gaps, spikes, inside-out faces, clipping in poses and shapes that don't read at small size.
+
+Layering failures with `outer_*` items and `bottom_skirt_mini_01` currently appear for every shipped top as well
+(e.g. 10–26 mm); judge your item by comparing with a shipped top (`--only top_sweater_01`).
 
 ## 8. Commit
 
