@@ -23,6 +23,7 @@
     "art:sheets": "node scripts/art-sheets.mjs",
     "thumbs:render": "node scripts/thumbs-render.mjs",
     "catalog:layering": "node scripts/layering-test.mjs",
+    "catalog:budget": "node scripts/catalog-budget.mjs",
     "assets:optimize": "node scripts/assets-optimize.mjs",
     "assets:manifest": "node scripts/assets-manifest.mjs",
     "assets:credits": "node scripts/assets-credits.mjs",
