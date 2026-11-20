@@ -330,7 +330,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       input.opacity = hidden ? 0 : sim.opacity
       input.lod = 0
     }
-    visual.sync(inputs, sims.length, factor > 0 ? dt : 0)
+    visual.sync(inputs, sims.length, dt, factor > 0 ? dt : 0)
     cars.update(director.elevators(), alpha)
 
     const label = labelRef.current

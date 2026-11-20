@@ -43,10 +43,11 @@ export interface PersonVisualSystem {
   /** Add this to the scene. */
   readonly object: THREE.Object3D
   /**
-   * Draw the first `count` inputs. `dt` is animation time in seconds: 0
-   * while the office is paused, so poses freeze.
+   * Draw the first `count` inputs. `dt` is real seconds since the last draw
+   * (fades, rings and heading keep easing while paused); `animDt` is
+   * animation time, 0 while the office is paused so poses freeze.
    */
-  sync(inputs: readonly PersonVisualInput[], count: number, dt: number): void
+  sync(inputs: readonly PersonVisualInput[], count: number, dt: number, animDt?: number): void
   /** The person under a world-space ray, nearest first. */
   pick(ray: THREE.Ray): EmployeeId | null
   /** World position just above a person's head (labels). False when not drawn. */

@@ -90,11 +90,18 @@ export function capsulePose(
   switch (key) {
     case 'walk':
     case 'carry_walk': {
-      const k = Math.min(1, Math.max(0.35, speed01)) * motion
-      out.lift += Math.abs(Math.sin(gait)) * 0.04 * k
+      // Everything scales with the (eased) speed, so a person who has just
+      // stopped no longer bobs on the spot.
+      const k = Math.min(1, Math.max(0, speed01)) * motion
+      const step = Math.abs(Math.sin(gait))
+      out.lift += step * 0.04 * k
       out.roll = Math.sin(gait) * 6 * DEG * k
-      out.pitch = (key === 'carry_walk' ? 2 : 5) * DEG
+      out.pitch = (key === 'carry_walk' ? 2 : 5) * DEG * Math.min(1, speed01)
       out.nod = (key === 'carry_walk' ? 8 : 0) * DEG
+      // Footfall: the body dips a touch as each foot lands (step ≈ 0) and the
+      // head nods a little after it.
+      out.squash -= (1 - step) ** 6 * 0.022 * k
+      out.nod += Math.cos(gait * 2) * 2.5 * DEG * k
       break
     }
     case 'stand':
@@ -223,4 +230,31 @@ export function blendPose(current: CapsulePose, target: CapsulePose, k: number):
 export function poseTop(pose: CapsulePose): number {
   const upright = CAPSULE.standTop - (1 - pose.squash) * CAPSULE.bodyHeight
   return pose.lift + upright + (CAPSULE.lyingTop - CAPSULE.bedHeight - upright) * pose.lie
+}
+
+
+const TWO_PI = Math.PI * 2
+
+/** Smallest signed angle from `from` to `to`, in (−π, π]. */
+export function shortestArc(from: number, to: number): number {
+  let d = (to - from) % TWO_PI
+  if (d > Math.PI) d -= TWO_PI
+  else if (d <= -Math.PI) d += TWO_PI
+  return d
+}
+
+/** Move `current` towards `target` along the shortest arc by the fraction `k` (0..1). */
+export function easeYaw(current: number, target: number, k: number): number {
+  return current + shortestArc(current, target) * k
+}
+
+/** Frame-rate independent smoothing factor: 1 − e^(−rate·dt); 1 when dt is 0 (snap). */
+export function smoothing(rate: number, dt: number): number {
+  return dt > 0 ? 1 - Math.exp(-rate * dt) : 1
+}
+
+/** Roll (radians) that leans a walker into a turn; `yawRate` in rad/s, positive = turning left. */
+export function leanForTurn(yawRate: number, speed01: number, motion: number): number {
+  const lean = Math.max(-0.16, Math.min(0.16, yawRate * 0.045))
+  return -lean * Math.min(1, speed01) * motion
 }

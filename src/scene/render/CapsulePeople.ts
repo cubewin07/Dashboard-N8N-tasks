@@ -6,8 +6,11 @@ import {
   blendPose,
   CAPSULE,
   capsulePose,
+  easeYaw,
+  leanForTurn,
   poseTop,
   restPose,
+  smoothing,
   type CapsulePose,
 } from './capsulePose'
 import { getSwatchColor, SCENE_PALETTE } from './palette'
@@ -25,6 +28,12 @@ interface Anim {
   gait: number
   lastX: number
   lastZ: number
+  /** Eased heading (world yaw): the director turns at 10 Hz, the eye sees 60. */
+  yaw: number
+  /** Eased 0..1 walking speed, so walking starts and stops smoothly. */
+  speed: number
+  /** Extra roll leaning into the current turn. */
+  lean: number
   fade: number
   ring: number
   seen: number
@@ -206,12 +215,20 @@ export class CapsulePeople implements PersonVisualSystem {
     this.motion = reduced ? 0 : 1
   }
 
-  sync(inputs: readonly PersonVisualInput[], count: number, dt: number): void {
+  /**
+   * `dt` is real time (fades, selection rings and heading keep easing while
+   * the office is paused); `animDt` is animation time, 0 while paused so
+   * poses freeze.
+   */
+  sync(inputs: readonly PersonVisualInput[], count: number, dt: number, animDt: number = dt): void {
     const n = Math.min(count, this.capacity)
     this.frame += 1
-    this.time += dt
-    const blend = dt > 0 ? 1 - Math.exp(-14 * dt) : 0
-    const fadeStep = dt > 0 ? 1 - Math.exp(-9 * dt) : 1
+    this.time += animDt
+    const blend = animDt > 0 ? 1 - Math.exp(-14 * animDt) : 0
+    const fadeStep = smoothing(9, dt)
+    const yawStep = smoothing(12, dt)
+    const ringStep = smoothing(16, dt)
+    const speedStep = smoothing(7, animDt)
     const fades = this.fade.array as Float32Array
 
     for (let i = 0; i < n; i += 1) {
@@ -224,21 +241,42 @@ export class CapsulePeople implements PersonVisualSystem {
           gait: 0,
           lastX: p.x,
           lastZ: p.z,
+          yaw: p.yaw,
+          speed: p.speed01,
+          lean: 0,
           fade: p.opacity,
           ring: 0,
           seen: this.frame,
         }
         this.anims.set(p.id, anim)
       }
+      // Hidden people (stairwell, teleport, hire arriving) face the right way when they reappear.
+      if (anim.fade < 0.02) {
+        anim.yaw = p.yaw
+        anim.speed = p.speed01
+        anim.lean = 0
+      }
       anim.seen = this.frame
+
+      // Ease the facing along the shortest arc; the roll leans into the turn.
+      const before = anim.yaw
+      anim.yaw = easeYaw(anim.yaw, p.yaw, yawStep)
+      anim.speed += (p.speed01 - anim.speed) * speedStep
+      if (animDt > 0) {
+        let delta = anim.yaw - before
+        if (delta > Math.PI) delta -= Math.PI * 2
+        else if (delta < -Math.PI) delta += Math.PI * 2
+        const target = leanForTurn(delta / animDt, anim.speed, this.motion)
+        anim.lean += (target - anim.lean) * smoothing(10, animDt)
+      }
 
       // The walk cycle follows the ground actually covered, so feet never skate.
       const moved = Math.hypot(p.x - anim.lastX, p.z - anim.lastZ)
       anim.lastX = p.x
       anim.lastZ = p.z
-      if (dt > 0 && moved < 2) anim.gait += moved * GAIT_PER_METRE
+      if (animDt > 0 && moved < 2) anim.gait += moved * GAIT_PER_METRE
 
-      capsulePose(p.pose, p.seated, this.time, anim.phase, anim.gait, p.speed01, this.motion, tmpTarget)
+      capsulePose(p.pose, p.seated, this.time, anim.phase, anim.gait, anim.speed, this.motion, tmpTarget)
       if (blend > 0) blendPose(anim.pose, tmpTarget, blend)
       const pose = anim.pose
 
@@ -259,10 +297,11 @@ export class CapsulePeople implements PersonVisualSystem {
       }
 
       // Body: feet at the logical position, leaning and bobbing around them.
-      const sin = Math.sin(p.yaw)
-      const cos = Math.cos(p.yaw)
+      const yaw = anim.yaw
+      const sin = Math.sin(yaw)
+      const cos = Math.cos(yaw)
       const lie = pose.lie
-      tmpEuler.set(pose.pitch - lie * (Math.PI / 2), p.yaw, pose.roll)
+      tmpEuler.set(pose.pitch - lie * (Math.PI / 2), yaw, pose.roll + anim.lean)
       tmpQuat.setFromEuler(tmpEuler)
       // Lying: the capsule rests on its side, centred on the bed.
       const forward = lie * (CAPSULE.bodyHeight + CAPSULE.headRadius) * 0.5
@@ -306,7 +345,7 @@ export class CapsulePeople implements PersonVisualSystem {
 
       // Ground ring for whoever the boss is pointing at.
       const ringTarget = p.followed ? 1.15 : p.selected ? 1 : p.hovered ? 0.85 : 0
-      anim.ring += (ringTarget - anim.ring) * (dt > 0 ? 1 - Math.exp(-16 * dt) : 1)
+      anim.ring += (ringTarget - anim.ring) * ringStep
       if (anim.ring > 0.02) {
         const pulse = p.followed ? 1 + Math.sin(this.time * 4) * 0.06 * this.motion : 1
         tmpPos.set(p.x, p.y + 0.035, p.z)
