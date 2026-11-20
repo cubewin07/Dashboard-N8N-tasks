@@ -68,6 +68,7 @@ export default tseslint.config(
       'src/office/configStore.ts',
       'src/office/__tests__/**/*.{ts,tsx}',
       'src/app/providers.tsx',
+      'src/app/authRegistry.ts',
     ],
     rules: {
       'no-restricted-imports': [
@@ -77,7 +78,7 @@ export default tseslint.config(
             {
               group: ['@/adapters/*', '@/adapters/**', '**/adapters/*'],
               message:
-                'Adapters may only be imported in src/office/feedRegistry.ts, src/office/configStore.ts, or src/app/providers.tsx.',
+                'Adapters may only be imported in src/office/feedRegistry.ts, src/office/configStore.ts, src/app/providers.tsx, or src/app/authRegistry.ts.',
             },
           ],
         },
