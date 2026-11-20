@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { EmployeeId } from '@/domain/primitives'
 import type { OfficeState } from '@/domain/work'
@@ -7,7 +7,7 @@ import { useOffice } from '@/office/store'
 import { visualLanguage } from '@/office/visualConfig'
 import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
-import { DESK_SLOT_TYPES, deskGlowFor, progressArc, showsProgress } from './deskStatusModel'
+import { DESK_SLOT_TYPES, deskGlowFor, easeProgress, progressArc, showsProgress } from './deskStatusModel'
 import { getSwatchColor } from './palette'
 import { activeFloorIndexOf, DESK_TOP, isCutAway, placeInSlot } from './place'
 
@@ -59,6 +59,7 @@ void main() {
 
 export interface DeskStatusProps {
   layout: BuildingLayout
+  reducedMotion?: boolean
 }
 
 /**
@@ -68,7 +69,8 @@ export interface DeskStatusProps {
  * the whole building; rewritten only when the office state or the cutaway
  * changes.
  */
-export function DeskStatus({ layout }: DeskStatusProps) {
+export function DeskStatus({ layout, reducedMotion = false }: DeskStatusProps) {
+  const invalidate = useThree((s) => s.invalidate)
   const desks = useMemo(() => {
     const out: DeskSpot[] = []
     for (const floor of layout.floors) {
@@ -81,6 +83,11 @@ export function DeskStatus({ layout }: DeskStatusProps) {
   const capacity = Math.max(1, desks.length)
   const monitorRef = useRef<THREE.InstancedMesh>(null)
   const ringRef = useRef<THREE.InstancedMesh>(null)
+  // Progress the arc is drawn at, gliding to `target` (per desk; -1 = no ring).
+  const shownRef = useRef<{ shown: Float32Array; target: Float32Array }>({
+    shown: new Float32Array(0),
+    target: new Float32Array(0),
+  })
   const lastRef = useRef<{ state: OfficeState | null; active: number | null; desks: DeskSpot[] | null }>({
     state: null,
     active: null,
@@ -127,19 +134,37 @@ export function DeskStatus({ layout }: DeskStatusProps) {
       mesh.instanceMatrix.needsUpdate = true
     }
     lastRef.current = { state: null, active: null, desks: null }
+    shownRef.current = {
+      shown: new Float32Array(capacity).fill(-1),
+      target: new Float32Array(capacity).fill(-1),
+    }
   }, [capacity, desks])
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const monitors = monitorRef.current
     const rings = ringRef.current
     const state = useOffice.getState().state
     if (!monitors || !rings || !state) return
     const active = activeFloorIndexOf(layout, useViewStore.getState())
     const last = lastRef.current
-    if (last.state === state && last.active === active && last.desks === desks) return
-    lastRef.current = { state, active, desks }
-
     const progressAttr = rings.geometry.getAttribute('aProgress') as THREE.InstancedBufferAttribute
+    const { shown, target } = shownRef.current
+    if (last.state === state && last.active === active && last.desks === desks) {
+      // Nothing new: only let the arcs glide towards their targets.
+      let moving = false
+      for (let i = 0; i < desks.length; i += 1) {
+        if (shown[i] === target[i]) continue
+        shown[i] = easeProgress(shown[i]!, target[i]!, delta, reducedMotion)
+        progressAttr.setX(i, shown[i]!)
+        moving = true
+      }
+      if (moving) {
+        progressAttr.needsUpdate = true
+        invalidate()
+      }
+      return
+    }
+    lastRef.current = { state, active, desks }
     const glow = visualLanguage.deskGlow
     for (let i = 0; i < desks.length; i += 1) {
       const desk = desks[i]!
@@ -147,6 +172,8 @@ export function DeskStatus({ layout }: DeskStatusProps) {
       if (!floor || isCutAway(desk.floorIndex, active)) {
         monitors.setMatrixAt(i, ZERO)
         rings.setMatrixAt(i, ZERO)
+        shown[i] = -1
+        target[i] = -1
         continue
       }
       const ownerId: EmployeeId | undefined = floor.occupants[desk.slotId]
@@ -169,15 +196,22 @@ export function DeskStatus({ layout }: DeskStatusProps) {
         tmp.scale.set(1, 1, 1)
         tmp.updateMatrix()
         rings.setMatrixAt(i, tmp.matrix)
-        progressAttr.setX(i, progressArc(task.progress).fraction)
+        const fraction = progressArc(task.progress).fraction
+        // A ring that was hidden starts from its new value; a shown one glides.
+        if (shown[i]! < 0) shown[i] = fraction
+        target[i] = fraction
+        progressAttr.setX(i, shown[i]!)
       } else {
         rings.setMatrixAt(i, ZERO)
+        shown[i] = -1
+        target[i] = -1
       }
     }
     monitors.instanceMatrix.needsUpdate = true
     if (monitors.instanceColor) monitors.instanceColor.needsUpdate = true
     rings.instanceMatrix.needsUpdate = true
     progressAttr.needsUpdate = true
+    invalidate()
   })
 
   return (

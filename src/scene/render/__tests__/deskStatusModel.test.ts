@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { arcCovers, deskGlowFor, progressArc, showsProgress } from '../deskStatusModel'
+import { arcCovers, deskGlowFor, easeProgress, progressArc, showsProgress } from '../deskStatusModel'
 
 describe('deskGlowFor (P05-T04)', () => {
   it('maps activity and task status to a monitor glow', () => {
@@ -40,5 +40,24 @@ describe('progressArc', () => {
     expect(progressArc(Number.NaN).fraction).toBe(0)
     expect(arcCovers(0, 0)).toBe(false)
     expect(arcCovers(Math.PI * 1.99, 1)).toBe(true)
+  })
+})
+
+describe('easeProgress', () => {
+  it('glides towards the target and never overshoots', () => {
+    let v = 0
+    for (let i = 0; i < 10; i += 1) {
+      const next = easeProgress(v, 0.8, 0.05, false)
+      expect(next).toBeGreaterThan(v)
+      expect(next).toBeLessThanOrEqual(0.8)
+      v = next
+    }
+    expect(v).toBeLessThan(0.8)
+    expect(easeProgress(0.799, 0.8, 0.05, false)).toBe(0.8)
+  })
+
+  it('goes back down too, and snaps under reduced motion', () => {
+    expect(easeProgress(0.9, 0.2, 0.1, false)).toBeLessThan(0.9)
+    expect(easeProgress(0, 0.8, 0.1, true)).toBe(0.8)
   })
 })

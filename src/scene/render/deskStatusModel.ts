@@ -64,3 +64,14 @@ export function arcCovers(angle: number, fraction: number): boolean {
   const a = ((angle % twoPi) + twoPi) % twoPi
   return a / twoPi < fraction
 }
+
+/**
+ * One step of the progress-ring ease: the arc glides to its new fraction
+ * (exponential, the same at any frame rate) and snaps when close or when
+ * motion is reduced. A task that restarts (progress falls) also glides.
+ */
+export function easeProgress(current: number, target: number, dt: number, reduced: boolean): number {
+  if (reduced || Math.abs(target - current) < 0.002) return target
+  const t = 1 - Math.exp(-6 * Math.max(0, dt))
+  return current + (target - current) * t
+}

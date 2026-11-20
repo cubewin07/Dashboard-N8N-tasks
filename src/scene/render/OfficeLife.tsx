@@ -22,7 +22,7 @@ export interface OfficeLifeProps {
 export function OfficeLife({ layout, reducedMotion = false }: OfficeLifeProps) {
   return (
     <group name="office-life">
-      <DeskStatus layout={layout} />
+      <DeskStatus layout={layout} reducedMotion={reducedMotion} />
       <DocPiles layout={layout} />
       <Decor layout={layout} />
       <WallClock layout={layout} />
