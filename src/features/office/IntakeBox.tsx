@@ -30,8 +30,8 @@ export function IntakeBox({
 
     const cmdId = newId('cmd', wallUlid)
     setLastCmdId(cmdId)
-    setText('')
-    void send({
+    // Clear the box only once the command is accepted, so a failed send keeps the text.
+    send({
       v: 1,
       id: cmdId,
       type: 'intake.submit',
@@ -45,6 +45,14 @@ export function IntakeBox({
         modality: 'text',
       },
     })
+      .then((ack) => {
+        if (ack.status === 'accepted') {
+          setText((current) => (current.trim() === trimmed ? '' : current))
+        }
+      })
+      .catch(() => {
+        // The store records the failure; the text stays so the boss can retry.
+      })
   }
 
   const mappedState =
@@ -55,7 +63,7 @@ export function IntakeBox({
       data-intake-box
       onSubmit={handleSubmit}
       className={cn(
-        'flex items-center gap-2',
+        'flex flex-wrap items-center gap-2 sm:flex-nowrap',
         compact
           ? 'w-full max-w-md'
           : 'rounded-[14px] border border-border bg-surface p-3',
@@ -71,9 +79,11 @@ export function IntakeBox({
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={t.queue.intake.placeholder}
+        placeholder={
+          compact ? t.queue.intake.placeholderShort : t.queue.intake.placeholder
+        }
         className={cn(
-          'min-w-0 flex-1 rounded-lg border border-border bg-surface-muted/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none',
+          'min-w-0 flex-1 rounded-lg border border-border bg-surface-muted/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring',
           compact ? 'h-9 text-xs sm:text-sm' : 'h-10',
         )}
       />
@@ -89,11 +99,16 @@ export function IntakeBox({
           {t.queue.intake.submit}
         </span>
       </Button>
-      {lastCmdId && mappedState !== 'idle' && (
-        <span data-intake-status className=" hidden text-xs text-muted-foreground sm:inline-flex">
+      <span
+        role="status"
+        aria-live="polite"
+        data-intake-status
+        className="inline-flex min-w-0 basis-full text-xs text-muted-foreground empty:sr-only sm:basis-auto"
+      >
+        {lastCmdId && mappedState !== 'idle' ? (
           <CommandStatusText state={mappedState} result={cmdStatus.reason} />
-        </span>
-      )}
+        ) : null}
+      </span>
     </form>
   )
 }

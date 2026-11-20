@@ -39,6 +39,7 @@ export const queue: typeof viQueue = {
   intake: {
     label: 'Message the manager',
     placeholder: 'Message the manager… (e.g. Create 12.12 sale banner for Shopee 1)',
+    placeholderShort: 'Message the manager…',
     submit: 'Send request',
     sentHint: 'Sent request to manager Thu',
   },

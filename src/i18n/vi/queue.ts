@@ -37,6 +37,7 @@ export const queue = {
   intake: {
     label: 'Nhắn cho quản lý',
     placeholder: 'Nhắn cho quản lý… (VD: Làm banner sale 12.12 cho Shopee 1)',
+    placeholderShort: 'Nhắn cho quản lý…',
     submit: 'Gửi yêu cầu',
     sentHint: 'Đã gửi yêu cầu cho quản lý Thu',
   },
