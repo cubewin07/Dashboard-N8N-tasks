@@ -1,0 +1,27 @@
+{
+  "id": "head_headband_01",
+  "slot": "head",
+  "kind": "rigid",
+  "bone": "Head",
+  "merge": true,
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/head_headband_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    },
+    "male": {
+      "file": "models/wardrobe/head_headband_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    }
+  }
+}
