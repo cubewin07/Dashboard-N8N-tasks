@@ -155,6 +155,8 @@ test.describe.serial('P06b-T09 office lighting pass', () => {
     test.setTimeout(90_000)
     await openOffice(page)
     await readDebug(page, (dbg) => dbg.camera?.setUnlitQuadVisible?.(false))
+    // The sky samples sit at the top right, under the sim panel: hide it for the shots.
+    await page.addStyleTag({ content: '[data-sim-control-panel] { visibility: hidden !important; }' })
 
     const canvas = page.locator('canvas')
 
