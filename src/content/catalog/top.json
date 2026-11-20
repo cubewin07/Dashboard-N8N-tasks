@@ -56,6 +56,176 @@
       "hides": [],
       "tags": ["casual", "winter"],
       "credit": "own-generated"
+    },
+    {
+      "id": "top_tshirt_v_01",
+      "slot": "top",
+      "label": {"vi": "Áo thun cổ chữ V", "en": "V-neck T-shirt"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_tshirt_v_01_f.glb",
+        "male": "models/wardrobe/top_tshirt_v_01_m.glb"
+      },
+      "thumb": "thumbs/top_tshirt_v_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": {"primary": "c_sky"}
+      },
+      "hides": [],
+      "tags": ["casual", "summer"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_tshirt_graphic_01",
+      "slot": "top",
+      "label": {"vi": "Áo thun phối khối màu", "en": "Colour-block T-shirt"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_tshirt_graphic_01_f.glb",
+        "male": "models/wardrobe/top_tshirt_graphic_01_m.glb"
+      },
+      "thumb": "thumbs/top_tshirt_graphic_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "secondary", "accent"],
+        "defaults": {"primary": "c_white", "secondary": "c_denim", "accent": "c_coral"}
+      },
+      "hides": [],
+      "tags": ["casual", "summer"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_polo_01",
+      "slot": "top",
+      "label": {"vi": "Áo polo", "en": "Polo shirt"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_polo_01_f.glb",
+        "male": "models/wardrobe/top_polo_01_m.glb"
+      },
+      "thumb": "thumbs/top_polo_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {"primary": "c_navy", "accent": "c_white"}
+      },
+      "hides": [],
+      "tags": ["office", "casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_shirt_short_01",
+      "slot": "top",
+      "label": {"vi": "Áo sơ mi ngắn tay", "en": "Short-sleeve shirt"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_shirt_short_01_f.glb",
+        "male": "models/wardrobe/top_shirt_short_01_m.glb"
+      },
+      "thumb": "thumbs/top_shirt_short_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "secondary"],
+        "defaults": {"primary": "c_sky", "secondary": "c_white"}
+      },
+      "hides": [],
+      "tags": ["office", "summer"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_blouse_01",
+      "slot": "top",
+      "label": {"vi": "Áo kiểu nữ thắt nơ", "en": "Bow blouse"},
+      "bases": ["female"],
+      "model": {
+        "female": "models/wardrobe/top_blouse_01_f.glb"
+      },
+      "thumb": "thumbs/top_blouse_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {"primary": "c_cream", "accent": "c_rose"}
+      },
+      "hides": [],
+      "tags": ["office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_sweater_01",
+      "slot": "top",
+      "label": {"vi": "Áo len dài tay", "en": "Knit sweater"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_sweater_01_f.glb",
+        "male": "models/wardrobe/top_sweater_01_m.glb"
+      },
+      "thumb": "thumbs/top_sweater_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {"primary": "c_grey", "accent": "c_charcoal"}
+      },
+      "hides": [],
+      "tags": ["office", "winter"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_vest_knit_01",
+      "slot": "top",
+      "label": {"vi": "Áo gile len", "en": "Knit sweater vest"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_vest_knit_01_f.glb",
+        "male": "models/wardrobe/top_vest_knit_01_m.glb"
+      },
+      "thumb": "thumbs/top_vest_knit_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "secondary"],
+        "defaults": {"primary": "c_olive", "secondary": "c_white"}
+      },
+      "hides": [],
+      "tags": ["office", "winter"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_tank_01",
+      "slot": "top",
+      "label": {"vi": "Áo ba lỗ", "en": "Tank top"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_tank_01_f.glb",
+        "male": "models/wardrobe/top_tank_01_m.glb"
+      },
+      "thumb": "thumbs/top_tank_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": {"primary": "c_white"}
+      },
+      "hides": [],
+      "tags": ["casual", "summer"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "top_turtleneck_01",
+      "slot": "top",
+      "label": {"vi": "Áo len cổ lọ", "en": "Turtleneck"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_turtleneck_01_f.glb",
+        "male": "models/wardrobe/top_turtleneck_01_m.glb"
+      },
+      "thumb": "thumbs/top_turtleneck_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": {"primary": "c_charcoal"}
+      },
+      "hides": [],
+      "tags": ["office", "winter"],
+      "credit": "own-generated"
     }
   ]
 }
