@@ -172,8 +172,9 @@ Render a contact sheet on both bases and open the PNGs:
 ```
 
 Check both bases (`_f`/`_m` with `body_female`/`body_male`). Read `*_shapes_front.png` and `*_shapes_3q.png` to judge the
-shape; garments show the untinted red debug colour. The `*_poses_*.png` sheets show the body torso poking through
-every top (also the shipped ones), so they are not a clipping verdict; the pipeline's `pen` per pose is. Pass several comma-separated GLBs to `--garments` to see layers together (e.g. a top over a bottom). Look for floating
+shape; garments show the untinted red debug colour (palette regions, not the row's tint). `*_poses_*.png` shows sit,
+arms up, arms down, deep bend and a walk stride on the neutral body; small skin flecks at the shoulders in the deep bend
+are known for every top, anything larger is yours to fix. Pass several comma-separated GLBs to `--garments` to see layers together (e.g. a top over a bottom). Look for floating
 parts, gaps, spikes, inside-out faces, clipping in poses and shapes that don't read at small size.
 
 Layering failures with `outer_*` items and `bottom_skirt_mini_01` currently appear for every shipped top as well
