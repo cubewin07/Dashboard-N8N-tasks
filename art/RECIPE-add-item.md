@@ -177,8 +177,10 @@ arms up, arms down, deep bend and a walk stride on the neutral body; small skin 
 are known for every top, anything larger is yours to fix. Pass several comma-separated GLBs to `--garments` to see layers together (e.g. a top over a bottom). Look for floating
 parts, gaps, spikes, inside-out faces, clipping in poses and shapes that don't read at small size.
 
-Layering failures with `outer_*` items and `bottom_skirt_mini_01` currently appear for every shipped top as well
-(e.g. 10–26 mm); judge your item by comparing with a shipped top (`--only top_sweater_01`).
+Known layering failures (P08a follow-up T15): every shipped top fails under every `outer_*` item at the extreme body
+corners (heavy, muscle_shoulders, heavy_chest_hips; 9–16 mm). A new top or outer is fine if it fails the same pairs by
+about the same amount as a shipped one; compare with `--only top_sweater_01`. Any other failure, or a failure at the
+`neutral` corner, is yours to fix (or, for a pair that can never work, a `conflicts` entry on the row).
 
 ## 8. Commit
 
