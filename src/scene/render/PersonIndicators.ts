@@ -3,6 +3,7 @@ import { visualLanguage } from '@/office/visualConfig'
 import { hashString } from '@/scene/director/rng'
 import type { BadgeSource } from './badgeAtlas'
 import { Emotes, selectEmotes, type EmoteCandidate } from './Emotes'
+import { iconBob, MIN_VISIBLE_OPACITY, StatusEase } from './indicatorAnim'
 import { bandOf } from './lod'
 import { getSwatchColor } from './palette'
 import type { PersonVisualInput, PersonVisualSystem } from './PersonVisual'
@@ -38,6 +39,11 @@ export class PersonIndicators {
   private readonly candidates: EmoteCandidate[] = []
   private readonly chosen: EmoteCandidate[] = []
   private readonly pool: EmoteCandidate[] = []
+  private readonly ease = new StatusEase()
+  private motion = 1
+  /** Real seconds (eases), and paused-aware seconds (icon bob). */
+  private easeTime = 0
+  private bobTime = 0
 
   constructor(capacity = 160) {
     this.object.name = 'person-indicators'
@@ -49,6 +55,7 @@ export class PersonIndicators {
   }
 
   setReducedMotion(reduced: boolean): void {
+    this.motion = reduced ? 0 : 1
     this.rings.setReducedMotion(reduced)
     this.emotes.setReducedMotion(reduced)
   }
@@ -63,29 +70,41 @@ export class PersonIndicators {
     visual: PersonVisualSystem,
     camera: THREE.Vector3,
     dt: number,
+    /** Real seconds; keeps easing and pops going while the office is paused. */
+    realDt: number = dt,
   ): IndicatorCounts {
+    this.easeTime += realDt
+    this.bobTime += dt
+    this.ease.begin()
     this.rings.advance(dt)
     this.rings.begin()
     this.icons.begin()
     this.badges.begin()
-    this.emotes.begin(dt)
+    this.emotes.begin(realDt)
     this.candidates.length = 0
 
     for (let i = 0; i < count; i += 1) {
       const p = inputs[i]!
-      if (p.opacity < 0.5 || !visual.headAt(i, head)) continue
+      if (p.opacity <= MIN_VISIBLE_OPACITY || !visual.headAt(i, head)) continue
       const near = bandOf(p.floorIndex) !== 'far'
+      // Rings, icons and badges fade with the person (arriving, leaving).
+      const fade = p.opacity
       if (p.status) {
         const look = visualLanguage.status[p.status]
         const color = getSwatchColor(look.swatch)
+        const eased = this.ease.value(p.id, p.status, this.easeTime, this.motion === 0)
+        const alpha = fade * eased
+        const phase = (hashString(p.id) % 1000) / 1000
         if (look.ring) {
-          const phase = look.ringPulse ? (hashString(p.id) % 1000) / 1000 : null
-          this.rings.push(p.x, p.y + RING_LIFT, p.z, color, phase, look.ringDashed)
+          this.rings.push(p.x, p.y + RING_LIFT, p.z, color, look.ringPulse ? phase : null, look.ringDashed, alpha)
         }
-        if (near && look.icon) this.icons.push(head.x, head.y, head.z, look.icon, color)
+        if (near && look.icon) {
+          const bob = iconBob(this.bobTime, phase, this.motion)
+          this.icons.push(head.x, head.y + bob, head.z, look.icon, color, Math.max(0.001, alpha))
+        }
       }
       if (!near) continue
-      if (p.platformKey) this.badges.push(head.x, head.y, head.z, p.platformKey)
+      if (p.platformKey) this.badges.push(head.x, head.y, head.z, p.platformKey, fade)
       if (p.emote) {
         const n = this.candidates.length
         const c = this.pool[n] ?? (this.pool[n] = { index: 0, x: 0, y: 0, z: 0 })
@@ -100,9 +119,10 @@ export class PersonIndicators {
     selectEmotes(this.candidates, camera, visualLanguage.emotes.max, this.chosen)
     for (const c of this.chosen) {
       const p = inputs[c.index]!
-      if (p.emote) this.emotes.push(p.id, c.x, c.y, c.z, p.emote)
+      if (p.emote) this.emotes.push(p.id, c.x, c.y, c.z, p.emote, p.opacity)
     }
 
+    this.ease.prune()
     this.counts.rings = this.rings.end()
     this.counts.icons = this.icons.end()
     this.counts.badges = this.badges.end()

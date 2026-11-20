@@ -444,7 +444,7 @@ export class CapsulePeople implements PersonVisualSystem {
   }
 
   headAt(index: number, out: THREE.Vector3): boolean {
-    if (index < 0 || index >= this.count || (this.fade.array as Float32Array)[index]! < 0.5) return false
+    if (index < 0 || index >= this.count || (this.fade.array as Float32Array)[index]! < 0.02) return false
     out.set(this.px[index]!, this.py[index]! + this.top[index]!, this.pz[index]!)
     return true
   }

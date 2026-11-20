@@ -113,3 +113,63 @@ describe('PersonIndicators', () => {
     ind.dispose()
   })
 })
+
+describe('fades and eases (P05 review)', () => {
+  function fresh(inputs: PersonVisualInput[]) {
+    const people = new CapsulePeople()
+    const ind = new PersonIndicators()
+    people.sync(inputs, inputs.length, 0)
+    return { people, ind }
+  }
+
+  it('fades rings and icons with the person instead of cutting at half opacity', () => {
+    lodRuntime.bands[0] = 'near'
+    const half = [person(0, { status: 'working', opacity: 0.4 })]
+    const { people, ind } = fresh(half)
+    ind.setReducedMotion(true)
+    const counts = ind.sync(half, 1, people, camera, 0)
+    expect(counts.rings).toBe(1)
+    expect(ind.rings.mesh.geometry.getAttribute('aAlpha').getX(0)).toBeCloseTo(0.4)
+    people.dispose()
+    ind.dispose()
+  })
+
+  it('eases a new ring in over a quarter second, even while paused', () => {
+    lodRuntime.bands[0] = 'mid'
+    const inputs = [person(0, { status: 'working' })]
+    const { people, ind } = fresh(inputs)
+    const alpha = () => ind.rings.mesh.geometry.getAttribute('aAlpha').getX(0)
+    ind.sync(inputs, 1, people, camera, 0, 0)
+    expect(alpha()).toBeCloseTo(0)
+    ind.sync(inputs, 1, people, camera, 0, 0.1)
+    expect(alpha()).toBeGreaterThan(0.3)
+    expect(alpha()).toBeLessThan(1)
+    ind.sync(inputs, 1, people, camera, 0, 0.3)
+    expect(alpha()).toBe(1)
+    people.dispose()
+    ind.dispose()
+  })
+
+  it('skips the ease under reduced motion', () => {
+    lodRuntime.bands[0] = 'mid'
+    const inputs = [person(0, { status: 'working' })]
+    const { people, ind } = fresh(inputs)
+    ind.setReducedMotion(true)
+    ind.sync(inputs, 1, people, camera, 0, 0)
+    expect(ind.rings.mesh.geometry.getAttribute('aAlpha').getX(0)).toBe(1)
+    people.dispose()
+    ind.dispose()
+  })
+
+  it('lets an ended emote shrink away for a moment, then drops it', () => {
+    lodRuntime.bands[0] = 'near'
+    const talking = [person(0, { emote: 'talk' })]
+    const quiet = [person(0, { emote: null })]
+    const { people, ind } = fresh(talking)
+    expect(ind.sync(talking, 1, people, camera, 0, 0.5).emotes).toBe(1)
+    expect(ind.sync(quiet, 1, people, camera, 0, 0.05).emotes).toBe(1)
+    expect(ind.sync(quiet, 1, people, camera, 0, 0.3).emotes).toBe(0)
+    people.dispose()
+    ind.dispose()
+  })
+})

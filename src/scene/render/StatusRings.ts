@@ -4,6 +4,7 @@ import { visualLanguage } from '@/office/visualConfig'
 const VERTEX = /* glsl */ `
 attribute float aPulse;
 attribute float aDashed;
+attribute float aAlpha;
 uniform float uTime;
 uniform float uPulseHz;
 uniform float uPulseAmp;
@@ -11,6 +12,7 @@ varying vec2 vUv;
 varying vec3 vColor;
 varying float vDashed;
 varying float vGlow;
+varying float vAlpha;
 void main() {
   float p = aPulse >= 0.0 ? 0.5 + 0.5 * sin(6.2831853 * (uPulseHz * uTime + aPulse)) : 0.0;
   vGlow = p * uPulseAmp;
@@ -18,6 +20,7 @@ void main() {
   vUv = uv;
   vColor = instanceColor;
   vDashed = aDashed;
+  vAlpha = aAlpha;
   gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(pos, 1.0);
 }
 `
@@ -30,6 +33,7 @@ varying vec2 vUv;
 varying vec3 vColor;
 varying float vDashed;
 varying float vGlow;
+varying float vAlpha;
 void main() {
   vec2 d = (vUv - 0.5) * 2.0 * uHalf;
   float r = length(d);
@@ -39,6 +43,7 @@ void main() {
     float seg = fract(atan(d.y, d.x) / 6.2831853 * 12.0);
     a *= step(seg, 0.55);
   }
+  a *= vAlpha;
   if (a < 0.02) discard;
   gl_FragColor = vec4(vColor * (1.0 + vGlow * 2.0), a);
   #include <colorspace_fragment>
@@ -58,6 +63,7 @@ export class StatusRings {
   private readonly material: THREE.ShaderMaterial
   private readonly pulse: THREE.InstancedBufferAttribute
   private readonly dashed: THREE.InstancedBufferAttribute
+  private readonly alpha: THREE.InstancedBufferAttribute
   private readonly capacity: number
   private used = 0
   private time = 0
@@ -69,6 +75,9 @@ export class StatusRings {
     geometry.rotateX(-Math.PI / 2)
     this.pulse = new THREE.InstancedBufferAttribute(new Float32Array(capacity).fill(-1), 1)
     this.dashed = new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1)
+    this.alpha = new THREE.InstancedBufferAttribute(new Float32Array(capacity).fill(1), 1)
+    this.alpha.setUsage(THREE.DynamicDrawUsage)
+    geometry.setAttribute('aAlpha', this.alpha)
     this.pulse.setUsage(THREE.DynamicDrawUsage)
     this.dashed.setUsage(THREE.DynamicDrawUsage)
     geometry.setAttribute('aPulse', this.pulse)
@@ -123,7 +132,7 @@ export class StatusRings {
   }
 
   /** `pulsePhase` 0..1, or null for a steady ring. */
-  push(x: number, y: number, z: number, color: THREE.Color, pulsePhase: number | null, dashed: boolean): void {
+  push(x: number, y: number, z: number, color: THREE.Color, pulsePhase: number | null, dashed: boolean, alpha = 1): void {
     if (this.used >= this.capacity) return
     const i = this.used
     tmpMatrix.makeTranslation(x, y, z)
@@ -131,6 +140,7 @@ export class StatusRings {
     this.mesh.setColorAt(i, color)
     this.pulse.setX(i, pulsePhase ?? -1)
     this.dashed.setX(i, dashed ? 1 : 0)
+    this.alpha.setX(i, alpha)
     this.used += 1
   }
 
@@ -142,6 +152,7 @@ export class StatusRings {
       this.mesh.instanceColor!.needsUpdate = true
       this.pulse.needsUpdate = true
       this.dashed.needsUpdate = true
+      this.alpha.needsUpdate = true
     }
     return this.used
   }

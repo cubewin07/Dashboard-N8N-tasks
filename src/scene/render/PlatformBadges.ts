@@ -62,9 +62,9 @@ export class PlatformBadges {
   }
 
   /** (x, y, z) = top of the head. Unknown platform keys draw nothing. */
-  push(x: number, y: number, z: number, platformKey: string): void {
+  push(x: number, y: number, z: number, platformKey: string, scale = 1): void {
     const cell = this.layout.grid.cells.get(platformKey)
-    if (cell) this.layer.push(x, y, z, cell, null)
+    if (cell) this.layer.push(x, y, z, cell, null, scale)
   }
 
   end(): number {

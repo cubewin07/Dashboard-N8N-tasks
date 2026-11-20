@@ -40,9 +40,9 @@ export class StatusIcons {
   }
 
   /** (x, y, z) = top of the head. */
-  push(x: number, y: number, z: number, icon: StatusIconKey, color: THREE.Color): void {
+  push(x: number, y: number, z: number, icon: StatusIconKey, color: THREE.Color, scale = 1): void {
     const cell = STATUS_ATLAS.cells.get(icon)
-    if (cell) this.layer.push(x, y, z, cell, color)
+    if (cell) this.layer.push(x, y, z, cell, color, scale)
   }
 
   end(): number {

@@ -407,7 +407,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
     const animDt = factor > 0 ? dt : 0
     visual.sync(inputs, sims.length, dt, animDt)
     cars.update(director.elevators(), alpha)
-    const counts = indicators.sync(inputs, sims.length, visual, frame.camera.position, animDt)
+    const counts = indicators.sync(inputs, sims.length, visual, frame.camera.position, animDt, dt)
     peopleRuntime.indicators = counts
     peopleRuntime.ringPulse = indicators.rings.pulseAmplitude
 

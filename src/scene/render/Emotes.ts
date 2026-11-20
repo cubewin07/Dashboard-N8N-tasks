@@ -3,6 +3,7 @@ import type { EmployeeId } from '@/domain/primitives'
 import { EMOTE_KEYS, type EmoteKey } from '@/domain/visual'
 import { visualLanguage } from '@/office/visualConfig'
 import { AtlasBillboards, atlasGrid, glyphText, paintMaskAtlas, type GlyphPainter } from './AtlasBillboards'
+import { POP_OUT_SECONDS } from './indicatorAnim'
 import { getSwatchColor } from './palette'
 
 /** Where each emote sits in the generated atlas (pure, stable). */
@@ -130,7 +131,10 @@ export function createEmoteAtlasTexture(): THREE.CanvasTexture | null {
 export class Emotes {
   readonly layer: AtlasBillboards
   private readonly texture: THREE.CanvasTexture | null
-  private readonly started = new Map<EmployeeId, { key: EmoteKey; at: number; seen: number }>()
+  private readonly started = new Map<
+    EmployeeId,
+    { key: EmoteKey; at: number; seen: number; x: number; y: number; z: number; leftAt: number }
+  >()
   private time = 0
   private frame = 0
   private motion = 1
@@ -159,29 +163,48 @@ export class Emotes {
     this.motion = reduced ? 0 : 1
   }
 
+  /** `dt` is real seconds, so bubbles still pop while the office is paused. */
   begin(dt: number): void {
     this.time += dt
     this.frame += 1
     this.layer.begin()
   }
 
-  push(id: EmployeeId, x: number, y: number, z: number, key: EmoteKey): void {
+  push(id: EmployeeId, x: number, y: number, z: number, key: EmoteKey, opacity = 1): void {
     const cell = EMOTE_ATLAS.cells.get(key)
     if (!cell) return
     let s = this.started.get(id)
     if (!s || s.key !== key || this.frame - s.seen > 1) {
-      s = { key, at: this.time, seen: this.frame }
+      s = { key, at: this.time, seen: this.frame, x, y, z, leftAt: -1 }
       this.started.set(id, s)
     }
     s.seen = this.frame
+    s.x = x
+    s.y = y
+    s.z = z
+    s.leftAt = -1
     const age = this.time - s.at
     const pop = this.motion === 0 ? 1 : Math.min(1, age / POP_SECONDS)
     // Ease out with a small overshoot.
     const scale = pop >= 1 ? 1 : 1 - (1 - pop) ** 2 + Math.sin(pop * Math.PI) * 0.15
-    this.layer.push(x, y, z, cell, getSwatchColor(BUBBLE_SWATCH), Math.max(0.05, scale))
+    this.layer.push(x, y, z, cell, getSwatchColor(BUBBLE_SWATCH), Math.max(0.05, scale * opacity))
   }
 
   end(): number {
+    // A bubble that ended shrinks away where it was instead of vanishing.
+    if (this.motion !== 0) {
+      for (const [id, s] of this.started) {
+        if (s.seen === this.frame) continue
+        if (s.leftAt < 0) s.leftAt = this.time
+        const out = (this.time - s.leftAt) / POP_OUT_SECONDS
+        const cell = EMOTE_ATLAS.cells.get(s.key)
+        if (out >= 1 || !cell) {
+          if (out >= 1) this.started.delete(id)
+          continue
+        }
+        this.layer.push(s.x, s.y, s.z, cell, getSwatchColor(BUBBLE_SWATCH), Math.max(0.05, 1 - out * out))
+      }
+    }
     if (this.frame % 120 === 0) {
       for (const [id, s] of this.started) if (this.frame - s.seen > 120) this.started.delete(id)
     }
