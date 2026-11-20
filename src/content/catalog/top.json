@@ -226,6 +226,25 @@
       "hides": [],
       "tags": ["office", "winter"],
       "credit": "own-generated"
+    },
+    {
+      "id": "top_ao_ba_ba_01",
+      "slot": "top",
+      "label": {"vi": "Áo bà ba", "en": "Ba ba shirt"},
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/top_ao_ba_ba_01_f.glb",
+        "male": "models/wardrobe/top_ao_ba_ba_01_m.glb"
+      },
+      "thumb": "thumbs/top_ao_ba_ba_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "secondary"],
+        "defaults": {"primary": "c_cream", "secondary": "c_brown"}
+      },
+      "hides": [],
+      "tags": ["traditional", "casual"],
+      "credit": "own-generated"
     }
   ]
 }

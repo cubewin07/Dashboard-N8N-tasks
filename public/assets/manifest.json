@@ -196,6 +196,8 @@
     "shoes_slipper_01_m": {"file":"models/wardrobe/shoes_slipper_01_m.glb","tris":328,"bytes":25252,"bbox":{"min":[-0.146,0,-0.076],"max":[0.146,0.081,0.196]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
     "shoes_sneaker_01_f": {"file":"models/wardrobe/shoes_sneaker_01_f.glb","tris":108,"bytes":19684,"bbox":{"min":[-0.151,-0.007,-0.071],"max":[0.151,0.085,0.19]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
     "shoes_sneaker_01_m": {"file":"models/wardrobe/shoes_sneaker_01_m.glb","tris":108,"bytes":19668,"bbox":{"min":[-0.153,-0.007,-0.075],"max":[0.153,0.085,0.194]},"footprint":[0.5,0.5],"anchors":[],"nodes":["geo"]},
+    "top_ao_ba_ba_01_f": {"file":"models/wardrobe/top_ao_ba_ba_01_f.glb","tris":676,"bytes":98160,"bbox":{"min":[-0.474,0.965,-0.15],"max":[0.474,1.409,0.143]},"footprint":[1,0.5],"anchors":[],"nodes":["geo"]},
+    "top_ao_ba_ba_01_m": {"file":"models/wardrobe/top_ao_ba_ba_01_m.glb","tris":676,"bytes":98220,"bbox":{"min":[-0.476,0.965,-0.138],"max":[0.476,1.413,0.129]},"footprint":[1,0.5],"anchors":[],"nodes":["geo"]},
     "top_blouse_01_f": {"file":"models/wardrobe/top_blouse_01_f.glb","tris":504,"bytes":82124,"bbox":{"min":[-0.35,0.965,-0.149],"max":[0.35,1.414,0.143]},"footprint":[1,0.5],"anchors":[],"nodes":["geo"]},
     "top_hoodie_01_f": {"file":"models/wardrobe/top_hoodie_01_f.glb","tris":700,"bytes":100476,"bbox":{"min":[-0.538,0.965,-0.167],"max":[0.538,1.422,0.141]},"footprint":[1.5,0.5],"anchors":[],"nodes":["geo"]},
     "top_hoodie_01_m": {"file":"models/wardrobe/top_hoodie_01_m.glb","tris":700,"bytes":100924,"bbox":{"min":[-0.539,0.965,-0.176],"max":[0.539,1.424,0.137]},"footprint":[1.5,0.5],"anchors":[],"nodes":["geo"]},
