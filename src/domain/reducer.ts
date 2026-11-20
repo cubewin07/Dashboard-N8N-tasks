@@ -2,6 +2,7 @@ import type { CarriedItem, ConfigChange, OrgConfig } from './config'
 import { EVENT_TYPES, type EventType, type OfficeEvent } from './events'
 import { isIdOf } from './ids'
 import type { EmployeeId, Iso, MessageId, ReviewId, TaskId } from './primitives'
+import { crossedHour, pruneFinished } from './retention'
 import type { IntakeMessage, OfficeState, PersonRuntime, ReviewItem, Task } from './work'
 
 const MAX_LOG_SIZE = 500
@@ -1486,7 +1487,7 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
 
     case 'system.heartbeat': {
       const payload = event.payload as OfficeEvent<'system.heartbeat'>['payload']
-      return {
+      const advanced: OfficeState = {
         ...state,
         now: event.at,
         seq: event.seq,
@@ -1499,6 +1500,9 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
         // ring with noise (56% of it over a few days). Liveness is read from
         // `lastHeartbeat`.
       }
+      // Once per feed hour, drop finished work past the retention window so
+      // state (and every selector over it) stays bounded on long runs.
+      return crossedHour(state.now, event.at) ? pruneFinished(advanced) : advanced
     }
 
     case 'sim.scenario': {

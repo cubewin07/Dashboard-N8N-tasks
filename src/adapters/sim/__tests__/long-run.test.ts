@@ -7,7 +7,7 @@ const DAY_MS = 24 * 3_600_000
 
 describe('multi-day health', () => {
   it(
-    'keeps the backlog bounded and never freezes work (3 sim days)',
+    'keeps the backlog bounded and never freezes work (5 sim days)',
     async () => {
       const feed = createSimFeed({
         seed: DEFAULT_SIM_SEED,
@@ -17,18 +17,32 @@ describe('multi-day health', () => {
       })
       await feed.start(makeSeedConfig())
 
+      // Finished tasks are pruned from state after 24 sim hours, so count
+      // completions from the event stream instead.
+      let finishedTotal = 0
+      feed.subscribe((batch) => {
+        finishedTotal += batch.filter((e) => e.type === 'task.completed').length
+      })
+
       let previous = new Map<string, number>()
-      for (let day = 1; day <= 3; day += 1) {
+      for (let day = 1; day <= 5; day += 1) {
         feed.stepSimMs(DAY_MS)
         const state = feed.getState()
         const tasks = Object.values(state.tasks)
         const queued = tasks.filter((t) => t.status === 'queued')
-        const done = tasks.filter((t) => t.status === 'done')
 
         // Arrivals are ~240/day. Before the fixes 1,000 were queued by day 5
         // and only ~30 finished per day.
         expect(queued.length, `queued on day ${day}`).toBeLessThan(60)
-        expect(done.length, `done by day ${day}`).toBeGreaterThanOrEqual(day * 100)
+        expect(finishedTotal, `done by day ${day}`).toBeGreaterThanOrEqual(day * 100)
+
+        // State growth (#6): finished work is pruned, so tasks and reviews
+        // stop growing with the number of days (~240 tasks arrive per day).
+        expect(tasks.length, `tasks in state on day ${day}`).toBeLessThan(600)
+        expect(
+          Object.keys(state.reviews).length,
+          `reviews in state on day ${day}`,
+        ).toBeLessThan(1_300)
 
         // Nobody approves in this run, so the boss queue only grows. Only
         // tax/legal/new-account/over-cap work and spends of 3,000,000 VND or
@@ -67,6 +81,6 @@ describe('multi-day health', () => {
         expect(pinned, `workers pinned to review on day ${day}`).toHaveLength(0)
       }
     },
-    120_000,
+    180_000,
   )
 })
