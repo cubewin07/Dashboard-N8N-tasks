@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Text } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -8,7 +8,7 @@ import type { OfficeState, PersonActivity } from '@/domain/work'
 import { useOfficeSelector } from '@/office/hooks'
 import { getFeedClock, useOffice } from '@/office/store'
 import { usePeopleUi } from '@/office/uiStore'
-import { getFloorFadeTarget, useViewStore } from '@/scene/camera/viewStore'
+import { isFloorFaded, useViewStore } from '@/scene/camera/viewStore'
 import { ClockRateEstimator } from '@/scene/director/clockRate'
 import { Director } from '@/scene/director/director'
 import { moveFactor, TUNING } from '@/scene/director/tuning'
@@ -131,9 +131,12 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
   const followedId = usePeopleUi((s) => s.followedId)
   const selectedId = usePeopleUi((s) => s.selectedId)
   const labelId = hoveredId ?? followedId ?? selectedId
-  const labelName = useOfficeSelector((s) =>
-    labelId ? (s?.config.employees.find((e) => e.id === labelId)?.name ?? '') : '',
+  const labelSelector = useCallback(
+    (s: OfficeState | null) =>
+      labelId ? (s?.config.employees.find((e) => e.id === labelId)?.name ?? '') : '',
+    [labelId],
   )
+  const labelName = useOfficeSelector(labelSelector)
 
   useEffect(() => {
     const root = rootRef.current
@@ -164,7 +167,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
 
   useEffect(() => {
     activeFloorRef.current = activeFloorIndex
-    director.setVisibility((floorIndex) => !getFloorFadeTarget(floorIndex, activeFloorIndex).faded)
+    director.setVisibility((floorIndex) => !isFloorFaded(floorIndex, activeFloorIndex))
     settleRef.current = 30
     invalidate()
   }, [director, activeFloorIndex, invalidate])
@@ -326,7 +329,7 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       input.selected = ui.selectedId === sim.id
       input.followed = ui.followedId === sim.id
       // Floors above the focused one are cut away, and so are the people on them.
-      const hidden = !sim.visible || getFloorFadeTarget(sim.floorIndex, active).faded
+      const hidden = !sim.visible || isFloorFaded(sim.floorIndex, active)
       input.opacity = hidden ? 0 : sim.opacity
       input.lod = 0
     }
