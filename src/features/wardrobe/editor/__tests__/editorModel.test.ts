@@ -1,3 +1,5 @@
+import { en } from '@/i18n/en'
+import { vi } from '@/i18n/vi'
 import { describe, expect, it } from 'vitest'
 import { generateAppearance } from '@/scene/characters/generate'
 import { DEFAULT_CATALOG, loadCatalog, type CatalogItem } from '@/scene/characters/catalog'
@@ -64,5 +66,15 @@ describe('switchBase', () => {
     const next = switchBase(doc, other)
     expect(next.base).toBe(other)
     expect(switchBase(next, other)).toBe(next)
+  })
+})
+
+describe('tag labels', () => {
+  it('every catalogue tag has a Vietnamese and an English label', () => {
+    const tags = new Set(DEFAULT_CATALOG.items.flatMap((i) => i.tags))
+    for (const tag of tags) {
+      expect((vi.wardrobeEditor.tags as Record<string, string>)[tag], `vi ${tag}`).toBeTruthy()
+      expect((en.wardrobeEditor.tags as Record<string, string>)[tag], `en ${tag}`).toBeTruthy()
+    }
   })
 })

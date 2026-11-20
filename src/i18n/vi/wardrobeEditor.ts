@@ -51,6 +51,10 @@ export const wardrobeEditor = {
     party: 'Dự tiệc',
     summer: 'Mùa hè',
     formal: 'Trang trọng',
+    street: 'Dạo phố',
+    traditional: 'Truyền thống',
+    tet: 'Ngày Tết',
+    fitted: 'Ôm dáng',
   },
   notes: {
     removed: 'Đã cởi {items}',

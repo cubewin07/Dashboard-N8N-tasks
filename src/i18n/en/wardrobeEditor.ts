@@ -53,6 +53,10 @@ export const wardrobeEditor: typeof vi = {
     party: 'Party',
     summer: 'Summer',
     formal: 'Formal',
+    street: 'Street',
+    traditional: 'Traditional',
+    tet: 'Tết',
+    fitted: 'Fitted',
   },
   notes: {
     removed: 'Took off {items}',
