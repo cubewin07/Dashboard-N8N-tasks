@@ -1,0 +1,17 @@
+{
+  "id": "bottom_skirt_mini_01",
+  "slot": "bottom",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/bottom_skirt_mini_01_f.glb",
+      "tris": 336,
+      "hideRegions": [
+        "hips"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    }
+  },
+  "maxStride": 1.0
+}

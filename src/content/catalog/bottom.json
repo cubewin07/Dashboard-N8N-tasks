@@ -56,6 +56,98 @@
       "hides": [],
       "tags": ["casual", "sport"],
       "credit": "own-generated"
+    },
+    {
+      "id": "bottom_chinos_01",
+      "slot": "bottom",
+      "label": { "vi": "Quần chinos", "en": "Chinos" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/bottom_chinos_01_f.glb",
+        "male": "models/wardrobe/bottom_chinos_01_m.glb"
+      },
+      "thumb": "thumbs/bottom_chinos_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_khaki" }
+      },
+      "hides": [],
+      "tags": ["office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "bottom_joggers_01",
+      "slot": "bottom",
+      "label": { "vi": "Quần jogger", "en": "Joggers" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/bottom_joggers_01_f.glb",
+        "male": "models/wardrobe/bottom_joggers_01_m.glb"
+      },
+      "thumb": "thumbs/bottom_joggers_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_grey", "accent": "c_charcoal" }
+      },
+      "hides": [],
+      "tags": ["casual", "sport"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "bottom_skirt_mini_01",
+      "slot": "bottom",
+      "label": { "vi": "Chân váy ngắn", "en": "Mini skirt" },
+      "bases": ["female"],
+      "model": {
+        "female": "models/wardrobe/bottom_skirt_mini_01_f.glb"
+      },
+      "thumb": "thumbs/bottom_skirt_mini_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_denim" }
+      },
+      "hides": [],
+      "tags": ["casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "bottom_skirt_midi_01",
+      "slot": "bottom",
+      "label": { "vi": "Chân váy midi", "en": "Midi skirt" },
+      "bases": ["female"],
+      "model": {
+        "female": "models/wardrobe/bottom_skirt_midi_01_f.glb"
+      },
+      "thumb": "thumbs/bottom_skirt_midi_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_navy", "accent": "c_black" }
+      },
+      "hides": [],
+      "tags": ["office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "bottom_skirt_pleated_01",
+      "slot": "bottom",
+      "label": { "vi": "Chân váy xếp ly", "en": "Pleated skirt" },
+      "bases": ["female"],
+      "model": {
+        "female": "models/wardrobe/bottom_skirt_pleated_01_f.glb"
+      },
+      "thumb": "thumbs/bottom_skirt_pleated_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_maroon" }
+      },
+      "hides": [],
+      "tags": ["office"],
+      "credit": "own-generated"
     }
   ]
 }
