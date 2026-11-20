@@ -26,6 +26,8 @@ export interface OfficeStoreValue {
   connection: ConnectionState
   commands: Record<string, OfficeCommandRecord>
   legacyActive: boolean
+  /** Message of the last failed boot (config or feed), cleared when a boot starts. */
+  bootError: string | null
   send: (cmd: Command) => Promise<CommandAck>
 }
 
@@ -196,6 +198,7 @@ export const useOffice = create<OfficeStoreValue>(() => ({
   connection: 'live',
   commands: {},
   legacyActive: false,
+  bootError: null,
   send: sendCommand,
 }))
 
@@ -272,6 +275,7 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
     return snapshot.state
   }
 
+  useOffice.setState({ bootError: null })
   bootPromise = run()
   // A failed boot (e.g. an unreadable replay log) must not be cached forever.
   bootPromise.catch(() => {
@@ -283,4 +287,17 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
 export function getOfficeState(): OfficeState | null {
   flushOfficeEvents()
   return useOffice.getState().state
+}
+
+/**
+ * Fire-and-forget boot for UI effects: a failure is recorded in `bootError`
+ * (so screens can show an error state with a retry) instead of surfacing as an
+ * unhandled promise rejection.
+ */
+export function startOffice(): void {
+  bootOffice().catch((err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err)
+    console.warn('Office boot failed:', err)
+    useOffice.setState({ bootError: message })
+  })
 }

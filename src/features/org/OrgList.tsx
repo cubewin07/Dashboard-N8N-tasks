@@ -1,16 +1,18 @@
 import { useEffect, useMemo } from 'react'
+import { LoadErrorState } from '@/components'
 import { Skeleton } from '@/components/ui/skeleton'
 import { archivedStaff, orgTree, pileFor } from '@/domain/selectors'
 import { useI18n } from '@/i18n'
 import { fmt } from '@/lib/utils'
-import { useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
-import { bootOffice } from '@/office/store'
+import { useBootFailure, useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
+import { startOffice } from '@/office/store'
 import { FloorSection } from './FloorSection'
 
 export function OrgList({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n()
   const label = useLabel()
   const { config, status } = useConfig()
+  const { failed, retry } = useBootFailure()
   const state = useOfficeSelector((s) => s)
   const activeConfig = state?.config ?? config
   const peopleRuntime = state?.people
@@ -20,7 +22,7 @@ export function OrgList({ compact = false }: { compact?: boolean }) {
 
   useEffect(() => {
     if (!config && status === 'loading') {
-      void bootOffice()
+      startOffice()
     }
   }, [config, status])
 
@@ -34,6 +36,10 @@ export function OrgList({ compact = false }: { compact?: boolean }) {
     [activeConfig],
   )
   const archived = useMemo(() => (state ? archivedStaff(state) : []), [state])
+
+  if (failed && (!activeConfig || !state)) {
+    return <LoadErrorState onRetry={retry} />
+  }
 
   if (!activeConfig || (!config && status === 'loading')) {
     return (
