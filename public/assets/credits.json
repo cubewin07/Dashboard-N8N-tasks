@@ -1,7 +1,7 @@
 {
   "assets": [
     {"path":"assets/fonts/BeVietnamPro-SemiBold.ttf","title":"Be Vietnam Pro (SemiBold)","author":"Be Vietnam Pro Project Authors (BeGroup, Gabriel Lam, Tony Le, Vietanh Nguyen)","source":"https://fonts.google.com/specimen/Be+Vietnam+Pro","license":"OFL-1.1","licenseFile":"assets/fonts/OFL.txt","sha256":"bd8e27eb02720b9d91e59e4f10a90878643219f25ce6a8d9a4f06a8a88d3bb71"},
-    {"path":"assets/textures/palette.png","title":"Palette texture","author":"AI Office project","source":"art/blender/gen_palette.py","license":"own-CC0","modified":false,"sha256":"08a4cb5c7614e1bee41223715a08338f77b06d95fb6f30a025653dc020311b76"},
+    {"path":"assets/textures/palette.png","title":"Palette texture","author":"AI Office project","source":"art/blender/gen_palette.py","license":"own-CC0","modified":false,"sha256":"24ea882b0a1ec3da6585b25ea39bb7e1df7ac6dc693777ba9968226787145940"},
     {"path":"assets/textures/face_atlas.png","title":"Face atlas texture","author":"AI Office project","source":"art/blender/gen_face_atlas.py","license":"own-CC0","modified":false,"sha256":"2b9a444642aef30777de73ad561d04ecd92452604619ad56e6ff41d5647c3b84"},
     {"path":"assets/models/characters/body_female.glb","title":"body_female","author":"AI Office project","source":"art/blender/gen_body.py","license":"own-CC0","modified":false,"sha256":"08fc0430cc753f376fd7b079cb460c1407503c61d0bf7ff28fe15c54b2f4e131"},
     {"path":"assets/models/characters/body_male.glb","title":"body_male","author":"AI Office project","source":"art/blender/gen_body.py","license":"own-CC0","modified":false,"sha256":"df007171beb214e1ed2afd31c035d36fbbe6b735e4aa066b3a5489799171cd06"},

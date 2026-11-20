@@ -7,7 +7,9 @@
     { "key": "skin_05", "label": { "vi": "Mật ong", "en": "Honey" } },
     { "key": "skin_06", "label": { "vi": "Nâu sáng", "en": "Tan" } },
     { "key": "skin_07", "label": { "vi": "Nâu ấm", "en": "Warm brown" } },
-    { "key": "skin_08", "label": { "vi": "Nâu đậm", "en": "Deep brown" } }
+    { "key": "skin_08", "label": { "vi": "Nâu đậm", "en": "Deep brown" } },
+    { "key": "skin_09", "label": { "vi": "Ngăm ô liu", "en": "Olive" } },
+    { "key": "skin_10", "label": { "vi": "Nâu sô-cô-la", "en": "Deep cocoa" } }
   ],
   "hair": [
     { "key": "hair_black", "label": { "vi": "Đen", "en": "Black" } },
@@ -47,7 +49,35 @@
     { "key": "c_rose", "label": { "vi": "Hồng đậm", "en": "Rose" } },
     { "key": "c_orange", "label": { "vi": "Cam", "en": "Orange" } },
     { "key": "c_yellow", "label": { "vi": "Vàng", "en": "Yellow" } },
-    { "key": "c_purple", "label": { "vi": "Tím", "en": "Purple" } }
+    { "key": "c_purple", "label": { "vi": "Tím", "en": "Purple" } },
+    { "key": "c_grey_l", "label": { "vi": "Xám nhạt", "en": "Light grey" } },
+    { "key": "c_denim_l", "label": { "vi": "Xanh denim nhạt", "en": "Light denim" } },
+    { "key": "c_denim_d", "label": { "vi": "Xanh denim đậm", "en": "Dark denim" } },
+    { "key": "c_beige", "label": { "vi": "Be", "en": "Beige" } },
+    { "key": "c_cream", "label": { "vi": "Kem", "en": "Cream" } },
+    { "key": "c_teal", "label": { "vi": "Xanh mòng két", "en": "Teal" } },
+    { "key": "c_olive", "label": { "vi": "Xanh rêu", "en": "Olive" } },
+    { "key": "c_maroon", "label": { "vi": "Đỏ đô", "en": "Maroon" } },
+    { "key": "c_pink", "label": { "vi": "Hồng phấn", "en": "Pink" } },
+    { "key": "c_coral", "label": { "vi": "Hồng san hô", "en": "Coral" } },
+    { "key": "c_mustard", "label": { "vi": "Vàng mù tạt", "en": "Mustard" } },
+    { "key": "c_lavender", "label": { "vi": "Tím oải hương", "en": "Lavender" } },
+    { "key": "c_lilac", "label": { "vi": "Tím cà nhạt", "en": "Lilac" } },
+    { "key": "c_blue", "label": { "vi": "Xanh dương", "en": "Blue" } },
+    { "key": "c_mint", "label": { "vi": "Xanh bạc hà", "en": "Mint" } },
+    { "key": "c_peach", "label": { "vi": "Hồng đào", "en": "Peach" } }
+  ],
+  "metal": [
+    { "key": "gold", "label": { "vi": "Vàng kim", "en": "Gold" } },
+    { "key": "gold_l", "label": { "vi": "Vàng hồng nhạt", "en": "Pale gold" } },
+    { "key": "silver", "label": { "vi": "Bạc", "en": "Silver" } },
+    { "key": "silver_l", "label": { "vi": "Bạc sáng", "en": "Bright silver" } },
+    { "key": "steel_3", "label": { "vi": "Thép xám", "en": "Gunmetal" } },
+    { "key": "pearl", "label": { "vi": "Ngọc trai", "en": "Pearl" } },
+    { "key": "gem_ruby", "label": { "vi": "Hồng ngọc", "en": "Ruby" } },
+    { "key": "gem_emerald", "label": { "vi": "Ngọc lục bảo", "en": "Emerald" } },
+    { "key": "gem_sapphire", "label": { "vi": "Lam ngọc", "en": "Sapphire" } },
+    { "key": "gem_amethyst", "label": { "vi": "Thạch anh tím", "en": "Amethyst" } }
   ],
   "lip": [
     { "key": "skin_01_lip", "label": { "vi": "Hồng đào", "en": "Soft peach" } },

@@ -111,7 +111,7 @@ if (checkFiles) {
 // 3. Validate colors.json
 const colors = readJson(join(CATALOG_DIR, 'colors.json'), 'catalog/colors.json')
 if (colors && typeof colors === 'object') {
-  for (const group of ['skin', 'hair', 'eyes', 'fabric', 'lip']) {
+  for (const group of ['skin', 'hair', 'eyes', 'fabric', 'metal', 'lip']) {
     const list = colors[group]
     if (!Array.isArray(list) || list.length === 0) {
       fail('catalog/colors.json', `${group} must be a non-empty array`)

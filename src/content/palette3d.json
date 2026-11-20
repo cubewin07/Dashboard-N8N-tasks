@@ -249,6 +249,14 @@
     {"key": "hair_purple", "hex": "#8D5BD1", "row": 15, "col": 4, "group": "hair"},
     {"key": "hair_purple_hi", "hex": "#AA84DC", "row": 15, "col": 5, "group": "hair"},
     {"key": "hair_green", "hex": "#4FB37A", "row": 15, "col": 6, "group": "hair"},
-    {"key": "hair_green_hi", "hex": "#7BC69B", "row": 15, "col": 7, "group": "hair"}
+    {"key": "hair_green_hi", "hex": "#7BC69B", "row": 15, "col": 7, "group": "hair"},
+    {"key": "skin_09", "hex": "#CFA37A", "row": 15, "col": 8, "group": "skin"},
+    {"key": "skin_09_shadow", "hex": "#C2834F", "row": 15, "col": 9, "group": "skin"},
+    {"key": "skin_09_blush", "hex": "#D2805F", "row": 15, "col": 10, "group": "skin"},
+    {"key": "skin_09_lip", "hex": "#B2563F", "row": 15, "col": 11, "group": "skin"},
+    {"key": "skin_10", "hex": "#3F271B", "row": 15, "col": 12, "group": "skin"},
+    {"key": "skin_10_shadow", "hex": "#352015", "row": 15, "col": 13, "group": "skin"},
+    {"key": "skin_10_blush", "hex": "#452116", "row": 15, "col": 14, "group": "skin"},
+    {"key": "skin_10_lip", "hex": "#3A170F", "row": 15, "col": 15, "group": "skin"}
   ]
 }
