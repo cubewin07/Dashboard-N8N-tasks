@@ -16,13 +16,14 @@ const args = process.argv.slice(2)
 const real = args.includes('--real')
 const urlAt = args.indexOf('--url')
 const givenUrl = urlAt >= 0 ? args[urlAt + 1] : null
-const PORT = 4175
+// 4175 belongs to check-sim-removable.mjs; keep them apart.
+const PORT = 4176
 const SAMPLE_SECONDS = 20
 const WANTED_PEOPLE = 60
 
 const thresholds = real
-  ? { fpsMin: 55, callsMax: 250, tickMsMax: 2 }
-  : { fpsMin: 10, callsMax: 250, tickMsMax: 4 }
+  ? { fpsMin: 55, callsMax: 250, tickMsMax: 2, tickMsPeakMax: 8 }
+  : { fpsMin: 10, callsMax: 250, tickMsMax: 4, tickMsPeakMax: 20 }
 
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx'
 let preview = null
@@ -50,6 +51,7 @@ async function startServer() {
     cwd: rootDir,
     env,
     stdio: 'ignore',
+    detached: true, // own process group, so the vite child dies with it
   })
   const url = `http://localhost:${PORT}/Dashboard-N8N-tasks/`
   await waitForServer(url)
@@ -71,7 +73,7 @@ try {
   await page.locator('#login-email').fill('boss@example.com')
   await page.locator('#login-password').fill('123456')
   await page.locator('button[type="submit"]').click()
-  await page.waitForSelector('[data-office-canvas][data-assets="ready"]', { timeout: 120_000 })
+  await page.waitForSelector('[data-office-canvas][data-ready="true"]', { timeout: 120_000 })
 
   await page.locator('[data-sim-speed="30"]').first().click()
   await page.locator('[data-sim-scenario="hire_temps"]').first().click()
@@ -146,6 +148,10 @@ try {
     failures.push(`draw calls ${sample.drawCalls} > ${thresholds.callsMax}`)
   if (sample.tickMsAvg > thresholds.tickMsMax)
     failures.push(`director tick ${sample.tickMsAvg.toFixed(2)} ms > ${thresholds.tickMsMax} ms`)
+  if (sample.tickMsMax > thresholds.tickMsPeakMax)
+    failures.push(`director tick peak ${sample.tickMsMax.toFixed(2)} ms > ${thresholds.tickMsPeakMax} ms`)
+  if (sample.people < WANTED_PEOPLE)
+    failures.push(`only ${sample.people} people in the building (wanted ${WANTED_PEOPLE})`)
   if (sample.stats?.teleports > 0) failures.push(`${sample.stats.teleports} teleports`)
 
   const report = {
@@ -160,9 +166,6 @@ try {
   }
   fs.writeFileSync(path.join(rootDir, 'perf-report.json'), `${JSON.stringify(report, null, 2)}\n`)
   console.log(JSON.stringify(report, null, 2))
-  if (sample.people < WANTED_PEOPLE) {
-    console.warn(`Note: only ${sample.people} people were in the building (wanted ${WANTED_PEOPLE}).`)
-  }
   for (const w of warnings) console.warn(`perf:check warning: ${w}`)
   if (failures.length > 0) {
     console.error(`perf:check failed: ${failures.join('; ')}`)
@@ -173,6 +176,12 @@ try {
   exitCode = 1
 } finally {
   await browser?.close()
-  preview?.kill()
+  if (preview?.pid) {
+    try {
+      process.kill(-preview.pid)
+    } catch {
+      // already gone
+    }
+  }
 }
 process.exit(exitCode)
