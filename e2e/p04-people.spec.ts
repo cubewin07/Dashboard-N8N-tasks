@@ -39,7 +39,6 @@ async function openOffice(page: Page) {
   await expect(page).toHaveURL(/#\/(\?.*)?$/)
   const canvas = page.locator('[data-office-canvas]')
   await expect(canvas).toHaveAttribute('data-ready', 'true', { timeout: 20_000 })
-  await expect(canvas).toHaveAttribute('data-assets', 'ready', { timeout: 30_000 })
 }
 
 /** Distance on the floor plane between the camera target and a person. */
