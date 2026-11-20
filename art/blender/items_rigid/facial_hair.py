@@ -276,7 +276,7 @@ def build_facial_hair_goatee_01(probe: BodyProbe) -> bmesh.types.BMesh:
 
 
 # ---------------------------------------------------------------------------
-# facial_hair_stubble_01
+# facial_hair_beard_01
 # ---------------------------------------------------------------------------
 
 # The head is a lofted 12-gon (bodyshape head rings, identical in both bases). The stubble is built
@@ -373,8 +373,8 @@ def _stubble_vert(bm: bmesh.types.BMesh, c, z: float) -> bmesh.types.BMVert:
     return bm.verts.new(_head_uv(u, z) + _head_normal(u, z) * STUBBLE_OFF_M)
 
 
-def build_facial_hair_stubble_01(probe: BodyProbe) -> bmesh.types.BMesh:
-    """Short stubble: a 1-2 mm shell over chin and jaw up to the sideburns plus an upper-lip shadow."""
+def build_facial_hair_beard_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Short full beard: a 1-2 mm shell over chin and jaw up to the sideburns plus an upper-lip shadow."""
     bm = bmesh.new()
     # Jaw / chin part (open at the top: the mouth stays bare skin)
     cols = [(("x", -c[1]) if isinstance(c, tuple) else -c, top) for c, top in reversed(_STUBBLE_COLS[1:])]
@@ -398,9 +398,9 @@ def build_facial_hair_stubble_01(probe: BodyProbe) -> bmesh.types.BMesh:
     for f in bm.faces:
         if (f.calc_center_median() - probe.head_center).dot(f.normal) < 0.0:
             f.normal_flip()
-    return _finish("facial_hair_stubble_01", bm, probe, lambda f, c: True, shade_lo=0.92)
+    return _finish("facial_hair_beard_01", bm, probe, lambda f, c: True, shade_lo=0.92)
 
 
 register("facial_hair_moustache_01", "facial_hair", "Head", build_facial_hair_moustache_01, meta=_male_only("facial_hair_moustache_01"))
 register("facial_hair_goatee_01", "facial_hair", "Head", build_facial_hair_goatee_01, meta=_male_only("facial_hair_goatee_01"))
-register("facial_hair_stubble_01", "facial_hair", "Head", build_facial_hair_stubble_01, meta=_male_only("facial_hair_stubble_01"))
+register("facial_hair_beard_01", "facial_hair", "Head", build_facial_hair_beard_01, meta=_male_only("facial_hair_beard_01"))
