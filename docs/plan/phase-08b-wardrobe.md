@@ -85,21 +85,30 @@ Desktop                                            Phone
 | Item grid size (2026-11-21) | virtualise · lazy thumbnails | **No virtualisation: lazy thumbnails + `content-visibility: auto`** | The largest slot has 14 items | A slot passes ~200 items |
 | Copy look to… (2026-11-21) | merge · overwrite after confirm | **Overwrite after a confirm, saved at the target's cached version; a conflict shows an error toast** | Rare action; the target's owner can undo by re-editing | – |
 | Contract (2026-11-21) | v1.0 · v1.1 | **v1.1 (additive): `AppearanceStore.getEntries()` and `AppearanceConflictError`** | Live update and the save-conflict dialog need both | – |
+| Preview character (2026-11-21) | own loader · reuse the office character system | **`CharacterPeople` with `capacity: 1` inside the preview canvas, poses mapped from the clip buttons (stand→`wait_stand`, walk, sit, wave→`greet`)** | Same assembly, materials and animation code as the office, so the preview is what the office will show | – |
+| Live sliders, revised (2026-11-21) | runtime morphs in the preview · baked morphs re-assembled | **Baked morphs, re-assembled 80 ms after the last slider change** (replaces "runtime morphs" above) | One code path with the office (which bakes); a re-assembly of one character is fast enough to feel live | Slider drag feels laggy on low-end phones → add runtime morph targets to the preview only |
+| Turntable (2026-11-21) | orbit the camera · rotate the character | **Rotate the character (drag, or the two rotate buttons); the camera only zooms between full body and face** | Lighting stays fixed on the face; buttons give a keyboard/tap alternative to the drag | – |
+| Reduced motion (2026-11-21) | same easing · instant | **With `prefers-reduced-motion` rotation and zoom snap instead of easing** | – | – |
+| Selection in URL (2026-11-21) | component state · query param | **`#/wardrobe?id=<employee>`** | Deep links, back button returns to the list on phone, the leave prompt sees the change | – |
+| People picker owners (2026-11-21) | filter owners by department · always show | **Owners (`caps.humanOwner`) stay listed first under any department filter** | They have no department in practice and are edited most | – |
+| Blush (2026-11-21) | colour region · toggle | **A "Má hồng" checkbox on the face tab** | The appearance doc has `face.blush: boolean` | – |
+| Slot tabs (2026-11-21) | horizontal scroll · wrap | **Wrap onto two rows** | With 9 slots the scroller hid Khoác/Giày/Phụ kiện at desktop column width with no cue | – |
+| Saves from another tab (2026-11-21) | ignore until next pick · follow | **A clean editor adopts a newer saved version; a dirty one keeps its draft and gets the conflict dialog on save** | No stale look on screen, no lost work | – |
 
 ## 5. Tasks
-- [ ] **P08b-T01** `AuthPort` + `LocalAuth`, migrate `src/app/auth.tsx` to the port (keep `useAuth` API shape), login page shows the two demo accounts hint in demo mode. *Acceptance:* R12; unit tests sign-in/out/role; existing login e2e still green.
-- [ ] **P08b-T02** `roles.ts`, `RoleGuard`, nav filtering, landing redirects, `office.send` guard, feed not started for stylist. *Acceptance:* R13 unit tests for `can`/`routeAccess`; e2e: stylist visiting `#/queue`, `#/office`, `#/admin` lands on `#/wardrobe`; network panel shows no office chunk.
-- [ ] **P08b-T03** ∥ `LocalAppearanceStore` + `office/appearanceStore.ts` + `useAppearance`. *Acceptance:* R11 tests (version increments, conflict detection, storage-event sync, corrupt data recovery).
-- [ ] **P08b-T04** ∥ `features/wardrobe/logic.ts` (`applyItem`, `randomise`, `applyPreset`, `diffLooks`) + `presets.json`. *Acceptance:* tests: fullbody hides top/bottom and restores them when removed; outer requires top; limit clamp decision; randomise respects locks and is seeded.
-- [ ] **P08b-T05** Editor state (`useWardrobeEditor`) with undo/redo and dirty tracking. *Acceptance:* R7 tests (50-step history, redo cleared after new edit).
-- [ ] **P08b-T06** People picker (search, department groups, archived toggle, owners first). *Acceptance:* R1; keyboard navigation test.
-- [ ] **P08b-T07** `WardrobePreview` (canvas, turntable, zoom presets, clip buttons, no-WebGL fallback). *Acceptance:* R2; e2e with WebGL disabled flag shows the thumbnail stack; disposes on unmount (geometry count returns to baseline).
-- [ ] **P08b-T08** Slot tabs + thumbnail grids + tags filter + "none". *Acceptance:* R3, R15; lazy thumbnails (`loading="lazy"`), grid virtualised if > 60 items.
-- [ ] **P08b-T09** Colour pickers (tint regions, skin, hair, eyes). *Acceptance:* R4; swatches have accessible names from `colors.json` labels.
-- [ ] **P08b-T10** Body tab: base a/b, sliders with live limits and explanation, clamp dialog. *Acceptance:* R5, R6 tests on `effectiveLimits` wiring; slider `max` changes when a `fitted` item is worn.
-- [ ] **P08b-T11** Toolbar: randomise + locks, presets, copy look to…, reset, compare, save with conflict dialog, leave prompt. *Acceptance:* R7–R9; conflict simulated by a second tab in e2e.
-- [ ] **P08b-T12** Live office update: `CharacterVisual` subscribes via `useAppearance`; only the edited person re-assembles. *Acceptance:* R10; debug counter `assembled` increments by exactly 1 after a save.
-- [ ] **P08b-T13** Phone layout + touch polish. *Acceptance:* R14 Playwright at 375×812 screenshot, no horizontal scroll, preview visible.
+- [x] **P08b-T01** `AuthPort` + `LocalAuth`, migrate `src/app/auth.tsx` to the port (keep `useAuth` API shape), login page shows the two demo accounts hint in demo mode. *Acceptance:* R12; unit tests sign-in/out/role; existing login e2e still green.
+- [x] **P08b-T02** `roles.ts`, `RoleGuard`, nav filtering, landing redirects, `office.send` guard, feed not started for stylist. *Acceptance:* R13 unit tests for `can`/`routeAccess`; e2e: stylist visiting `#/queue`, `#/office`, `#/admin` lands on `#/wardrobe`; network panel shows no office chunk.
+- [x] **P08b-T03** ∥ `LocalAppearanceStore` + `office/appearanceStore.ts` + `useAppearance`. *Acceptance:* R11 tests (version increments, conflict detection, storage-event sync, corrupt data recovery).
+- [x] **P08b-T04** ∥ `features/wardrobe/logic.ts` (`applyItem`, `randomise`, `applyPreset`, `diffLooks`) + `presets.json`. *Acceptance:* tests: fullbody hides top/bottom and restores them when removed; outer requires top; limit clamp decision; randomise respects locks and is seeded.
+- [x] **P08b-T05** Editor state (`useWardrobeEditor`) with undo/redo and dirty tracking. *Acceptance:* R7 tests (50-step history, redo cleared after new edit).
+- [x] **P08b-T06** People picker (search, department groups, archived toggle, owners first). *Acceptance:* R1; keyboard navigation test.
+- [x] **P08b-T07** `WardrobePreview` (canvas, turntable, zoom presets, clip buttons, no-WebGL fallback). *Acceptance:* R2; e2e with WebGL disabled flag shows the thumbnail stack; disposes on unmount (geometry count returns to baseline).
+- [x] **P08b-T08** Slot tabs + thumbnail grids + tags filter + "none". *Acceptance:* R3, R15; lazy thumbnails (`loading="lazy"`), grid virtualised if > 60 items.
+- [x] **P08b-T09** Colour pickers (tint regions, skin, hair, eyes). *Acceptance:* R4; swatches have accessible names from `colors.json` labels.
+- [x] **P08b-T10** Body tab: base a/b, sliders with live limits and explanation, clamp dialog. *Acceptance:* R5, R6 tests on `effectiveLimits` wiring; slider `max` changes when a `fitted` item is worn.
+- [x] **P08b-T11** Toolbar: randomise + locks, presets, copy look to…, reset, compare, save with conflict dialog, leave prompt. *Acceptance:* R7–R9; conflict simulated by a second tab in e2e.
+- [x] **P08b-T12** Live office update: `CharacterVisual` subscribes via `useAppearance`; only the edited person re-assembles. *Acceptance:* R10; debug counter `assembled` increments by exactly 1 after a save.
+- [x] **P08b-T13** Phone layout + touch polish. *Acceptance:* R14 Playwright at 375×812 screenshot, no horizontal scroll, preview visible.
 - [ ] **P08b-T14** i18n (`wardrobe.ts`, `login.ts` additions), a11y review with the `web-design-guidelines` skill, DoD run. *Acceptance:* R15, R16.
 
 ## 6. Dependencies
