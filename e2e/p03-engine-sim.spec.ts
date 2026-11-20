@@ -38,6 +38,15 @@ test.describe('P03 engine sim and wiring (P03-T18)', () => {
       timeout: 15_000,
     })
 
+    // The panel starts collapsed (speed row visible); scenarios sit behind the toggle.
+    const toggle = page.locator('[data-sim-panel-toggle]').first()
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.locator('[data-sim-scenario="month_end"]').first()).toBeHidden()
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.locator('[data-sim-scenario="month_end"]').first()).toBeVisible()
+    await toggle.click()
+
     // Pause ([data-sim-speed="0"]) freezes window.__office_debug.getState().now over 400ms
     await page.locator('[data-sim-speed="0"]').first().click()
 
