@@ -200,8 +200,11 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
       out.x = input.x
       out.y = input.y
       out.z = input.z
-      out.floorKey = layout.floors[sim.floorIndex]?.key ?? ''
       out.riding = sim.inCar >= 0
+      // In the car the floor is the destination (the car passes many floors);
+      // '' when that is unknown, and the follow camera then keeps its floor.
+      const floorIndex = out.riding ? director.rideDestination(id) : sim.floorIndex
+      out.floorKey = floorIndex === null ? '' : (layout.floors[floorIndex]?.key ?? '')
       out.visible = sim.visible
       return true
     }

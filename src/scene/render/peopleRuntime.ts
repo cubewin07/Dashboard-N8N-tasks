@@ -12,6 +12,7 @@ export interface PersonSight {
   x: number
   y: number
   z: number
+  /** The floor to show: where they are, or while riding where the car is going ('' if unknown). */
   floorKey: string
   /** Riding an elevator car right now. */
   riding: boolean

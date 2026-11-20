@@ -311,6 +311,24 @@ describe('Director review fixes', () => {
     expect(w.director.stats().teleports).toBe(0)
   })
 
+  it('names the destination floor while riding, and null otherwise', () => {
+    const w = makeWorld('ride-destination')
+    const id = startRide(w)
+    expect(w.director.rideDestination(id)).toBeNull()
+    const home = w.layout.byKey[w.layout.seatOf[id]!.floorKey]!
+    const seen = new Set<number | null>()
+    w.run(240, () => {
+      const sim = w.director.person(id)!
+      if (sim.inCar >= 0) seen.add(w.director.rideDestination(id))
+      return w.debug(id)!.pose === 'sit_work' && sim.inCar < 0
+    })
+    expect(seen.size).toBeGreaterThan(0)
+    // The same destination for the whole ride, whatever floor the car is passing.
+    expect(seen.has(null)).toBe(false)
+    expect([...seen]).toEqual([home])
+    expect(w.director.rideDestination(id)).toBeNull()
+  })
+
   it('a walk pose never outlasts the walk', () => {
     const w = makeWorld('walk-pose')
     startRide(w)

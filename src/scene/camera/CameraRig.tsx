@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import { usePeopleUi } from '@/office/uiStore'
 import type { BuildingLayout } from '@/scene/layout'
 import { peopleRuntime, type PersonSight } from '@/scene/render/peopleRuntime'
-import { FOLLOW, userLeftFollow } from './followMode'
+import { FOLLOW, followFloorKey, userLeftFollow, widenAzimuth } from './followMode'
 import { computeCameraPose } from './modes'
 import { useViewStore } from './viewStore'
 
@@ -157,8 +157,16 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
     const { size } = getThree()
     const aspect = size.height > 0 ? size.width / size.height : undefined
     const pose = computeCameraPose(mode, layout, focusedFloorKey, aspect)
-    controls.minAzimuthAngle = pose.minAzimuthAngle
-    controls.maxAzimuthAngle = pose.maxAzimuthAngle
+    if (keepPoseAfterFollow) {
+      // The camera stays where follow left it, which may be outside this
+      // mode's azimuth limits: widen them so it does not swing back.
+      const azimuth = widenAzimuth(pose.minAzimuthAngle, pose.maxAzimuthAngle, controls.azimuthAngle)
+      controls.minAzimuthAngle = azimuth.min
+      controls.maxAzimuthAngle = azimuth.max
+    } else {
+      controls.minAzimuthAngle = pose.minAzimuthAngle
+      controls.maxAzimuthAngle = pose.maxAzimuthAngle
+    }
     controls.minPolarAngle = pose.minPolarAngle
     controls.maxPolarAngle = pose.maxPolarAngle
     controls.minDistance = pose.minDistance
@@ -212,17 +220,22 @@ export function CameraRig({ layout, reducedMotion = false }: CameraRigProps) {
       }
       followLostRef.current = 0
       const view = useViewStore.getState()
-      if (view.mode !== 'floor' || view.focusedFloorKey !== sight.floorKey) {
-        // Only when the view is still where the rig left it: otherwise the user
-        // just picked another view and the effect above is about to end the follow.
-        const viewIsOurs =
-          rigFloorRef.current === null || rigFloorRef.current === view.focusedFloorKey
-        if (viewIsOurs) {
-          rigFloorRef.current = sight.floorKey
-          useViewStore.setState({ mode: 'floor', focusedFloorKey: sight.floorKey })
+      // While riding this is the destination floor: one switch when the ride
+      // starts, another on exit if it ended elsewhere, never one per floor passed.
+      const floorKey = followFloorKey(sight, rigFloorRef.current)
+      if (floorKey !== null) {
+        if (view.mode !== 'floor' || view.focusedFloorKey !== floorKey) {
+          // Only when the view is still where the rig left it: otherwise the user
+          // just picked another view and the effect above is about to end the follow.
+          const viewIsOurs =
+            rigFloorRef.current === null || rigFloorRef.current === view.focusedFloorKey
+          if (viewIsOurs) {
+            rigFloorRef.current = floorKey
+            useViewStore.setState({ mode: 'floor', focusedFloorKey: floorKey })
+          }
+        } else {
+          rigFloorRef.current = floorKey
         }
-      } else {
-        rigFloorRef.current = sight.floorKey
       }
       const animate = !reducedMotion && !IS_E2E
       if (!followStartedRef.current) {

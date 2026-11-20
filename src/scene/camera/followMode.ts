@@ -31,3 +31,30 @@ export function userLeftFollow(view: FollowView, rigFloorKey: string | null): bo
   if (rigFloorKey === null) return false
   return view.mode !== 'floor' || view.focusedFloorKey !== rigFloorKey
 }
+
+/**
+ * The floor the follow camera should be showing. In the elevator the sight
+ * names the destination (or '' when unknown): the view switches once when the
+ * ride starts and stays put while the car passes floors. Null = leave the view.
+ */
+export function followFloorKey(
+  sight: { floorKey: string; riding: boolean },
+  rigFloorKey: string | null,
+): string | null {
+  if (sight.floorKey !== '') return sight.floorKey
+  return sight.riding ? null : rigFloorKey
+}
+
+/**
+ * Azimuth limits that still contain the camera's current azimuth. Limits
+ * that exclude it make camera-controls rotate the view back into range (a
+ * visible swing) the moment follow ends.
+ */
+export function widenAzimuth(
+  min: number,
+  max: number,
+  current: number,
+): { min: number; max: number } {
+  if (!Number.isFinite(current)) return { min, max }
+  return { min: Math.min(min, current), max: Math.max(max, current) }
+}

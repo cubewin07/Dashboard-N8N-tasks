@@ -238,6 +238,20 @@ export class Director {
     return this.agents.get(id)?.sim ?? null
   }
 
+  /**
+   * Floor index a person in the elevator is travelling to, or null when they
+   * are not riding. The follow camera switches to it once instead of
+   * flipping through every floor the car passes.
+   */
+  rideDestination(id: EmployeeId): number | null {
+    const agent = this.agents.get(id)
+    if (!agent || agent.sim.inCar < 0) return null
+    const action = agent.plan[agent.step]
+    if (action?.k === 'ride') return action.to
+    if (action?.k === 'exitElevator') return action.floor
+    return null
+  }
+
   elevators(): readonly CarState[] {
     return this.elevatorSystem.view()
   }
