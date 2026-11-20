@@ -142,6 +142,9 @@ if (colors && typeof colors === 'object') {
 
 // 4. Validate slot catalogue files
 const seenIds = new Set()
+// Data files in the catalogue folder that are not one-slot item lists.
+const NON_SLOT_FILES = new Set(['colors.json', 'face-atlas.json', 'generator-weights.json', 'presets.json'])
+
 let totalItems = 0
 let slotFileCount = 0
 
@@ -149,7 +152,7 @@ if (!existsSync(CATALOG_DIR)) {
   fail('src/content/catalog', 'directory does not exist')
 } else {
   const files = readdirSync(CATALOG_DIR)
-    .filter((f) => f.endsWith('.json') && f !== 'colors.json' && f !== 'face-atlas.json')
+    .filter((f) => f.endsWith('.json') && !NON_SLOT_FILES.has(f))
     .sort()
 
   for (const file of files) {

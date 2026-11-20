@@ -30,18 +30,11 @@ ASSETS_DIR = os.path.join(ROOT, "public", "assets")
 DEFAULT_OUT_DIR = os.path.join(ASSETS_DIR, "thumbs")
 DEFAULT_TEST_OUT = os.path.join(ROOT, "art", ".cache", "p07", "thumbs", "test.webp")
 
-SLOT_FILES = [
-    "hair.json",
-    "top.json",
-    "bottom.json",
-    "fullbody.json",
-    "shoes.json",
-    "glasses.json",
-    "neck.json",
-    "eyes.json",
-    "brows.json",
-    "mouth.json",
-]
+# Every slot file in the catalogue (one JSON per WardrobeSlot); non-slot data files are skipped.
+NON_SLOT_FILES = {"colors.json", "face-atlas.json", "generator-weights.json", "presets.json"}
+SLOT_FILES = sorted(
+    f for f in os.listdir(CATALOG_DIR) if f.endswith(".json") and f not in NON_SLOT_FILES
+)
 
 THUMB_SIZE = 256
 MAX_BYTES = 15 * 1024
