@@ -2,7 +2,7 @@ import { Building2, Compass, Layers, UserCheck } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { usePeopleUi } from '@/office/uiStore'
-import { useViewStore } from '@/scene/camera/viewStore'
+import { defaultFloorTarget, useViewStore } from '@/scene/camera/viewStore'
 
 export interface CameraModeBarProps {
   floorKeys: readonly string[]
@@ -22,10 +22,7 @@ export function CameraModeBar({ floorKeys }: CameraModeBarProps) {
   const followTarget = followedId ?? selectedId
 
   const handleFloorMode = () => {
-    const target =
-      focusedFloorKey ??
-      hoveredFloorKey ??
-      floorKeys[Math.min(1, Math.max(0, floorKeys.length - 1))]
+    const target = defaultFloorTarget({ hoveredFloorKey, focusedFloorKey }, floorKeys)
     if (target) {
       focusFloor(target)
     }

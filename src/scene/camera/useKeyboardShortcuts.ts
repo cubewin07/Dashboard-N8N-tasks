@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { usePeopleUi } from '@/office/uiStore'
-import { useViewStore } from './viewStore'
+import { defaultFloorTarget, useViewStore } from './viewStore'
 
 function shouldIgnoreShortcut(target: EventTarget | null): boolean {
   const el = target instanceof Element ? target : document.activeElement
@@ -34,10 +34,7 @@ export function useKeyboardShortcuts(floorKeys: readonly string[]): void {
 
       if (e.key === 'f' || e.key === 'F') {
         e.preventDefault()
-        const targetKey =
-          state.hoveredFloorKey ??
-          state.focusedFloorKey ??
-          floorKeys[Math.min(1, floorKeys.length - 1)]
+        const targetKey = defaultFloorTarget(state, floorKeys)
         if (targetKey) {
           state.focusFloor(targetKey)
         }
