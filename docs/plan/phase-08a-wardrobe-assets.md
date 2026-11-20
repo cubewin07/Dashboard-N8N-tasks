@@ -95,7 +95,7 @@ One agent per batch; batches touch disjoint files (one JSON file per slot, one g
 - [x] **P08a-T11** Thumbnails for all items; thumbnail wall image for the PR. *Acceptance:* R4; every catalogue `thumb` file exists.
 - [x] **P08a-T12** Worst-case budget script (`scripts/catalog-budget.mjs`): heaviest combos ≤ 8 000 tris; per-slot byte totals. *Acceptance:* R3, R7 numbers in PR.
 - [x] **P08a-T13** Ledger + credits + optimisation + validators green; update `generateAppearance` **data weights only** (`catalog/generator-weights.json`: which tags are "office-like" defaults) so seeded looks stay office-appropriate. *Acceptance:* R7, R9.
-- [ ] **P08a-T14** Write `art/RECIPE-add-item.md`, then a different agent adds one bonus item (e.g. `top_ao_ba_ba`) using only the recipe and reports friction; fix the recipe. *Acceptance:* R6; the bonus item is in the catalogue.
+- [x] **P08a-T14** Write `art/RECIPE-add-item.md`, then a different agent adds one bonus item (e.g. `top_ao_ba_ba`) using only the recipe and reports friction; fix the recipe. *Acceptance:* R6; the bonus item is in the catalogue.
 
 ## 6. Dependencies
 - **Needs:** P07a pipeline, rig, bases; P07b (to see items in the running app and for `generateAppearance`); `assets.md`.
