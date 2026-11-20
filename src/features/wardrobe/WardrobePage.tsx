@@ -51,6 +51,17 @@ export function WardrobePage() {
     editor.load(person.id, cache.docs[person.id] ?? getGeneratedAppearance(person.id, person.name), cache.versions[person.id] ?? 0)
   }, [person])
 
+  // A save from another tab or device: a clean editor follows it; a dirty one keeps its draft
+  // and gets the conflict dialog on save.
+  const cachedVersion = useAppearanceCache((s) => (selectedId ? s.versions[selectedId] : undefined))
+  useEffect(() => {
+    const editor = useWardrobeEditor.getState()
+    if (!selectedId || editor.employeeId !== selectedId || editor.dirty) return
+    if (cachedVersion === undefined || cachedVersion <= editor.version) return
+    const doc = useAppearanceCache.getState().docs[selectedId]
+    if (doc) editor.adoptSaved(doc, cachedVersion)
+  }, [selectedId, cachedVersion])
+
   useEffect(() => () => useWardrobeEditor.getState().close(), [])
 
   // R9: confirm before dropping unsaved changes (route change, other person, tab close).
