@@ -48,7 +48,14 @@
         "office",
         "formal"
       ],
-      "credit": "own-generated"
+      "credit": "own-generated",
+      "conflicts": [
+        "fullbody_ao_dai_01",
+        "fullbody_dress_office_01",
+        "fullbody_jumpsuit_01",
+        "fullbody_suit_set_01",
+        "top_tank_01"
+      ]
     },
     {
       "id": "outer_cardigan_01",
@@ -98,7 +105,15 @@
         "office",
         "casual"
       ],
-      "credit": "own-generated"
+      "credit": "own-generated",
+      "conflicts": [
+        "fullbody_ao_dai_01",
+        "fullbody_dress_office_01",
+        "fullbody_dress_simple_01",
+        "fullbody_jumpsuit_01",
+        "fullbody_suit_set_01",
+        "top_tank_01"
+      ]
     },
     {
       "id": "outer_bomber_01",
@@ -141,7 +156,12 @@
       "tags": [
         "street"
       ],
-      "credit": "own-generated"
+      "credit": "own-generated",
+      "conflicts": [
+        "fullbody_ao_dai_01",
+        "fullbody_jumpsuit_01",
+        "fullbody_suit_set_01"
+      ]
     },
     {
       "id": "outer_raincoat_01",
@@ -188,7 +208,13 @@
       "tags": [
         "casual"
       ],
-      "credit": "own-generated"
+      "credit": "own-generated",
+      "conflicts": [
+        "fullbody_ao_dai_01",
+        "fullbody_dress_office_01",
+        "fullbody_jumpsuit_01",
+        "fullbody_suit_set_01"
+      ]
     }
   ]
 }

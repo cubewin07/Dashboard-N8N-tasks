@@ -378,17 +378,25 @@ export function generateAppearance(
   let outer: string | null = null
   const outerOptions = getSlotItems(catalog, 'outer', base)
   if ((top || fullbody) && wears('outer', outerOptions)) {
-    const chosenOuter = pick(outerOptions)
-    outer = chosenOuter.id
-    const c = buildItemColors(
-      chosenOuter,
-      scheme.bottomPrimary,
-      scheme.topPrimary,
-      scheme.topSecondary,
-      catalog,
-      defaultFabric,
+    const inner = top ?? fullbody
+    const innerItem = inner ? catalog.byId.get(inner) : undefined
+    // Never pick a pair where either row lists the other in `conflicts` (layering test, P08a-T10).
+    const compatible = outerOptions.filter(
+      (o) => !o.conflicts?.includes(inner ?? '') && !innerItem?.conflicts?.includes(o.id),
     )
-    if (c) colors[chosenOuter.id] = c
+    if (compatible.length > 0) {
+      const chosenOuter = pick(compatible)
+      outer = chosenOuter.id
+      const c = buildItemColors(
+        chosenOuter,
+        scheme.bottomPrimary,
+        scheme.topPrimary,
+        scheme.topSecondary,
+        catalog,
+        defaultFabric,
+      )
+      if (c) colors[chosenOuter.id] = c
+    }
   }
 
   let shoes: string | null = null

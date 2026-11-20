@@ -57,6 +57,8 @@ export interface CatalogItem {
   } | null
   hides: CatalogSlot[]
   requires?: CatalogSlot[]
+  /** Item ids that cannot be worn together with this one (either row may list the other). */
+  conflicts?: string[]
   bodyLimits?: Partial<Record<CatalogBodyKey, [number, number]>>
   tags: string[]
   credit: string
