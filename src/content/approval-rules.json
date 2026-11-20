@@ -9,11 +9,8 @@
     },
     "when": {
       "tagsAny": [
-        "money",
         "tax",
         "legal",
-        "refund",
-        "angry_customer",
         "irreversible",
         "new_account",
         "hire_over_cap"
@@ -26,11 +23,11 @@
     "order": 2,
     "enabled": true,
     "label": {
-      "vi": "Khoản chi từ 2.000.000đ trở lên",
-      "en": "Transactions of 2,000,000 VND or more"
+      "vi": "Khoản chi từ 3.000.000đ trở lên",
+      "en": "Transactions of 3,000,000 VND or more"
     },
     "when": {
-      "amountVndGte": 2000000
+      "amountVndGte": 3000000
     },
     "level": "boss"
   },

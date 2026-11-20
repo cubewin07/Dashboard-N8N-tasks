@@ -30,7 +30,7 @@ export function runAngryRefundScenario(ctx: SimBrainContext): void {
     departmentId: csDept,
     platformKey: 'shopee',
     amountVnd: 2_800_000,
-    extraTags: ['refund', 'money', 'angry_customer'],
+    extraTags: ['refund', 'money', 'angry_customer', 'irreversible'],
     titleCtx: {
       shop: 'Shopee 1',
     },

@@ -9,15 +9,15 @@ describe('approval rule engine (P03-T02)', () => {
 
   it.each([
     {
-      name: 'refund tag -> boss (boss_sensitive)',
-      task: makeSampleTask({ tags: ['refund'], amountVnd: null }),
+      name: 'tax tag -> boss (boss_sensitive)',
+      task: makeSampleTask({ tags: ['tax'], amountVnd: null }),
       ctx: {},
       expectedLevel: 'boss',
       expectedRule: 'boss_sensitive',
     },
     {
-      name: '2 500 000 VND -> boss (boss_big_amount)',
-      task: makeSampleTask({ tags: [], amountVnd: 2_500_000 }),
+      name: '3 000 000 VND -> boss (boss_big_amount)',
+      task: makeSampleTask({ tags: [], amountVnd: 3_000_000 }),
       ctx: {},
       expectedLevel: 'boss',
       expectedRule: 'boss_big_amount',
@@ -44,14 +44,21 @@ describe('approval rule engine (P03-T02)', () => {
       expectedRule: 'reviewer_routine',
     },
     {
-      name: 'routine + refund -> boss (strictest wins)',
+      name: 'routine + tax -> boss (strictest wins)',
       task: makeSampleTask({
-        tags: ['routine_draft', 'refund'],
+        tags: ['routine_draft', 'tax'],
         amountVnd: null,
       }),
       ctx: {},
       expectedLevel: 'boss',
       expectedRule: 'boss_sensitive',
+    },
+    {
+      name: 'everyday money (2 400 000 VND, money tag) stays below the boss',
+      task: makeSampleTask({ tags: ['money'], amountVnd: 2_400_000 }),
+      ctx: {},
+      expectedLevel: 'dept_manager',
+      expectedRule: null,
     },
     {
       name: 'no match -> policy defaultLevel (dept_manager)',
@@ -75,7 +82,7 @@ describe('approval rule engine (P03-T02)', () => {
       r.id === 'boss_sensitive' ? { ...r, enabled: false } : r,
     )
     const resDisabled = requiredLevel(
-      makeSampleTask({ tags: ['refund', 'routine_draft'] }),
+      makeSampleTask({ tags: ['tax', 'routine_draft'] }),
       disabledRules,
       policy,
     )

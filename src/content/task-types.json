@@ -262,7 +262,7 @@
       "en": "Register for Flash Sale program"
     },
     "specialty": "promotions",
-    "tags": ["money", "irreversible"],
+    "tags": ["money"],
     "defaultPriority": "high",
     "durationMinutes": [20, 35],
     "platformKeys": ["shopee", "lazada"],
@@ -442,7 +442,7 @@
       "en": "Redecorate storefront for campaign"
     },
     "specialty": "image",
-    "tags": ["public_post", "irreversible"],
+    "tags": ["public_post"],
     "defaultPriority": "high",
     "durationMinutes": [35, 60],
     "platformKeys": ["shopee", "lazada"],
@@ -592,7 +592,7 @@
       "en": "Request supplier payment"
     },
     "specialty": "bookkeeping",
-    "tags": ["money", "irreversible"],
+    "tags": ["money"],
     "defaultPriority": "high",
     "durationMinutes": [15, 25],
     "platformKeys": [],

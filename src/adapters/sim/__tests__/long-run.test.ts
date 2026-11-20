@@ -30,6 +30,16 @@ describe('multi-day health', () => {
         expect(queued.length, `queued on day ${day}`).toBeLessThan(60)
         expect(done.length, `done by day ${day}`).toBeGreaterThanOrEqual(day * 100)
 
+        // Nobody approves in this run, so the boss queue only grows. Only
+        // tax/legal/new-account/over-cap work and spends of 3,000,000 VND or
+        // more reach the boss (about 8-10 a day); the old seed sent ~75 a day.
+        const bossPending = Object.values(state.reviews).filter(
+          (r) => r.status === 'pending' && r.level === 'boss',
+        )
+        expect(bossPending.length, `boss queue on day ${day}`).toBeLessThan(
+          15 * day,
+        )
+
         // Nothing is frozen: a task in progress at one 08:00 must have moved
         // by the next (a full workday later). The rounding bug left long
         // tasks at 0% for good.
