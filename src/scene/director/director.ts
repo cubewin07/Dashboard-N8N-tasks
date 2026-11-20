@@ -265,11 +265,12 @@ export class Director {
     }
   }
 
-  /** Which floors the camera shows (catch-up rule 3). Default: all. */
+  /** Reduced motion: a chatting pair's bubble stays on instead of taking turns. */
   setReducedMotion(reduced: boolean): void {
     this.reducedMotion = reduced
   }
 
+  /** Which floors the camera shows (catch-up rule 3). Default: all. */
   setVisibility(visible: ((floorIndex: number) => boolean) | null): void {
     this.visible = visible ?? (() => true)
   }
