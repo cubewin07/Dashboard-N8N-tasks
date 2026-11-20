@@ -198,7 +198,7 @@ Decisions taken while building the phase. Numbers are from `npm run director:sta
 | F key and floor button | One function, `defaultFloorTarget`: hovered, else focused, else second floor | They disagreed |
 | Drawer focus | The keep-focus flag is also consumed in an effect on `[selectedId]` | A flag set while the drawer stayed open stuck until the next open |
 | Per-frame allocations | `ElevatorSystem.view()` (cached, reused objects) for the renderer and the director; `isFloorFaded` instead of `getFloorFadeTarget(...).faded`; label selector in `useCallback` (the `textOf` closure named in the issue only exists from P05) | No garbage per frame |
-| `perf:check` | Port 4176 (4175 is `check-sim-removable`), preview spawned detached and its process group killed; fails with fewer than 60 people; also checks the tick peak (4 ms avg / 20 ms peak software, 2 / 8 real) | The next CI step found the port taken |
+| `perf:check` | Port 4176 (4175 is `check-sim-removable`), preview spawned detached and its process group killed; fails with fewer than 60 people (it runs the `crowded` scenario, 80 staff; `hire_temps` stops at 38 because of the temp cap); also checks the tick peak (4 ms avg / 20 ms peak software, 2 / 8 real) | The next CI step found the port taken |
 | e2e | Draw-call budget 250 (P04 budget); no wait for `data-assets` (nothing sets it before P06b), wait for `data-ready` | Same hunks as P05 |
 
 **Tuning table (golden day, seeds 1–5):** 30×: 558–563 deliveries on foot, 0–0.4 % collapsed, average backlog 0.13 per person (busiest person 1.7–1.8), peak 6, 0 teleports. 120×: 545–553 deliveries, 0.9–1.4 % collapsed, average backlog 0.26 (busiest 3.0–3.2), peak 6, 0 teleports.
