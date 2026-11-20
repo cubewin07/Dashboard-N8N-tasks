@@ -29,6 +29,8 @@ export const wardrobe: typeof vi = {
     editing: 'Editing: {name}',
     unsavedBadge: 'Unsaved',
     unknownPerson: 'That employee was not found.',
+    toolbarRegion: 'Editing tools',
+    editorRegion: 'Outfit editor',
   },
   unsaved: {
     title: 'Discard unsaved changes?',

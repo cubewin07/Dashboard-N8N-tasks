@@ -27,6 +27,8 @@ export const wardrobe = {
     editing: 'Đang chỉnh: {name}',
     unsavedBadge: 'Chưa lưu',
     unknownPerson: 'Không tìm thấy nhân viên này.',
+    toolbarRegion: 'Công cụ chỉnh',
+    editorRegion: 'Chỉnh trang phục',
   },
   unsaved: {
     title: 'Bỏ các thay đổi chưa lưu?',
