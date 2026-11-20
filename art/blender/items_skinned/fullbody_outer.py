@@ -928,7 +928,7 @@ def build_bomber(ctx):
         {"z": Z.hips_mx + 0.03, "off": OC + 0.004, "mode": "torso"},
         {"z": 0.5 * (Z.hips_mx + 0.03 + Z.arm_bot) + 0.01, "off": OC + 0.002, "mode": "torso"},
     ]
-    t = _torso(g, ctx, lower=lower, off_chest=OC + 0.002, swatch="c_olive", tint="primary", scoop=0.012,
+    t = _torso(g, ctx, lower=lower, off_chest=OC + 0.002, swatch="c_olive", tint="primary", scoop=0.03,
                collar={"kind": "rib", "h": 0.028, "off": 0.030, "swatch": "c_black", "tint": "accent", "shade": 0.92},
                sleeve_steps=_sleeves(ctx, "outer"), sleeve_off=OS + 0.001, shoulder_pad=0.004, back_ease=0.006,
                cuff={"swatch": "c_black", "tint": "accent", "shade": 0.9, "off": -0.004})
