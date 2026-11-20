@@ -1,0 +1,61 @@
+{
+  "items": [
+    {
+      "id": "wrist_watch_01",
+      "slot": "wrist",
+      "label": { "vi": "Đồng hồ", "en": "Wristwatch" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/wrist_watch_01.glb",
+        "male": "models/wardrobe/wrist_watch_01.glb"
+      },
+      "thumb": "thumbs/wrist_watch_01.webp",
+      "attach": { "bone": "LeftForeArm" },
+      "tint": {
+        "regions": ["primary", "secondary"],
+        "defaults": { "primary": "silver", "secondary": "c_brown" }
+      },
+      "hides": [],
+      "tags": ["office", "casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "wrist_bracelet_01",
+      "slot": "wrist",
+      "label": { "vi": "Vòng tay", "en": "Bracelet" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/wrist_bracelet_01.glb",
+        "male": "models/wardrobe/wrist_bracelet_01.glb"
+      },
+      "thumb": "thumbs/wrist_bracelet_01.webp",
+      "attach": { "bone": "LeftForeArm" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "gold" }
+      },
+      "hides": [],
+      "tags": ["party", "casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "wrist_beads_01",
+      "slot": "wrist",
+      "label": { "vi": "Vòng tay hạt", "en": "Bead bracelet" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/wrist_beads_01.glb",
+        "male": "models/wardrobe/wrist_beads_01.glb"
+      },
+      "thumb": "thumbs/wrist_beads_01.webp",
+      "attach": { "bone": "LeftForeArm" },
+      "tint": {
+        "regions": ["primary", "secondary"],
+        "defaults": { "primary": "c_coral", "secondary": "c_sky" }
+      },
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    }
+  ]
+}

@@ -997,3 +997,120 @@ register("neck_scarf_01", "neck", "Neck", build_neck_scarf_01)
 register("neck_tie_01", "neck", "Neck", build_neck_tie_01)
 register("neck_bow_tie_01", "neck", "Neck", build_neck_bow_tie_01)
 register("neck_lanyard_badge_01", "neck", "Spine2", build_neck_lanyard_badge_01)
+
+
+# ---------------------------------------------------------------------------
+# Wrist items on the left forearm (bone LeftForeArm, A-pose 45 deg down).
+# Axis: A + d * t with A = (0.5, 0, 1.02), d = (1, 0, -1) / sqrt 2; wrist ring at t = 0, hand from t >= 0.04.
+# Forearm radius at t = -0.015 is ~37.5 mm neutral, ~40 mm with Heavy + Muscle.
+# ---------------------------------------------------------------------------
+
+_ARM_A = Vector((0.5, 0.0, 1.02))
+_ARM_D = Vector((1.0, 0.0, -1.0)).normalized()
+_ARM_U1 = Vector((0.0, 1.0, 0.0))
+_ARM_U2 = Vector((1.0, 0.0, 1.0)).normalized()  # up and out, perpendicular to the axis
+_WRIST_T = -0.016
+_WRIST_R_IN = 0.0425
+
+
+def _arm_dir(phi: float) -> Vector:
+    """Unit radial direction at angle ``phi`` (0 = up/out, +ve towards the front, -Y)."""
+    return _ARM_U2 * math.cos(phi) - _ARM_U1 * math.sin(phi)
+
+
+def _wrist_band(bm, t: float, r_in: float, thick: float, half_w: float, n: int = 14) -> list:
+    rings = []
+    for k in range(n):
+        phi = 2.0 * math.pi * k / n
+        rd = _arm_dir(phi)
+        c = _ARM_A + _ARM_D * t
+        rings.append([
+            c + rd * r_in + _ARM_D * (-half_w), c + rd * r_in + _ARM_D * half_w,
+            c + rd * (r_in + thick) + _ARM_D * half_w, c + rd * (r_in + thick) + _ARM_D * (-half_w),
+        ])
+    vr = [[bm.verts.new(v) for v in ring] for ring in rings]
+    faces = []
+    for k in range(n):
+        a, b = vr[k], vr[(k + 1) % n]
+        for i in range(4):
+            j = (i + 1) % 4
+            faces.append(bm.faces.new((a[i], a[j], b[j], b[i])))
+    bmesh.ops.recalc_face_normals(bm, faces=faces)
+    return faces
+
+
+def _cyl(bm, c: Vector, axis: Vector, r: float, half_h: float, sides: int = 8, r_top: float | None = None) -> list:
+    axis = axis.normalized()
+    u, v = _orth_frame(axis, _ARM_D if abs(axis.dot(_ARM_D)) < 0.9 else _ARM_U1)
+    r_top = r if r_top is None else r_top
+    lo, hi = [], []
+    for k in range(sides):
+        a = 2.0 * math.pi * k / sides
+        d = u * math.cos(a) + v * math.sin(a)
+        lo.append(bm.verts.new(c - axis * half_h + d * r))
+        hi.append(bm.verts.new(c + axis * half_h + d * r_top))
+    faces = []
+    for k in range(sides):
+        j = (k + 1) % sides
+        faces.append(bm.faces.new((lo[k], lo[j], hi[j], hi[k])))
+    faces.append(bm.faces.new(list(reversed(lo))))
+    faces.append(bm.faces.new(hi))
+    bmesh.ops.recalc_face_normals(bm, faces=faces)
+    return faces
+
+
+def build_wrist_watch_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Wristwatch: leather strap (secondary), metal case (primary) with a light dial and two hands."""
+    bm = bmesh.new()
+    phi0 = math.radians(-28.0)  # dial on the back of the wrist, turned a little to the front
+    strap = _wrist_band(bm, _WRIST_T, _WRIST_R_IN, 0.0040, 0.0105, n=14)
+    _tag(strap, 1)
+    rd = _arm_dir(phi0)
+    c_case = _ARM_A + _ARM_D * _WRIST_T + rd * (_WRIST_R_IN + 0.0040 + 0.0040)
+    case = _cyl(bm, c_case, rd, 0.0165, 0.0040, sides=10)
+    _tag(case, 0)
+    c_dial = c_case + rd * 0.0044
+    dial = _cyl(bm, c_dial, rd, 0.0125, 0.0006, sides=10)
+    _tag(dial, 2)
+    # hands: two thin bars from the centre
+    up = _ARM_D
+    side = rd.cross(up).normalized()
+    hands = []
+    hands += _box(bm, c_dial + rd * 0.0010 + up * 0.0035, side, rd, up, 0.0008, 0.0005, 0.0045)
+    hands += _box(bm, c_dial + rd * 0.0010 + side * 0.0030, side, rd, up, 0.0035, 0.0005, 0.0008)
+    _tag(hands, 3)
+    table = {0: ("white", "primary"), 1: ("white", "secondary"), 2: ("c_white", "none"), 3: ("c_charcoal", "none")}
+    return _finish(bm, table, shade_lo=0.82)
+
+
+def build_wrist_bracelet_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Thin metal bangle plus a small round charm."""
+    bm = bmesh.new()
+    band = _wrist_band(bm, _WRIST_T, _WRIST_R_IN, 0.0030, 0.0045, n=14)
+    _tag(band, 0)
+    rd = _arm_dir(math.radians(-28.0))
+    c = _ARM_A + _ARM_D * _WRIST_T + rd * (_WRIST_R_IN + 0.0030 + 0.0045)
+    _tag(_cyl(bm, c, rd, 0.0070, 0.0030, sides=8), 0)
+    return _finish(bm, {0: ("white", "primary")}, shade_lo=0.82)
+
+
+def build_wrist_beads_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Stretch bracelet of 18 beads alternating two colours."""
+    bm = bmesh.new()
+    n = 18
+    r_b = 0.0074
+    ring_r = _WRIST_R_IN + r_b * 0.95
+    pri, sec = [], []
+    c0 = _ARM_A + _ARM_D * _WRIST_T
+    for k in range(n):
+        phi = 2.0 * math.pi * k / n
+        c = c0 + _arm_dir(phi) * ring_r
+        (pri if k % 2 == 0 else sec).extend(_bipyramid(bm, c, r_b, sides=5))
+    _tag(pri, 0)
+    _tag(sec, 1)
+    return _finish(bm, {0: ("white", "primary"), 1: ("white", "secondary")}, shade_lo=0.82)
+
+
+register("wrist_watch_01", "wrist", "LeftForeArm", build_wrist_watch_01)
+register("wrist_bracelet_01", "wrist", "LeftForeArm", build_wrist_bracelet_01)
+register("wrist_beads_01", "wrist", "LeftForeArm", build_wrist_beads_01)
