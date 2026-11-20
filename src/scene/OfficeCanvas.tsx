@@ -280,7 +280,7 @@ export function OfficeCanvas() {
           <div className="flex flex-1 justify-center">
             <CameraModeBar floorKeys={floorKeys} />
           </div>
-          <div className="hidden w-52 lg:block" aria-hidden="true" />
+          <div className="hidden w-60 lg:block" aria-hidden="true" />
         </div>
 
         <div className="flex items-end justify-between gap-4">
