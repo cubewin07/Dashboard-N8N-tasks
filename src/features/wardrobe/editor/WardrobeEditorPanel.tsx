@@ -102,7 +102,7 @@ export function WardrobeEditorPanel({ catalog = DEFAULT_CATALOG }: WardrobeEdito
   return (
     <section aria-label={text.panelLabel} data-testid="wardrobe-editor" className="space-y-3">
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
-        <TabsList aria-label={text.tabs.label} className="w-full">
+        <TabsList aria-label={text.tabs.label} className="w-full flex-wrap justify-start">
           {tabs.map((tb) => (
             <TabsTrigger key={tb.key} value={tb.key}>
               {text.tabs[tb.key]}
@@ -186,7 +186,7 @@ function SlotTab({ spec, doc, catalog, onPick, onEdit }: SlotTabProps) {
         <p className="text-sm text-muted-foreground">{text.grid.emptyTab}</p>
       ) : slots.length > 1 ? (
         <Tabs value={active} onValueChange={(v) => setSub(v as CatalogSlot)}>
-          <TabsList aria-label={text.tabs[spec.key as 'face' | 'accessories']} className="w-full">
+          <TabsList aria-label={text.tabs[spec.key as 'face' | 'accessories']} className="w-full flex-wrap justify-start">
             {slots.map((s) => (
               <TabsTrigger key={s} value={s}>
                 {text.slots[s]}
