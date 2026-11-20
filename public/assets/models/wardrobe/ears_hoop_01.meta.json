@@ -1,0 +1,27 @@
+{
+  "id": "ears_hoop_01",
+  "slot": "ears",
+  "kind": "rigid",
+  "bone": "Head",
+  "merge": true,
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/ears_hoop_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    },
+    "male": {
+      "file": "models/wardrobe/ears_hoop_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    }
+  }
+}

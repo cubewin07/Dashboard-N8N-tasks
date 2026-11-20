@@ -659,3 +659,72 @@ def build_glasses_sunglasses_01(probe: BodyProbe) -> bmesh.types.BMesh:
 register("glasses_square_01", "glasses", "Head", build_glasses_square_01)
 register("glasses_cat_eye_01", "glasses", "Head", build_glasses_cat_eye_01)
 register("glasses_sunglasses_01", "glasses", "Head", build_glasses_sunglasses_01)
+
+
+# ---------------------------------------------------------------------------
+# Ears: pairs on both earlobes (probe.ear_l / probe.ear_r)
+# ---------------------------------------------------------------------------
+
+def _lobe(probe: BodyProbe, sx: float) -> tuple[Vector, float]:
+    """Outer surface point of the earlobe (bottom of the ear) and its outward sign ``sx``."""
+    ear = probe.ear_l if sx > 0 else probe.ear_r
+    y = 0.5 * (ear.ymin + ear.ymax)
+    z = ear.zmin + 0.0065
+    best = None
+    for dz in (0.0, 0.004, -0.003):
+        hit, _n, _i, _d = probe.scalp_bvh.ray_cast(Vector((sx * 0.4, y, z + dz)), Vector((-sx, 0.0, 0.0)), 0.6)
+        if hit is not None and (best is None or abs(hit.x) > abs(best.x)):
+            best = hit
+    if best is None:
+        best = Vector((sx * ear.xmax, y, z))
+    return Vector((best.x, y, z)), sx
+
+
+def build_ears_stud_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Round stud on each earlobe."""
+    bm = bmesh.new()
+    faces = []
+    for sx in (-1.0, 1.0):
+        lobe, _ = _lobe(probe, sx)
+        faces += _bipyramid(bm, lobe + Vector((sx * 0.0022, 0.0, 0.0)), 0.0052, sides=6)
+    _tag(faces, 0)
+    return _finish(bm, {0: ("white", "primary")}, shade_lo=0.8)
+
+
+def build_ears_hoop_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Thin hoop hanging from each earlobe (ring in the side plane)."""
+    bm = bmesh.new()
+    faces = []
+    big_r = 0.0135
+    for sx in (-1.0, 1.0):
+        lobe, _ = _lobe(probe, sx)
+        c = lobe + Vector((sx * 0.0030, 0.0, 0.002 - big_r))
+        pts, refs = [], []
+        for k in range(12):
+            a = 2.0 * math.pi * k / 12
+            pts.append(c + Vector((0.0, math.sin(a) * big_r, math.cos(a) * big_r)))
+            refs.append(Vector((sx, 0.0, 0.0)))
+        faces += _tube(bm, pts, 0.0022, sides=4, closed=True, refs=refs, phase=math.pi / 4)
+    _tag(faces, 0)
+    return _finish(bm, {0: ("white", "primary")}, shade_lo=0.8)
+
+
+def build_ears_drop_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Stud + short chain + faceted drop gem on each earlobe."""
+    bm = bmesh.new()
+    metal, gem = [], []
+    for sx in (-1.0, 1.0):
+        lobe, _ = _lobe(probe, sx)
+        top = lobe + Vector((sx * 0.0025, 0.0, 0.0))
+        metal += _bipyramid(bm, top, 0.0042, sides=5)
+        chain = [top + Vector((sx * 0.0012, 0.0, -0.002)), top + Vector((sx * 0.0020, 0.0, -0.012)), top + Vector((sx * 0.0020, 0.0, -0.020))]
+        metal += _tube(bm, chain, 0.0016, sides=4, refs=[Vector((0, -1, 0))] * 3, phase=math.pi / 4)
+        gem += _bipyramid(bm, top + Vector((sx * 0.0020, 0.0, -0.0285)), 0.0062, sides=5, squash=1.55)
+    _tag(metal, 0)
+    _tag(gem, 1)
+    return _finish(bm, {0: ("white", "primary"), 1: ("white", "secondary")}, shade_lo=0.8)
+
+
+register("ears_stud_01", "ears", "Head", build_ears_stud_01)
+register("ears_hoop_01", "ears", "Head", build_ears_hoop_01)
+register("ears_drop_01", "ears", "Head", build_ears_drop_01)
