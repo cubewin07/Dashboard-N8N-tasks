@@ -11,7 +11,8 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/app/auth'
-import { CommandButton, PageHeader, TimeAgo } from '@/components'
+import { CommandButton, LoadErrorState, PageHeader, TimeAgo } from '@/components'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Command } from '@/domain/commands'
 import { newId } from '@/domain/ids'
 import { wallUlid } from '@/lib/ulid'
@@ -21,8 +22,8 @@ import { IntakeBox } from '@/features/office/IntakeBox'
 import { useI18n } from '@/i18n'
 import { priorityTone, toneClasses } from '@/lib/status'
 import { cn, fmt } from '@/lib/utils'
-import { useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
-import { bootOffice } from '@/office/store'
+import { useBootFailure, useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
+import { startOffice } from '@/office/store'
 
 const APPLIED_GRACE_MS = 1500
 
@@ -184,7 +185,7 @@ function BossQueueCard({ item }: { item: BossQueueItem }) {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder={t.queue.notePlaceholder}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none sm:text-sm"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring sm:text-sm"
             />
             {note.trim().length === 0 && (
               <p className="text-[11px] text-muted-foreground">
@@ -265,7 +266,7 @@ function BossQueueCard({ item }: { item: BossQueueItem }) {
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder={t.queue.answerPlaceholder}
-              className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none"
+              className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
             />
             <CommandButton
               size="sm"
@@ -289,10 +290,11 @@ export function QueuePage() {
   const { config, status } = useConfig()
   const state = useOfficeSelector((s) => s)
   const [tab, setTab] = useState<'boss' | 'departments'>('boss')
+  const { failed, retry } = useBootFailure()
 
   useEffect(() => {
     if (!config && status === 'loading') {
-      void bootOffice()
+      startOffice()
     }
   }, [config, status])
 
@@ -374,23 +376,18 @@ export function QueuePage() {
       </div>
 
       {/* Tabs */}
-      <div
-        role="tablist"
-        aria-label={t.queue.title}
-        className="flex flex-wrap gap-2 border-b border-border pb-3"
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v === 'departments' ? 'departments' : 'boss')}
       >
-        <button
-          type="button"
-          role="tab"
+      <TabsList
+        aria-label={t.queue.title}
+        className="flex h-auto flex-wrap gap-2 rounded-none border-b border-border bg-transparent p-0 pb-3"
+      >
+        <TabsTrigger
+          value="boss"
           data-queue-tab="boss"
-          aria-selected={tab === 'boss'}
-          onClick={() => setTab('boss')}
-          className={cn(
-            'inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors',
-            tab === 'boss'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-surface-muted text-muted-foreground hover:text-foreground',
-          )}
+          className="gap-2 bg-surface-muted px-3.5 py-2 font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
         >
           <span>{t.queue.tabs.boss}</span>
           <span
@@ -404,27 +401,21 @@ export function QueuePage() {
           >
             {liveBossItems.length}
           </span>
-        </button>
+        </TabsTrigger>
 
-        <button
-          type="button"
-          role="tab"
+        <TabsTrigger
+          value="departments"
           data-queue-tab="departments"
-          aria-selected={tab === 'departments'}
-          onClick={() => setTab('departments')}
-          className={cn(
-            'inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors',
-            tab === 'departments'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-surface-muted text-muted-foreground hover:text-foreground',
-          )}
+          className="gap-2 bg-surface-muted px-3.5 py-2 font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
         >
           <span>{t.queue.tabs.departments}</span>
-        </button>
-      </div>
+        </TabsTrigger>
+      </TabsList>
 
-      {tab === 'boss' ? (
-        displayedBossItems.length === 0 ? (
+      <TabsContent value="boss" className="mt-0">
+        {failed && !state ? (
+          <LoadErrorState onRetry={retry} />
+        ) : displayedBossItems.length === 0 ? (
           <div
             data-queue-empty
             className="flex flex-col items-center justify-center gap-2 rounded-[14px] border border-dashed border-border bg-surface px-4 py-12 text-center"
@@ -438,8 +429,10 @@ export function QueuePage() {
               <BossQueueCard key={item.id} item={item} />
             ))}
           </div>
-        )
-      ) : (
+        )}
+      </TabsContent>
+
+      <TabsContent value="departments" className="mt-0">
         <div data-dept-queue-list className="grid gap-4 md:grid-cols-2">
           {departmentApprovers.map(({ emp, role, dept, pileCount, topItems }) => (
             <section
@@ -502,7 +495,8 @@ export function QueuePage() {
             </section>
           ))}
         </div>
-      )}
+      </TabsContent>
+      </Tabs>
     </div>
   )
 }
