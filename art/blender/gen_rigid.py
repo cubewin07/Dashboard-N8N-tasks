@@ -22,7 +22,14 @@ import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import charexport, export, palette  # noqa: E402
-from lib.rigid_common import build_body_probe, check_face_quads_clear, measure_min_scalp_distance  # noqa: E402
+from lib.rigid_common import (  # noqa: E402
+    HAIR_MAX_UNDER_HAT_M,
+    build_body_probe,
+    check_face_quads_clear,
+    hair_crown_max_offset,
+    hatcut,
+    measure_min_scalp_distance,
+)
 import items_rigid  # noqa: E402
 
 
@@ -92,6 +99,22 @@ def main() -> int:
         is_hair = it.slot == "hair"
         face_clear = check_face_quads_clear(bm, probe) if is_hair else True
         min_scalp_mm = measure_min_scalp_distance(bm, probe) * 1000.0 if is_hair else 0.0
+        meta_extra = dict(it.meta)
+        if is_hair:
+            # Every hair also ships a crown-less variant worn under hats (meta hairClip=crown).
+            crown_mm = hair_crown_max_offset(bm, probe) * 1000.0
+            cut_bm = hatcut(bm, probe)
+            cut_id = f"{it.id}_hatcut"
+            cut_me = charexport.bmesh_to_mesh(cut_bm, cut_id, [palette.material("palette")])
+            cut_ob = bpy.data.objects.new(cut_id, cut_me)
+            bpy.context.scene.collection.objects.link(cut_ob)
+            charexport.export_character_glb(
+                cut_ob, [cut_ob], os.path.join(out, "wardrobe", f"{cut_id}.glb"), skinned=False, has_morphs=False
+            )
+            bpy.data.objects.remove(cut_ob)
+            meta_extra["hatcut"] = f"models/wardrobe/{cut_id}.glb"
+            if crown_mm > HAIR_MAX_UNDER_HAT_M * 1000.0:
+                print(f"WARN {it.id}: hair {crown_mm:.1f} mm off the scalp at the hat band (max {HAIR_MAX_UNDER_HAT_M * 1000:.0f})")
 
         me = charexport.bmesh_to_mesh(bm, it.id, [palette.material("palette")])
         ob = bpy.data.objects.new(it.id, me)
@@ -99,9 +122,9 @@ def main() -> int:
 
         glb_path = os.path.join(out, "wardrobe", f"{it.id}.glb")
         charexport.export_character_glb(ob, [ob], glb_path, skinned=False, has_morphs=False)
-        write_rigid_meta(out, it.id, it.slot, it.bone, it.meta)
+        write_rigid_meta(out, it.id, it.slot, it.bone, meta_extra)
 
-        extra = f" minScalpMm={min_scalp_mm:.2f} faceClear={face_clear}" if is_hair else ""
+        extra = f" minScalpMm={min_scalp_mm:.2f} faceClear={face_clear} crownMm={crown_mm:.1f}" if is_hair else ""
         print(f"BUILT {it.id} tris={tris} bone={it.bone}{extra}")
 
     target_entries = [
@@ -116,6 +139,19 @@ def main() -> int:
             "source": "generated",
         }
         for it in registry.values()
+    ] + [
+        {
+            "name": f"{it.id}_hatcut",
+            "family": "rigid",
+            "script": "art/blender/gen_rigid.py",
+            "out": f"public/assets/models/wardrobe/{it.id}_hatcut.glb",
+            "budget": "hair",
+            "anchors": [],
+            "nodes": [],
+            "source": "generated",
+        }
+        for it in registry.values()
+        if it.slot == "hair"
     ]
     charexport.register_targets("rigid", target_entries)
     return 0

@@ -30,8 +30,8 @@ const byFamily = new Map()
 for (const file of glbs) {
   const name = basename(file, '.glb')
   const r = rel(file)
-  if (!/^(body_(female|male)|[a-z0-9]+(_[a-z0-9]+)*_\d{2}(_[fm])?)$/.test(name)) {
-    err(r, 'name must be category_name_NN[_f|_m] in snake_case or body_female/body_male')
+  if (!/^(body_(female|male)|[a-z0-9]+(_[a-z0-9]+)*_\d{2}(_[fm]|_hatcut)?)$/.test(name)) {
+    err(r, 'name must be category_name_NN[_f|_m|_hatcut] in snake_case or body_female/body_male')
   }
   const t = targets.get(name)
   if (!t) { err(r, 'not registered in art/targets.json'); continue }

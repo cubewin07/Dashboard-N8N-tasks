@@ -507,3 +507,53 @@ def _add_prism_lock(bm: bmesh.types.BMesh, rings: list[list[Vector]]) -> list[bm
 # ---------------------------------------------------------------------------
 
 
+
+
+# ---------------------------------------------------------------------------
+# Hats over hair (P08a §3.2): one shared hat band so hair and hat batches agree
+# ---------------------------------------------------------------------------
+
+HAT_BAND_ABOVE_BROW_M = 0.028
+"""The hat band (lower rim of cap / beret / non la crown) sits this far above the brow tops."""
+HAT_CLEAR_M = 0.035
+"""Hat inner surface offset from the scalp at and above the band (cover any hair under it)."""
+HAIR_MAX_UNDER_HAT_M = 0.030
+"""Hair must stay within this offset from the scalp between the band and the hatcut line."""
+HATCUT_ABOVE_BAND_M = 0.010
+"""Hatcut hair drops every face whose lowest vertex is above band + this."""
+
+
+def hat_band_z(probe: BodyProbe) -> float:
+    """World z of the shared hat band."""
+    return max(probe.brow_l.zmax, probe.brow_r.zmax) + HAT_BAND_ABOVE_BROW_M
+
+
+def hat_ring_point(probe: BodyProbe, theta: float, z: float | None = None, extra_m: float = 0.0) -> Vector:
+    """Point on the hat's inner surface at azimuth ``theta`` (0 = front) and height ``z`` (default band)."""
+    return _cranium_ring_point(probe, theta, hat_band_z(probe) if z is None else z, HAT_CLEAR_M + extra_m)
+
+
+def hatcut(bm: bmesh.types.BMesh, probe: BodyProbe) -> bmesh.types.BMesh:
+    """Copy of hair ``bm`` with the crown removed (worn under items whose meta has hairClip=crown)."""
+    out = bm.copy()
+    cut_z = hat_band_z(probe) + HATCUT_ABOVE_BAND_M
+    drop = [f for f in out.faces if min(v.co.z for v in f.verts) > cut_z]
+    bmesh.ops.delete(out, geom=drop, context="FACES")
+    loose = [v for v in out.verts if not v.link_faces]
+    if loose:
+        bmesh.ops.delete(out, geom=loose, context="VERTS")
+    return out
+
+
+def hair_crown_max_offset(bm: bmesh.types.BMesh, probe: BodyProbe) -> float:
+    """Largest scalp offset (m) of hair that remains in the hatcut between band and cut line."""
+    lo = hat_band_z(probe)
+    hi = lo + HATCUT_ABOVE_BAND_M
+    worst = 0.0
+    for f in bm.faces:
+        if min(v.co.z for v in f.verts) > hi:
+            continue
+        for v in f.verts:
+            if v.co.z >= lo:
+                worst = max(worst, _signed_scalp_dist(probe, v.co)[0])
+    return worst
