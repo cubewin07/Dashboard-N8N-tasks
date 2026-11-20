@@ -117,6 +117,11 @@ interface Agent {
   /** Idle dwell: ends on whichever limit comes first. */
   dwellVisualLeft: number
   dwellSimEndMs: number
+  /** Sim minutes of the current dwell; the deadline starts on arrival (see `armDwell`). */
+  dwellSimMinutes: number
+  dwellArmed: boolean
+  /** Visual seconds still to spend settled before the dwell may end. */
+  minHoldLeft: number
   restFor: PersonRuntime['activity'] | null
   car: number
   gone: boolean
@@ -517,6 +522,9 @@ export class Director {
       opacityTarget: 1,
       dwellVisualLeft: firstDwell * TUNING.idle.visualSecondsPerSimMinute,
       dwellSimEndMs: this.simNowMs + firstDwell * 60_000,
+      dwellSimMinutes: firstDwell,
+      dwellArmed: true,
+      minHoldLeft: 0,
       restFor: null,
       car: -1,
       gone: false,
@@ -840,13 +848,12 @@ export class Director {
       if (
         isLeisureIntent(agent.intent) &&
         agent.plan[agent.step]?.k === 'hold' &&
-        (agent.dwellVisualLeft <= 0 || this.simNowMs >= agent.dwellSimEndMs)
+        this.dwellOver(agent)
       ) {
         this.ledger.releaseAll(agent.id)
         const choice = chooseIdleIntent(agent.id, this.idleContext(agent))
         memory.idleChoice = choice.intent
-        agent.dwellVisualLeft = choice.dwellSimMinutes * TUNING.idle.visualSecondsPerSimMinute
-        agent.dwellSimEndMs = this.simNowMs + choice.dwellSimMinutes * 60_000
+        this.startDwell(agent, choice.dwellSimMinutes)
       }
     } else if (memory.idleChoice !== null) {
       // Any other activity interrupts idling; the choice is dropped, never queued (§3.6 rule 5).
@@ -874,7 +881,7 @@ export class Director {
     const clock = idleClock(this.simNowMs, state.config.policy.calendar)
     const phase = `${activity}:${calendarPhase(clock)}`
     const settled = agent.plan.length === 0 || agent.plan[agent.step]?.k === 'hold' || agent.idleKey === null
-    const dwellOver = agent.dwellVisualLeft <= 0 || this.simNowMs >= agent.dwellSimEndMs
+    const dwellOver = this.dwellOver(agent)
     const phaseChanged = agent.idlePhase !== phase
     // Invited partners keep their joint choice until it ends for both.
     if (!phaseChanged && !(settled && dwellOver && isLeisureIntent(agent.intent))) return
@@ -934,8 +941,30 @@ export class Director {
     agent.idlePhase = phase
     agent.idleHistory.push(key)
     if (agent.idleHistory.length > 3) agent.idleHistory.shift()
+    this.startDwell(agent, dwellSimMinutes)
+  }
+
+  /**
+   * A new dwell: the sim-time deadline is armed on arrival (`armDwell`), not
+   * now, or at 30x / 120x the walk would eat it and the visit end the moment
+   * the person sits down. Every dwell also holds a minimum of visual seconds.
+   */
+  private startDwell(agent: Agent, dwellSimMinutes: number): void {
+    agent.dwellSimMinutes = dwellSimMinutes
     agent.dwellVisualLeft = dwellSimMinutes * TUNING.idle.visualSecondsPerSimMinute
-    agent.dwellSimEndMs = this.simNowMs + dwellSimMinutes * 60_000
+    agent.dwellSimEndMs = Number.POSITIVE_INFINITY
+    agent.dwellArmed = false
+    agent.minHoldLeft = TUNING.idle.minHoldSeconds
+  }
+
+  private armDwell(agent: Agent): void {
+    if (agent.dwellArmed) return
+    agent.dwellArmed = true
+    agent.dwellSimEndMs = this.simNowMs + agent.dwellSimMinutes * 60_000
+  }
+
+  private dwellOver(agent: Agent): boolean {
+    return agent.minHoldLeft <= 0 && (agent.dwellVisualLeft <= 0 || this.simNowMs >= agent.dwellSimEndMs)
   }
 
   private dropIdle(agent: Agent): void {
@@ -966,6 +995,8 @@ export class Director {
       if (state.people[other.id]?.activity !== 'idle') continue
       if (isOwner(state, other.id)) continue
       if (other.plan[other.step] && other.plan[other.step]!.k !== 'hold') continue
+      // Nobody is pulled out of a visit before its minimum hold is over.
+      if (other.minHoldLeft > 0) continue
       out.push({ id: other.id, floorIndex: other.sim.floorIndex })
     }
     out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
@@ -1271,7 +1302,11 @@ export class Director {
 
       case 'hold':
         sim.pose = action.pose
-        if (isLeisureIntent(agent.intent)) agent.dwellVisualLeft -= dt
+        if (isLeisureIntent(agent.intent)) {
+          this.armDwell(agent)
+          agent.dwellVisualLeft -= dt
+          agent.minHoldLeft -= dt
+        }
         return false
 
       case 'despawn':

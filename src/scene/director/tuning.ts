@@ -46,6 +46,8 @@ export const TUNING = {
     dwellSimMinutes: [20, 90] as readonly [number, number],
     /** Dwell also ends after this many visual seconds per sim minute, so 1× is not frozen. */
     visualSecondsPerSimMinute: 3.2,
+    /** A visit lasts at least this many visual seconds after arrival, at any speed. */
+    minHoldSeconds: 8,
     /** At most this share of a department on a leisure floor at once. */
     maxDeptAwayShare: 0.3,
     /** People do not all stand up in the same tick. */

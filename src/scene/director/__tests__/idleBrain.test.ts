@@ -6,6 +6,7 @@ import { parseIdleBehaviours } from '@/domain/visual'
 import type { PersonActivity } from '@/domain/work'
 import { awayShareIfAway } from '../idleBrain'
 import { isLeisureIntent } from '../intents'
+import { TUNING } from '../tuning'
 import { golden, makeWorld, runDirector } from './harness'
 
 const idle = parseIdleBehaviours(idleJson)
@@ -144,4 +145,39 @@ describe('awayShareIfAway', () => {
     expect(awayShareIfAway(0, 0, false)).toBe(1)
     expect(awayShareIfAway(0, 5, true)).toBeCloseTo(0.2)
   })
+})
+
+describe('idle visits keep a minimum visual hold (P05 review)', () => {
+  for (const speed of [30, 120]) {
+    it(`no visit ends within ${TUNING.idle.minHoldSeconds} s of arriving at ${speed}x`, () => {
+      const holding = new Map<string, { key: string; ticks: number }>()
+      const finished: number[] = []
+      runDirector({
+        speed,
+        seed: 'hold',
+        director: { idle: idle },
+        durationMs: 3 * HOUR,
+        onTick: (director) => {
+          for (const p of director.people()) {
+            const step = director.planOf(p.id)[director.debugPeople().find((d) => d.id === p.id)?.step ?? 0]
+            const cur = holding.get(p.id)
+            if (cur && cur.key !== p.idleKey) {
+              // Ended by a new choice (a null key is a work interruption, which may cut it short).
+              if (p.idleKey && cur.ticks > 0) finished.push(cur.ticks * TUNING.tickSeconds)
+              holding.delete(p.id)
+            }
+            if (p.idleKey && step?.k === 'hold') {
+              const h = holding.get(p.id) ?? { key: p.idleKey, ticks: 0 }
+              h.ticks += 1
+              holding.set(p.id, h)
+            } else if (p.idleKey && !holding.has(p.id)) {
+              holding.set(p.id, { key: p.idleKey, ticks: 0 })
+            }
+          }
+        },
+      })
+      expect(finished.length).toBeGreaterThan(0)
+      for (const seconds of finished) expect(seconds).toBeGreaterThanOrEqual(TUNING.idle.minHoldSeconds - 0.2)
+    })
+  }
 })
