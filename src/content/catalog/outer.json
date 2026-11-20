@@ -37,11 +37,7 @@
       "bodyLimits": {
         "build": [
           0.0,
-          0.84
-        ],
-        "shoulders": [
-          0.0,
-          0.6
+          0.87
         ]
       },
       "tags": [
@@ -94,11 +90,7 @@
       "bodyLimits": {
         "build": [
           0.0,
-          0.84
-        ],
-        "shoulders": [
-          0.0,
-          0.6
+          0.87
         ]
       },
       "tags": [
@@ -150,7 +142,7 @@
       "bodyLimits": {
         "build": [
           0.0,
-          0.81
+          0.87
         ]
       },
       "tags": [
@@ -198,11 +190,7 @@
       "bodyLimits": {
         "build": [
           0.0,
-          0.84
-        ],
-        "shoulders": [
-          0.0,
-          0.6
+          0.87
         ]
       },
       "tags": [
