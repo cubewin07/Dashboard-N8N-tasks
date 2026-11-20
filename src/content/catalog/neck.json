@@ -15,6 +15,101 @@
       "hides": [],
       "tags": ["casual", "party"],
       "credit": "own-generated"
+    },
+    {
+      "id": "neck_necklace_pearl_01",
+      "slot": "neck",
+      "label": { "vi": "Vòng cổ ngọc trai", "en": "Pearl necklace" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/neck_necklace_pearl_01.glb",
+        "male": "models/wardrobe/neck_necklace_pearl_01.glb"
+      },
+      "thumb": "thumbs/neck_necklace_pearl_01.webp",
+      "attach": { "bone": "Neck" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "pearl" }
+      },
+      "hides": [],
+      "tags": ["party", "formal"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "neck_scarf_01",
+      "slot": "neck",
+      "label": { "vi": "Khăn quàng cổ", "en": "Scarf" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/neck_scarf_01.glb",
+        "male": "models/wardrobe/neck_scarf_01.glb"
+      },
+      "thumb": "thumbs/neck_scarf_01.webp",
+      "attach": { "bone": "Neck" },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_red", "accent": "c_cream" }
+      },
+      "hides": [],
+      "tags": ["casual", "winter"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "neck_tie_01",
+      "slot": "neck",
+      "label": { "vi": "Cà vạt", "en": "Necktie" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/neck_tie_01.glb",
+        "male": "models/wardrobe/neck_tie_01.glb"
+      },
+      "thumb": "thumbs/neck_tie_01.webp",
+      "attach": { "bone": "Neck" },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_navy", "accent": "c_jade" }
+      },
+      "hides": [],
+      "tags": ["formal", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "neck_bow_tie_01",
+      "slot": "neck",
+      "label": { "vi": "Nơ cổ", "en": "Bow tie" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/neck_bow_tie_01.glb",
+        "male": "models/wardrobe/neck_bow_tie_01.glb"
+      },
+      "thumb": "thumbs/neck_bow_tie_01.webp",
+      "attach": { "bone": "Neck" },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_maroon", "accent": "c_white" }
+      },
+      "hides": [],
+      "tags": ["formal", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "neck_lanyard_badge_01",
+      "slot": "neck",
+      "label": { "vi": "Thẻ nhân viên", "en": "Staff badge" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/neck_lanyard_badge_01.glb",
+        "male": "models/wardrobe/neck_lanyard_badge_01.glb"
+      },
+      "thumb": "thumbs/neck_lanyard_badge_01.webp",
+      "attach": { "bone": "Spine2" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_jade" }
+      },
+      "hides": [],
+      "tags": ["office"],
+      "credit": "own-generated"
     }
   ]
 }

@@ -162,17 +162,23 @@ def _bead(bm, c: Vector, r: float) -> list:
     return _bipyramid(bm, c, r, sides=5)
 
 
+# Neutral chest front profile (min of both bases, measured on the base bodies, x ~ 0): (z, y).
+# The probe torso BVH is a growth envelope (about 100 mm further forward at z 1.26), which would
+# leave flat neck items floating, so neck items hang off the neutral skin and accept a small clip
+# at the Heavy/Chest extremes.
+_CHEST_FRONT = ((1.10, -0.100), (1.16, -0.103), (1.20, -0.111), (1.26, -0.120), (1.30, -0.105),
+                (1.34, -0.093), (1.38, -0.072), (1.42, -0.053), (1.46, -0.045))
+
+
 def _front_y(probe: BodyProbe, x: float, z: float) -> float:
-    """Most forward (smallest) torso/neck surface y at ``(x, z)`` across both bases."""
-    best = 1.0
-    for bvh in (probe.torso_bvh, probe.male_torso_bvh):
-        hit, _n, _i, _d = bvh.ray_cast(Vector((x, -0.6, z)), Vector((0.0, 1.0, 0.0)), 1.2)
-        if hit is not None:
-            best = min(best, hit.y)
-    if best > 0.9:
-        # Past the torso BVH (below the chest region): extrapolate from the last known row.
-        best = min(_front_y(probe, x, z + 0.02), 0.0) if z < 1.30 else -0.06
-    return best
+    """Most forward neutral chest/neck surface y at height ``z`` (both bases)."""
+    pts = _CHEST_FRONT
+    if z <= pts[0][0]:
+        return pts[0][1]
+    for (z0, y0), (z1, y1) in zip(pts, pts[1:]):
+        if z <= z1:
+            return y0 + (y1 - y0) * (z - z0) / (z1 - z0)
+    return pts[-1][1]
 
 
 def _neck_center(probe: BodyProbe) -> Vector:
@@ -728,3 +734,266 @@ def build_ears_drop_01(probe: BodyProbe) -> bmesh.types.BMesh:
 register("ears_stud_01", "ears", "Head", build_ears_stud_01)
 register("ears_hoop_01", "ears", "Head", build_ears_hoop_01)
 register("ears_drop_01", "ears", "Head", build_ears_drop_01)
+
+
+# ---------------------------------------------------------------------------
+# Neck items. Rigid, so they stand off the body for the tops worn over it
+# (shirt surfaces are ~17-24 mm off the chest skin, collars up to ~45 mm at the neck base).
+# ---------------------------------------------------------------------------
+
+def _front_min(probe: BodyProbe, xs, z: float) -> float:
+    return min(_front_y(probe, x, z) for x in xs)
+
+
+def _smooth(t: float) -> float:
+    t = max(0.0, min(1.0, t))
+    return t * t * (3.0 - 2.0 * t)
+
+
+def _strip_loft(bm, stations: list[tuple[float, float, float, float]], thick: float) -> list:
+    """Closed flat strip. ``stations = [(x_centre, z, half_width, y_back)]`` top -> bottom; front face = y_back - thick."""
+    rings = []
+    for xc, z, hw, yb in stations:
+        rings.append([
+            Vector((xc - hw, yb - thick, z)), Vector((xc + hw, yb - thick, z)),
+            Vector((xc + hw, yb, z)), Vector((xc - hw, yb, z)),
+        ])
+    faces = _add_prism_lock(bm, rings)
+    bmesh.ops.recalc_face_normals(bm, faces=faces)
+    return faces
+
+
+def build_neck_necklace_pearl_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Single strand of pearls resting on the collar bones, thin cord round the back."""
+    bm = bmesh.new()
+    r_pearl = 0.0108
+    n = 18
+    pts, dirs = [], []
+    for k in range(n):
+        th = 2.0 * math.pi * k / n
+        c = math.cos(th)
+        fw = (0.5 + 0.5 * c) ** 1.4
+        z = 1.428 * (1.0 - fw) + 1.368 * fw
+        surf, _nrm = _surface_radius(probe, z, th)
+        r_s = math.hypot(surf.x, surf.y)
+        d = Vector((math.sin(th), -math.cos(th), 0.0))
+        r_front = -_front_y(probe, 0.0, z) + 0.026
+        R = (1.0 - fw) * (r_s + 0.021) + fw * r_front
+        pts.append(Vector((d.x * R, d.y * R, z)))
+        dirs.append(d)
+    cord = _tube(bm, pts, 0.0016, sides=3, closed=True, refs=dirs, phase=math.pi / 2)
+    _tag(cord, 1)
+    # Pearls spaced evenly along the front arc (from -112 deg to +112 deg)
+    def arc_point(angle_deg: float) -> Vector:
+        th = math.radians(angle_deg)
+        t = (th % (2 * math.pi)) / (2 * math.pi) * n
+        i0 = int(t) % n
+        i1 = (i0 + 1) % n
+        f = t - int(t)
+        return pts[i0] * (1 - f) + pts[i1] * f
+    pearls = []
+    count = 11
+    for k in range(count):
+        a = -112.0 + 224.0 * k / (count - 1)
+        pearls += _bead(bm, arc_point(a), r_pearl)
+    _tag(pearls, 0)
+    return _finish(bm, {0: ("white", "primary"), 1: ("white", "primary")}, shade_lo=0.82)
+
+
+def build_neck_scarf_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Scarf wound round the neck with a loose knot and two ends hanging down the front."""
+    bm = bmesh.new()
+    n = 14
+    z_c = 1.422
+    pts, dirs = [], []
+    for k in range(n):
+        th = 2.0 * math.pi * k / n
+        surf, _nrm = _surface_radius(probe, z_c, th)
+        r_s = math.hypot(surf.x, surf.y)
+        # slightly higher at the back so it tucks behind the jaw, lower at the front
+        z = z_c + 0.004 * (1.0 - math.cos(th)) * 0.5 - 0.003
+        d = Vector((math.sin(th), -math.cos(th), 0.0))
+        R = r_s + 0.0205
+        pts.append(Vector((d.x * R, d.y * R, z)))
+        dirs.append(Vector((0.0, 0.0, 1.0)))
+    wrap = _tube(bm, pts, 0.0158, sides=6, closed=True, refs=dirs, phase=0.0)
+    _tag(wrap, 0)
+    # Knot at the front-left of the neck
+    kx = 0.034
+    ky = _front_min(probe, (kx - 0.012, kx, kx + 0.012), 1.40) - 0.036
+    ky = min(ky, pts[0].y - 0.002)
+    ax, ay, az = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
+    knot = _box(bm, Vector((kx, ky - 0.004, 1.405)), ax, ay, az, 0.019, 0.011, 0.016, taper_top=0.92)
+    _tag(knot, 0)
+    # Two ends hanging down the chest (long and short), staying >= 30 mm off the chest
+    ends = [(kx + 0.003, 0.150, 0.0195, 0.0), (kx - 0.020, 0.105, 0.0175, 0.0)]
+    stripe = []
+    for ex, length, hw, _d in ends:
+        z_top = 1.398
+        zs = [z_top - length * f for f in (0.0, 0.33, 0.66, 1.0)]
+        st = []
+        for i, z in enumerate(zs):
+            xs = (ex - hw, ex, ex + hw)
+            yb = _front_min(probe, xs, z) - (0.031 + 0.002 * i)
+            st.append((ex - 0.006 * i * (1 if ex > 0.03 else -1), z, hw * (1.0 + 0.12 * i), yb))
+        end_faces = _strip_loft(bm, st, 0.011)
+        _tag(end_faces, 0)
+        # accent stripe band near the tip: re-tag faces whose centre z falls in the last quarter
+        for f in end_faces:
+            zc = f.calc_center_median().z
+            if z_top - length * 0.80 < zc < z_top - length * 0.62:
+                stripe.append(f)
+    _tag(stripe, 1)
+    return _finish(bm, {0: ("white", "primary"), 1: ("white", "accent")}, shade_lo=0.8)
+
+
+def _neck_band(bm, probe: BodyProbe, z: float, off: float = 0.0125) -> list:
+    """Thin loop round the bare neck (the tie / bow tie sits on it, hidden by collars)."""
+    n = 14
+    pts, dirs = [], []
+    for k in range(n):
+        th = 2.0 * math.pi * k / n
+        surf, _nrm = _surface_radius(probe, z, th)
+        r_s = math.hypot(surf.x, surf.y)
+        d = Vector((math.sin(th), -math.cos(th), 0.0))
+        pts.append(Vector((d.x * (r_s + off), d.y * (r_s + off), z)))
+        dirs.append(Vector((0, 0, 1)))
+    return _tube(bm, pts, 0.0034, sides=3, closed=True, refs=dirs, phase=math.pi / 2)
+
+
+def build_neck_tie_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Necktie: knot at the collar, blade down the chest standing >= 30 mm off the chest."""
+    bm = bmesh.new()
+    xs0 = (-0.016, 0.0, 0.016)
+    knot_back = _front_min(probe, xs0, 1.40) - 0.036
+    knot_st = [(0.0, 1.421, 0.0105, knot_back), (0.0, 1.402, 0.0165, knot_back), (0.0, 1.384, 0.0120, knot_back)]
+    knot = _strip_loft(bm, knot_st, 0.0155)
+    _tag(knot, 0)
+    # Blade
+    stations = [(1.381, 0.0085), (1.352, 0.0135), (1.312, 0.0195), (1.262, 0.0225), (1.205, 0.0245), (1.160, 0.0100)]
+    st = []
+    for i, (z, hw) in enumerate(stations):
+        xs = (-hw, 0.0, hw)
+        yb = _front_min(probe, xs, z) - (0.0345 - 0.0 if i == 0 else 0.0305 + 0.0008 * i)
+        yb = min(yb, knot_back + (0.0 if i == 0 else -0.0))
+        st.append((0.0, z, hw, yb))
+    blade = _strip_loft(bm, st, 0.0085)
+    _tag(blade, 0)
+    # Accent stripes across the blade (re-tag faces by height)
+    stripe = []
+    for f in blade:
+        zc = f.calc_center_median().z
+        if 1.272 < zc < 1.292 or 1.228 < zc < 1.246:
+            if f.normal.y < -0.5:
+                stripe.append(f)
+    _tag(stripe, 1)
+    band = _neck_band(bm, probe, 1.414)
+    _tag(band, 0)
+    return _finish(bm, {0: ("white", "primary"), 1: ("white", "accent")}, shade_lo=0.8)
+
+
+def build_neck_bow_tie_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Bow tie: centre knot and two flared wings wrapped round the collar."""
+    bm = bmesh.new()
+    zc = 1.408
+    off = 0.037
+    surf0, _n = _surface_radius(probe, zc, 0.0)
+    r0 = math.hypot(surf0.x, surf0.y) + off
+    # knot
+    ax, ay, az = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
+    knot = _box(bm, Vector((0.0, -(r0 + 0.002), zc)), ax, ay, az, 0.0095, 0.0085, 0.0105)
+    _tag(knot, 1)
+    wings = []
+    for sx in (-1.0, 1.0):
+        rings = []
+        for phi_deg, hh in ((4.0, 0.0085), (14.0, 0.0140), (26.0, 0.0195), (38.0, 0.0215)):
+            ph = math.radians(phi_deg) * sx
+            surf, _nn = _surface_radius(probe, zc, ph)
+            R = math.hypot(surf.x, surf.y) + off
+            d = Vector((math.sin(ph), -math.cos(ph), 0.0))
+            c = Vector((d.x * R, d.y * R, zc))
+            rt = 0.0075
+            rings.append([c + d * (-rt) + Vector((0, 0, hh)), c + d * rt + Vector((0, 0, hh)),
+                          c + d * rt + Vector((0, 0, -hh)), c + d * (-rt) + Vector((0, 0, -hh))])
+        wings += _add_prism_lock(bm, rings)
+    bmesh.ops.recalc_face_normals(bm, faces=wings)
+    _tag(wings, 0)
+    band = _neck_band(bm, probe, 1.414)
+    _tag(band, 0)
+    return _finish(bm, {0: ("white", "primary"), 1: ("white", "accent")}, shade_lo=0.8)
+
+
+def build_neck_lanyard_badge_01(probe: BodyProbe) -> bmesh.types.BMesh:
+    """Staff badge on a cord: white card, jade header stripe, photo square and two text bars (no text)."""
+    bm = bmesh.new()
+    ax = Vector((1, 0, 0))
+    # --- cord: round the back of the neck, over the collar, down to a V on the chest
+    z_clip = 1.292
+    pts, refs = [], []
+    for deg, z, off in ((180, 1.427, 0.016), (150, 1.427, 0.017), (122, 1.424, 0.030), (100, 1.414, 0.044), (80, 1.400, 0.048)):
+        th = math.radians(deg)
+        surf, _nrm = _surface_radius(probe, z, th)
+        r_s = math.hypot(surf.x, surf.y)
+        d = Vector((math.sin(th), -math.cos(th), 0.0))
+        pts.append(Vector((d.x * (r_s + off), d.y * (r_s + off), z)))
+    right_half = [Vector((-p.x, p.y, p.z)) for p in reversed(pts[1:])]
+    left_back = pts  # starts at the centre back (x = 0) going to the left shoulder
+    # left side V: from shoulder (80 deg) to the clip
+    sh = pts[-1]
+    v_left = []
+    for t in (0.2, 0.4, 0.6, 0.8, 1.0):
+        x = sh.x * (1.0 - t)
+        z = sh.z + (z_clip - sh.z) * t
+        y = _front_min(probe, (x - 0.004, x, x + 0.004), z) - 0.032
+        y = min(y, sh.y + (0.0 if t < 0.5 else 0.0))
+        v_left.append(Vector((x, y, z)))
+    path = right_half + left_back + v_left + [Vector((-p.x, p.y, p.z)) for p in reversed(v_left[:-1])]
+    # path: right shoulder->back(centre)->left shoulder->clip->right ... close back to the right shoulder
+    cord = _tube(bm, path, 0.0021, sides=4, closed=True, refs=[Vector((0.0, -1.0, 0.0))] * len(path), phase=math.pi / 4)
+    _tag(cord, 0)
+    # --- card hanging below the clip, tilted to follow the chest slope
+    z_top, z_bot = z_clip - 0.008, z_clip - 0.083
+    def plane_y(z: float) -> float:
+        return _front_min(probe, (-0.027, 0.0, 0.027), z) - 0.031
+    y_top, y_bot = plane_y(z_top), plane_y(z_bot)
+    # make the whole card clear the chest: shift back-plane until every sampled z clears
+    shift = 0.0
+    for i in range(7):
+        z = z_top + (z_bot - z_top) * i / 6.0
+        y_lin = y_top + (y_bot - y_top) * i / 6.0
+        shift = min(shift, plane_y(z) - y_lin)
+    y_top += shift
+    y_bot += shift
+    up = Vector((0.0, y_top - y_bot, z_top - z_bot)).normalized()
+    nrm = Vector((0.0, -up.z, up.y))  # towards the front (-Y)
+    mid = Vector((0.0, 0.5 * (y_top + y_bot), 0.5 * (z_top + z_bot)))
+    card_c = mid + nrm * 0.0020
+    th_c = 0.0020
+    card = _box(bm, card_c, ax, nrm, up, 0.0275, th_c, 0.0375)
+    _tag(card, 1)
+    front = card_c + nrm * (th_c + 0.0006)
+
+    def block(cx: float, cu: float, hx: float, hu: float, tag: int, h: float = 0.0006) -> None:
+        c = front + ax * cx + up * cu + nrm * h
+        _tag(_box(bm, c, ax, nrm, up, hx, h, hu), tag)
+
+    block(0.0, 0.0375 - 0.0085, 0.0275, 0.0085, 2)         # jade header stripe
+    block(-0.0105, -0.004, 0.0095, 0.0105, 3)               # photo square
+    block(0.0115, 0.002, 0.0105, 0.0030, 4)                 # text bar 1
+    block(0.0095, -0.0085, 0.0085, 0.0030, 4)               # text bar 2
+    block(0.0, -0.0285, 0.0200, 0.0028, 4)                  # bottom strip
+    # clip (dark tab joining the cord to the card)
+    clip_c = Vector((0.0, y_top - 0.0005, z_top + 0.006)) + nrm * 0.0015
+    _tag(_box(bm, clip_c, ax, nrm, up, 0.0085, 0.0030, 0.0075), 5)
+    table = {
+        0: ("white", "primary"), 1: ("white", "none"), 2: ("jade_500", "none"),
+        3: ("c_sky", "none"), 4: ("c_grey", "none"), 5: ("c_charcoal", "none"),
+    }
+    return _finish(bm, table, shade_lo=0.86)
+
+
+register("neck_necklace_pearl_01", "neck", "Neck", build_neck_necklace_pearl_01)
+register("neck_scarf_01", "neck", "Neck", build_neck_scarf_01)
+register("neck_tie_01", "neck", "Neck", build_neck_tie_01)
+register("neck_bow_tie_01", "neck", "Neck", build_neck_bow_tie_01)
+register("neck_lanyard_badge_01", "neck", "Spine2", build_neck_lanyard_badge_01)
