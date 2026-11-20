@@ -256,3 +256,72 @@ describe('Director scenarios', () => {
     expect(director.debugPeople()).toEqual(before)
   })
 })
+
+describe('Director review fixes', () => {
+  /** Somebody who works on another floor than their desk, so a ride is certain. */
+  function startRide(w: ReturnType<typeof makeWorld>): EmployeeId {
+    let who: EmployeeId | null = null
+    const found = w.run(900, () => {
+      for (const p of w.director.debugPeople()) {
+        const seat = w.layout.seatOf[p.id]
+        if (seat && seat.floorKey !== p.floorKey && p.action === 'hold') {
+          who = p.id
+          return true
+        }
+      }
+      return false
+    })
+    expect(found).toBeGreaterThan(0)
+    const id = who!
+    w.emit((seq, at, evId) =>
+      makeEvent('person.activity', { employeeId: id, activity: 'working' }, { seq, at, id: evId }),
+    )
+    return id
+  }
+
+  it('a new layout during an elevator ride lets the ride finish without a jump', () => {
+    const w = makeWorld('relayout-ride')
+    const id = startRide(w)
+    // Wait for the car to be between floors, where a snap to a floor would show.
+    const riding = w.run(120, () => {
+      const p = w.director.person(id)!
+      return p.inCar >= 0 && p.y % w.layout.floorHeight > 0.5
+    })
+    expect(riding).toBeGreaterThan(0)
+    // Mid-ride: give the director a fresh (equal) layout, as a hire would.
+    const sim = w.director.person(id)!
+    const yBefore = sim.y
+    w.director.setLayout(buildBuildingLayout(w.state.config))
+    expect(sim.y).toBe(yBefore)
+    expect(sim.inCar).toBeGreaterThanOrEqual(0)
+    let lastY = sim.y
+    let maxJump = 0
+    const home = w.layout.seatOf[id]!.floorKey
+    const back = w.run(240, () => {
+      maxJump = Math.max(maxJump, Math.abs(sim.y - lastY))
+      lastY = sim.y
+      const p = w.debug(id)!
+      return p.floorKey === home && p.pose === 'sit_work'
+    })
+    expect(back).toBeGreaterThan(0)
+    // The car moves 1.5 floors/s at most: 0.1 s is under one metre, a snap is a whole floor.
+    expect(maxJump).toBeLessThan(w.layout.floorHeight * 0.5)
+    expect(sim.inCar).toBe(-1)
+    expect(sim.visible).toBe(true)
+    expect(w.director.stats().teleports).toBe(0)
+  })
+
+  it('a walk pose never outlasts the walk', () => {
+    const w = makeWorld('walk-pose')
+    startRide(w)
+    let bad = 0
+    w.run(240, () => {
+      for (const p of w.director.debugPeople()) {
+        if ((p.pose === 'walk' || p.pose === 'carry_walk') && p.action === 'hold') bad += 1
+      }
+      return false
+    })
+    expect(bad).toBe(0)
+  })
+})
+

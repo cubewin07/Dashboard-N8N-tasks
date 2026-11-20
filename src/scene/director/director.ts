@@ -176,11 +176,18 @@ export class Director {
       const wasAtDesk = agent.station !== null && agent.station.isDesk
       agent.desk = this.deskFor(agent.id, agent.departmentId)
       const mapped = layout.byKey[agent.floorKey]
-      const midVertical = floorCountChanged && this.isVertical(agent)
-      if (mapped === undefined || midVertical || wasAtDesk) {
+      const vertical = this.isVertical(agent) || !agent.sim.visible || agent.sim.inCar >= 0
+      if (vertical && mapped !== undefined && !floorCountChanged) {
+        // In the car or the stairwell: let the move finish, then plan again
+        // from wherever they come out (snapping y here would corrupt them).
+        this.truncateAfterVertical(agent)
+        agent.intentKey = ''
+        continue
+      }
+      if (mapped === undefined || vertical || wasAtDesk) {
         // Their floor is gone, their car was rebuilt, or their desk may have
         // moved: put them at the (possibly new) desk.
-        if (midVertical) this.elevatorSystem.cancel(agent.id)
+        if (vertical) this.elevatorSystem.cancel(agent.id)
         this.seatAtDesk(agent)
       } else {
         agent.sim.floorIndex = mapped
@@ -232,7 +239,7 @@ export class Director {
   }
 
   elevators(): readonly CarState[] {
-    return this.elevatorSystem.cars()
+    return this.elevatorSystem.view()
   }
 
   /** Review papers still being carried to this approver (P05: pile = state − inTransit). */
@@ -720,7 +727,22 @@ export class Director {
   }
 
   private clearPlan(agent: Agent): void {
-    if (agent.plan[agent.step]?.k === 'callElevator') this.elevatorSystem.cancel(agent.id)
+    const k = agent.plan[agent.step]?.k
+    if (k === 'callElevator' || k === 'ride' || k === 'exitElevator') {
+      this.elevatorSystem.cancel(agent.id)
+    }
+    const sim = agent.sim
+    if (sim.inCar >= 0 || !sim.visible) {
+      // Never leave somebody in a car that no longer exists, or hidden.
+      const y = this.layout.floors[sim.floorIndex]?.y
+      if (y !== undefined) {
+        sim.y = y
+        sim.prevY = y
+      }
+      sim.inCar = -1
+      sim.visible = true
+    }
+    agent.car = -1
     agent.plan = []
     agent.step = 0
     agent.t = 0
@@ -765,6 +787,8 @@ export class Director {
 
   private act(agent: Agent, dt: number): void {
     agent.sim.speed01 = 0
+    // A walk pose only lasts while a walk action keeps setting it.
+    if (agent.sim.pose === 'walk' || agent.sim.pose === 'carry_walk') agent.sim.pose = 'stand'
     const fromX = agent.bx
     const fromZ = agent.bz
     for (let guard = 0; guard < 8; guard += 1) {
@@ -809,7 +833,7 @@ export class Director {
       case 'ride': {
         const p = this.elevatorSystem.passenger(agent.id)
         if (!p || p.car === null) return true
-        const car = this.elevatorSystem.cars()[p.car]
+        const car = this.elevatorSystem.view()[p.car]
         if (!car) return true
         agent.car = p.car
         if (p.phase === 'arrived') return true
@@ -907,8 +931,9 @@ export class Director {
           }
         }
         const k = Math.min(1, (agent.t + dt) / TUNING.sitSeconds)
-        agent.bx = agent.fromX + (station.approach.x - agent.fromX) * k
-        agent.bz = agent.fromZ + (station.approach.z - agent.fromZ) * k
+        const e = k * k * (3 - 2 * k)
+        agent.bx = agent.fromX + (station.approach.x - agent.fromX) * e
+        agent.bz = agent.fromZ + (station.approach.z - agent.fromZ) * e
         if (k < 1) return false
         agent.station = null
         return true
