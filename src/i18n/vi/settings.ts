@@ -60,7 +60,7 @@ export const settings = {
     title: 'Tài khoản quản trị',
     description: 'Thông tin tài khoản đang đăng nhập',
     emailLabel: 'Email đăng nhập',
-    defaultEmail: 'boss@example.com',
+    defaultEmail: 'boss@demo.local',
     changePasswordButton: 'Đổi mật khẩu',
     signOutButton: 'Đăng xuất',
     dialogTitle: 'Đổi mật khẩu',

@@ -3,7 +3,7 @@ export const login = {
   title: 'Đăng nhập',
   subtitle: 'Đăng nhập để quản lý đội ngũ',
   emailLabel: 'Email',
-  emailPlaceholder: 'boss@example.com',
+  emailPlaceholder: 'boss@demo.local',
   passwordLabel: 'Mật khẩu',
   passwordPlaceholder: '••••••••',
   showPassword: 'Hiện mật khẩu',

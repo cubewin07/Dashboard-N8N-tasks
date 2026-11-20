@@ -4,7 +4,7 @@ export const login: typeof viLogin = {
   title: 'Sign in',
   subtitle: 'Sign in to manage your team',
   emailLabel: 'Email',
-  emailPlaceholder: 'boss@example.com',
+  emailPlaceholder: 'boss@demo.local',
   passwordLabel: 'Password',
   passwordPlaceholder: '••••••••',
   showPassword: 'Show password',

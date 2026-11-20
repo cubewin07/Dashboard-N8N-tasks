@@ -61,7 +61,7 @@ export const settings: typeof viSettings = {
     title: 'Admin account',
     description: 'Account information for the signed-in boss',
     emailLabel: 'Sign-in email',
-    defaultEmail: 'boss@example.com',
+    defaultEmail: 'boss@demo.local',
     changePasswordButton: 'Change password',
     signOutButton: 'Sign out',
     dialogTitle: 'Change password',

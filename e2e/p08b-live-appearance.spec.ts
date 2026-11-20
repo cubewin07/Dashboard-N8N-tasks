@@ -14,7 +14,7 @@ interface OfficeDebug {
 
 async function openOffice(page: Page) {
   await page.goto('./#/login')
-  await page.locator('#login-email').fill('boss@example.com')
+  await page.locator('#login-email').fill('boss@demo.local')
   await page.locator('#login-password').fill('123456')
   await page.locator('button[type="submit"]').click()
   await expect(page).toHaveURL(/#\/(\?.*)?$/)
