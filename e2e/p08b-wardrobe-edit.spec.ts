@@ -81,4 +81,43 @@ test.describe('P08b wardrobe editing', () => {
     await leave()
     await expect(page).toHaveURL(phone ? /#\/wardrobe$/ : /#\/settings/)
   })
+
+  test('another tab\'s save: a clean editor follows it, a dirty one gets the conflict dialog', async ({ page, context }) => {
+    await loginStylist(page)
+    const open = async (p: Page) => {
+      await p.goto('./#/wardrobe?id=emp_an')
+      await expect(p.getByTestId('wardrobe-preview')).toHaveAttribute('data-ready', 'true', { timeout: 40_000 })
+      await openTab(p, 'Áo')
+    }
+    const saveIn = (p: Page) => p.getByTestId('wardrobe-toolbar').getByRole('button', { name: 'Lưu', exact: true }).click()
+    await open(page)
+    const other = await context.newPage()
+    await open(other)
+
+    // Clean editor: the other tab's save shows up here without a reload.
+    const theirs = await pickOtherTop(other)
+    await saveIn(other)
+    await expect(other.getByText('Đã lưu diện mạo')).toBeVisible()
+    await page.bringToFront()
+    await expect(page.getByTestId('wardrobe-outfit-description')).toContainText(theirs)
+
+    // Dirty editor: both tabs edit from the same version; the other saves first, this one conflicts.
+    const mine = await pickOtherTop(page)
+    await other.bringToFront()
+    await pickOtherTop(other)
+    await saveIn(other)
+    await expect(other.getByText('Đã lưu diện mạo').first()).toBeVisible()
+    await page.bringToFront()
+    await expect(page.getByTestId('wardrobe-outfit-description')).toContainText(mine)
+    await saveIn(page)
+
+    const dialog = page.getByRole('dialog', { name: 'Diện mạo vừa được người khác lưu' })
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('button', { name: 'Giữ bản của tôi' }).click()
+    await expect(page.getByText('Đã lưu diện mạo')).toBeVisible()
+
+    // "Keep mine" wins everywhere: the other (now clean) tab follows it.
+    await other.bringToFront()
+    await expect(other.getByTestId('wardrobe-outfit-description')).toContainText(mine)
+  })
 })
