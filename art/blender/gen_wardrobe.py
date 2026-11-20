@@ -19,7 +19,7 @@ _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
-from lib import bodyshape, export, fit, garments  # noqa: E402
+from lib import bodyshape, charexport, export, fit, garments  # noqa: E402
 import items_skinned  # noqa: E402
 
 REPO_ROOT = _HERE.parent.parent
@@ -95,6 +95,23 @@ def main(argv: list[str] | None = None) -> int:
                 f"limits={res['bodyLimits']} hide={res['hideRegions']}"
             )
 
+    charexport.register_targets(
+        "wardrobe",
+        [
+            {
+                "name": f"{it.id}_{b[0]}",
+                "family": "wardrobe",
+                "script": "art/blender/gen_wardrobe.py",
+                "out": f"public/assets/models/wardrobe/{it.id}_{b[0]}.glb",
+                "budget": "garment",
+                "anchors": [],
+                "nodes": [],
+                "source": "generated",
+            }
+            for it in registry.values()
+            for b in it.bases
+        ],
+    )
     return 0
 
 
