@@ -1,0 +1,43 @@
+{
+  "items": [
+    {
+      "id": "facial_hair_moustache_01",
+      "slot": "facial_hair",
+      "label": { "vi": "Ria mép", "en": "Moustache" },
+      "bases": ["male"],
+      "model": { "male": "models/wardrobe/facial_hair_moustache_01.glb" },
+      "thumb": "thumbs/facial_hair_moustache_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "facial_hair_goatee_01",
+      "slot": "facial_hair",
+      "label": { "vi": "Râu dê", "en": "Goatee" },
+      "bases": ["male"],
+      "model": { "male": "models/wardrobe/facial_hair_goatee_01.glb" },
+      "thumb": "thumbs/facial_hair_goatee_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "facial_hair_stubble_01",
+      "slot": "facial_hair",
+      "label": { "vi": "Râu ria lún phún", "en": "Stubble" },
+      "bases": ["male"],
+      "model": { "male": "models/wardrobe/facial_hair_stubble_01.glb" },
+      "thumb": "thumbs/facial_hair_stubble_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    }
+  ]
+}
