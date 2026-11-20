@@ -35,10 +35,10 @@
       "bodyLimits": {
         "Heavy": [
           0.0,
-          0.5
+          0.6
         ]
       },
-      "maxPenetrationMm": 3.72
+      "maxPenetrationMm": 2.58
     }
   }
 }

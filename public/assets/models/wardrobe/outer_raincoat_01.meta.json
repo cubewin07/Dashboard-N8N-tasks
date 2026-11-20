@@ -20,7 +20,7 @@
         "thigh_r"
       ],
       "bodyLimits": {},
-      "maxPenetrationMm": 0.22
+      "maxPenetrationMm": 0.0
     },
     "male": {
       "file": "models/wardrobe/outer_raincoat_01_m.glb",
@@ -29,8 +29,6 @@
         "chest",
         "belly",
         "hips",
-        "upper_arm_l",
-        "upper_arm_r",
         "elbow_l",
         "elbow_r",
         "forearm_l",
@@ -41,14 +39,10 @@
       "bodyLimits": {
         "Heavy": [
           0.0,
-          0.55
-        ],
-        "Shoulders": [
-          0.0,
           0.6
         ]
       },
-      "maxPenetrationMm": 2.59
+      "maxPenetrationMm": 2.49
     }
   }
 }
