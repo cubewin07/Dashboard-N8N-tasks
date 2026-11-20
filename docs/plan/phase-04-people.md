@@ -182,6 +182,25 @@ Decisions taken while building the phase. Numbers are from `npm run director:sta
 | "Average backlog" (T14) | Errands waiting per person, averaged over the day; the script also prints the average for the busiest person | The task text does not say which; both are reported |
 | `perf:check` in CI | Draw calls, tick time and teleports are asserted; fps is only a warning under software GL (required with `--real`) | SwiftShader gives ≈ 9–10 fps on an M-series Mac whatever the window size; a hard gate would be noise |
 
+### Review fixes (2026-11-21, issue #14)
+| Topic | Choice | Reason |
+|---|---|---|
+| Facing | Eased in `CapsulePeople.sync` (`anim.yaw`, shortest arc, `1 − e^(−12 dt)`); reset when the person was hidden | The director turns at 10 Hz and flips by up to π; the eye sees 60 fps |
+| Time in `sync` | `sync(inputs, n, dt, animDt = dt)`: `dt` real (fades, ring, yaw), `animDt` visual (pose, gait, lean; 0 while paused) | Pausing must not make people or the ring pop; poses still freeze |
+| Walk polish | Eased speed (`1 − e^(−7 dt)`), walk amplitude scales with it (no more 0.35 floor), lean into turns (±0.16 rad, `leanForTurn`), footfall dip + head nod at each step. Lean and footfall are multiplied by `motion`, so `prefers-reduced-motion` drops them; heading/speed easing stays (it removes snapping, it is not decoration) | Walking starts and stops smoothly, no bobbing on the spot |
+| Sit / stand | Both use smoothstep (stand was linear) | Symmetry |
+| Elevator doors | `door01` interpolated between ticks like car position (`doorOpening`) | Doors were stepping at 10 Hz |
+| Re-layout while riding | A person in the car, in the stairwell, or mid-vertical plan is not touched: plan truncated after the vertical move, `intentKey = ''`, re-planned on arrival. If the floor count changed the car system is rebuilt and the person is seated at the desk | Snapping `y` left `inCar` / `visible` stale |
+| `clearPlan` | Cancels the elevator for `callElevator`, `ride`, `exitElevator`; resets `inCar`, `visible`, `car` and `y` | No phantom rider |
+| Walk pose | `act()` resets `walk` / `carry_walk` to `stand` each tick; a walk action sets it again while moving | The pose stayed `walk` after arriving |
+| Follow camera + lift | `PersonSight.floorKey` is the destination while riding (`Director.rideDestination`), `followFloorKey` gives the floor to show: one switch per ride, none while the destination is unknown | The view flipped on every floor the car passed |
+| Follow end | Azimuth limits are widened to include the current azimuth (`widenAzimuth`) when the pose is kept | Limits excluding the camera made it swing |
+| F key and floor button | One function, `defaultFloorTarget`: hovered, else focused, else second floor | They disagreed |
+| Drawer focus | The keep-focus flag is also consumed in an effect on `[selectedId]` | A flag set while the drawer stayed open stuck until the next open |
+| Per-frame allocations | `ElevatorSystem.view()` (cached, reused objects) for the renderer and the director; `isFloorFaded` instead of `getFloorFadeTarget(...).faded`; label selector in `useCallback` (the `textOf` closure named in the issue only exists from P05) | No garbage per frame |
+| `perf:check` | Port 4176 (4175 is `check-sim-removable`), preview spawned detached and its process group killed; fails with fewer than 60 people; also checks the tick peak (4 ms avg / 20 ms peak software, 2 / 8 real) | The next CI step found the port taken |
+| e2e | Draw-call budget 250 (P04 budget); no wait for `data-assets` (nothing sets it before P06b), wait for `data-ready` | Same hunks as P05 |
+
 **Tuning table (golden day, seeds 1–5):** 30×: 558–563 deliveries on foot, 0–0.4 % collapsed, average backlog 0.13 per person (busiest person 1.7–1.8), peak 6, 0 teleports. 120×: 545–553 deliveries, 0.9–1.4 % collapsed, average backlog 0.26 (busiest 3.0–3.2), peak 6, 0 teleports.
 
 **Perf (`--real`, 1440×900, 30×, overview):** 60 fps, 111 draw calls, 394 k triangles, director tick 0.18 ms average. The run had 38 people, not 60: `hire_temps` stops at `policy.staffing.tempCap` (10). The 200-instance draw-call test and the tick time (≈ 12 µs per tick headless) leave room; a 60-person run needs a higher cap or a test-only seed and is left for P05's perf pass.
