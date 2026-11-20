@@ -47,9 +47,9 @@ export function ActivityTicker() {
             {expanded ? t.activity.tickerTitle : recent[0]!.sentence}
           </span>
           {expanded ? (
-            <ChevronDown className="ml-auto size-3.5 shrink-0 text-muted-foreground" />
+            <ChevronDown className="ml-auto size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           ) : (
-            <ChevronUp className="ml-auto size-3.5 shrink-0 text-muted-foreground" />
+            <ChevronUp className="ml-auto size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           )}
         </button>
       </div>

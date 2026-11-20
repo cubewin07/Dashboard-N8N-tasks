@@ -6,8 +6,8 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react'
-import { useEffect, useMemo, useState, type UIEvent } from 'react'
-import { PageHeader, TimeAgo } from '@/components'
+import { useEffect, useMemo, useRef, useState, type UIEvent } from 'react'
+import { LoadErrorState, PageHeader, TimeAgo } from '@/components'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,8 +23,8 @@ import {
 } from '@/domain/selectors'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
-import { useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
-import { bootOffice } from '@/office/store'
+import { useBootFailure, useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
+import { startOffice } from '@/office/store'
 import { actorLabel, formatActivitySentence } from './formatActivity'
 
 const ROW_HEIGHT = 68
@@ -80,11 +80,13 @@ export function ActivityPage() {
   const [floorFilter, setFloorFilter] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<'all' | ActivityCategory>('all')
   const [scrollTop, setScrollTop] = useState(0)
+  const listRef = useRef<HTMLDivElement>(null)
+  const { failed, retry } = useBootFailure()
   const [selectedItem, setSelectedItem] = useState<ActivitySentenceParts | null>(null)
 
   useEffect(() => {
     if (!config && status === 'loading') {
-      void bootOffice()
+      startOffice()
     }
   }, [config, status])
 
@@ -117,6 +119,11 @@ export function ActivityPage() {
   const visibleItems = items.slice(startIndex, endIndex)
   const topPad = startIndex * ROW_HEIGHT
   const bottomPad = Math.max(0, (totalCount - endIndex) * ROW_HEIGHT)
+
+  const resetScroll = () => {
+    setScrollTop(0)
+    if (listRef.current) listRef.current.scrollTop = 0
+  }
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     setScrollTop(e.currentTarget.scrollTop)
@@ -151,7 +158,7 @@ export function ActivityPage() {
                 aria-pressed={active}
                 onClick={() => {
                   setCategoryFilter(cat)
-                  setScrollTop(0)
+                  resetScroll()
                 }}
                 className={cn(
                   'rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
@@ -179,7 +186,7 @@ export function ActivityPage() {
             value={floorFilter}
             onChange={(e) => {
               setFloorFilter(e.target.value)
-              setScrollTop(0)
+              resetScroll()
             }}
             className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-foreground sm:w-48"
           >
@@ -196,7 +203,9 @@ export function ActivityPage() {
       </div>
 
       {/* Virtualised activity list */}
-      {totalCount === 0 ? (
+      {failed && !state ? (
+        <LoadErrorState onRetry={retry} />
+      ) : totalCount === 0 ? (
         <div
           data-activity-empty
           className="flex flex-col items-center justify-center gap-2 rounded-[14px] border border-dashed border-border bg-surface px-4 py-12 text-center"
@@ -207,6 +216,7 @@ export function ActivityPage() {
       ) : (
         <div
           data-activity-list
+          ref={listRef}
           onScroll={handleScroll}
           className="max-h-[640px] overflow-y-auto rounded-[14px] border border-border bg-surface"
         >
@@ -218,18 +228,18 @@ export function ActivityPage() {
             }}
             className="divide-y divide-border"
           >
-            {visibleItems.map((item, idx) => {
+            {visibleItems.map((item) => {
               const Icon = categoryIcon(item.category)
               const sentence = formatActivitySentence(item, t, lang, state)
               return (
                 <button
-                  key={`${item.eventId}_${startIndex + idx}`}
+                  key={item.eventId}
                   type="button"
                   data-activity-row
                   data-event-type={item.type}
                   onClick={() => setSelectedItem(item)}
                   style={{ height: `${ROW_HEIGHT}px` }}
-                  className="flex w-full items-center justify-between gap-3 px-3.5 text-left transition-colors hover:bg-surface-muted/60 focus-visible:bg-surface-muted/60 focus-visible:outline-none"
+                  className="flex w-full items-center justify-between gap-3 px-3.5 text-left transition-colors hover:bg-surface-muted/60 focus-visible:bg-surface-muted/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <span
