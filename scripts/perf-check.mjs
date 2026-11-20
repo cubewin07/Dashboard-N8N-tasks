@@ -25,6 +25,16 @@ const thresholds = real
   ? { fpsMin: 55, callsMax: 250, tickMsMax: 2, tickMsPeakMax: 8 }
   : { fpsMin: 10, callsMax: 250, tickMsMax: 4, tickMsPeakMax: 20 }
 
+/** The sim panel starts collapsed (P03 review): open it before clicking a scenario. */
+async function clickScenario(page, key) {
+  const button = page.locator(`[data-sim-scenario="${key}"]`).first()
+  if (!(await button.isVisible().catch(() => false))) {
+    const toggle = page.locator('[data-sim-panel-toggle][aria-expanded="false"]').first()
+    if (await toggle.isVisible().catch(() => false)) await toggle.click()
+  }
+  await button.click()
+}
+
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx'
 let preview = null
 
@@ -77,7 +87,7 @@ try {
 
   await page.locator('[data-sim-speed="30"]').first().click()
   // "Đông người" pads the staff to 80 (hire_temps stops at the temp cap, 38 people).
-  await page.locator('[data-sim-scenario="crowded"]').first().click()
+  await clickScenario(page, 'crowded')
   // Hires walk in over a while; wait until the building is as full as R15 asks.
   const count = () => page.evaluate(() => window.__office_debug?.director?.people().length ?? 0)
   const deadline = Date.now() + 90_000
@@ -87,7 +97,7 @@ try {
     await page.waitForTimeout(1000)
     const now = await count()
     if (now === lastCount && Date.now() - lastClick > 8000) {
-      await page.locator('[data-sim-scenario="crowded"]').first().click()
+      await clickScenario(page, 'crowded')
       lastClick = Date.now()
     }
     lastCount = now
