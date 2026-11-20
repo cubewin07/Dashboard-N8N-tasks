@@ -40,3 +40,15 @@ export function activeFloorIndexOf(
 export function isCutAway(floorIndex: number, active: number | null): boolean {
   return active !== null && floorIndex > active
 }
+
+/** Height of the elevator shaft: the whole building, or up to the focused floor's slab. */
+export function shaftHeight(totalHeight: number, floorHeight: number, active: number | null): number {
+  if (active === null) return totalHeight
+  return Math.min(totalHeight, (active + 1) * floorHeight)
+}
+
+/** Stair flights still drawn: flight i joins floor i and i + 1, so floors above the focus lose theirs. */
+export function visibleFlights(flightCount: number, active: number | null): number {
+  if (active === null) return flightCount
+  return Math.max(0, Math.min(flightCount, active))
+}

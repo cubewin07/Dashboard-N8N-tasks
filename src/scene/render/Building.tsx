@@ -67,8 +67,8 @@ export function Building({ layout, reducedMotion = false }: BuildingProps) {
         )
       })}
       <Blockout floors={layout.floors} activeFloorIndex={activeFloorIndex} />
-      <ElevatorShaft layout={layout} />
-      <Stairwell layout={layout} />
+      <ElevatorShaft layout={layout} activeFloorIndex={activeFloorIndex} />
+      <Stairwell layout={layout} activeFloorIndex={activeFloorIndex} />
     </group>
   )
 }

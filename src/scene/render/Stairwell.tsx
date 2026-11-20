@@ -1,16 +1,21 @@
+import { useThree } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { BuildingLayout } from '@/scene/layout'
 import { toWorldX, toWorldZ } from './coords'
 import { SCENE_PALETTE } from './palette'
+import { visibleFlights } from './place'
 
 export interface StairwellProps {
   layout: BuildingLayout
+  /** Focused floor in floor mode; flights above it are cut away. */
+  activeFloorIndex?: number | null
 }
 
 const tempObj = new THREE.Object3D()
 
-export function Stairwell({ layout }: StairwellProps) {
+export function Stairwell({ layout, activeFloorIndex = null }: StairwellProps) {
+  const invalidate = useThree((s) => s.invalidate)
   const rampMeshRef = useRef<THREE.InstancedMesh>(null)
   const landingMeshRef = useRef<THREE.InstancedMesh>(null)
 
@@ -48,6 +53,14 @@ export function Stairwell({ layout }: StairwellProps) {
 
     return { ramps, landings, rampLen }
   }, [firstFloor, flightCount])
+
+  // Two ramps and one landing per flight, in flight order: `count` cuts them away.
+  const shown = visibleFlights(flightCount, activeFloorIndex)
+  useLayoutEffect(() => {
+    if (rampMeshRef.current) rampMeshRef.current.count = shown * 2
+    if (landingMeshRef.current) landingMeshRef.current.count = shown
+    invalidate()
+  }, [shown, invalidate, transforms])
 
   useLayoutEffect(() => {
     const rampMesh = rampMeshRef.current
