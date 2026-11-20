@@ -109,7 +109,7 @@ Desktop                                            Phone
 - [x] **P08b-T11** Toolbar: randomise + locks, presets, copy look to…, reset, compare, save with conflict dialog, leave prompt. *Acceptance:* R7–R9; conflict simulated by a second tab in e2e.
 - [x] **P08b-T12** Live office update: `CharacterVisual` subscribes via `useAppearance`; only the edited person re-assembles. *Acceptance:* R10; debug counter `assembled` increments by exactly 1 after a save.
 - [x] **P08b-T13** Phone layout + touch polish. *Acceptance:* R14 Playwright at 375×812 screenshot, no horizontal scroll, preview visible.
-- [ ] **P08b-T14** i18n (`wardrobe.ts`, `login.ts` additions), a11y review with the `web-design-guidelines` skill, DoD run. *Acceptance:* R15, R16.
+- [x] **P08b-T14** i18n (`wardrobe.ts`, `login.ts` additions), a11y review with the `web-design-guidelines` skill, DoD run. *Acceptance:* R15, R16.
 
 ## 6. Dependencies
 - **Needs:** P07b (`assembleCharacter`, `effectiveLimits`, `generateAppearance`, schema), P08a (catalogue, thumbs, colours, tags), P01 ports and nav shell.
