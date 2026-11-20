@@ -391,7 +391,7 @@ def _torso(
     # Sleeves bridged into the 10-vertex armholes
     if sleeve_steps:
         el_mn, el_mx = s.region_bounds("elbow_l")
-        chest_wall_x = chest_mx.x + 0.008 + max(0.0, sleeve_off - 0.0175)
+        chest_wall_x = chest_mx.x + 0.008
         for side in (+1, -1):
             if side > 0:
                 hole = [rings[r_arm_bot][0], rings[r_arm_bot][15], rings[r_bust][15], rings[r_arm_mid][15], rings[r_arm_top][15],
