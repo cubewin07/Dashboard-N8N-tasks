@@ -37,7 +37,7 @@ import { useI18n } from '@/i18n'
 import { cn, fmt } from '@/lib/utils'
 import { useConfig, useLabel } from '@/office/hooks'
 import { useReducedMotionPref } from '@/office/prefs'
-import { visualLanguage } from '@/office/visualConfig'
+import { idleBehaviours, visualLanguage } from '@/office/visualConfig'
 import {
   legendEmoteRows,
   legendPileRows,
@@ -123,7 +123,7 @@ function LegendBody() {
     () => legendPileRows(text, t.queue.priority, visualLanguage, palette),
     [text, t.queue.priority, palette],
   )
-  const emoteRows = useMemo(() => legendEmoteRows(text), [text])
+  const emoteRows = useMemo(() => legendEmoteRows(text, idleBehaviours), [text])
 
   return (
     <div className="flex flex-col gap-5 px-4 py-4 sm:px-6">
@@ -190,7 +190,7 @@ function LegendBody() {
       <Section title={text.sections.movement}>
         <Row id="bench" visual={<IconSymbol icon={Armchair} />} title={text.benchTitle} detail={text.benchBody} />
         <Row id="line" visual={<IconSymbol icon={Users} />} title={text.lineTitle} detail={text.lineBody} />
-        <Row id="courier" visual={<IconSymbol icon={FileText} />} title={text.courierTitle} detail={text.courierBody} />
+        <Row id="courier" visual={<PaperSheet />} title={text.courierTitle} detail={text.courierBody} />
         <Row id="elevator" visual={<IconSymbol icon={ArrowUpDown} />} title={text.elevatorTitle} detail={text.elevatorBody} />
         <Row id="stairs" visual={<IconSymbol icon={Footprints} />} title={text.stairsTitle} detail={text.stairsBody} />
       </Section>
@@ -256,8 +256,10 @@ function Row({
 }
 
 function StatusSymbol({ row, animate }: { row: LegendStatusRow; animate: boolean }) {
-  const Icon = row.icon ? STATUS_ICONS[row.icon] : FileText
   const colour = row.hex ?? undefined
+  // No icon, no ring: the scene draws only the paper in the hand (a held sheet).
+  if (!row.icon) return <PaperSheet colour={colour} />
+  const Icon = STATUS_ICONS[row.icon]
   return (
     <span
       className={cn(
@@ -270,6 +272,16 @@ function StatusSymbol({ row, animate }: { row: LegendStatusRow; animate: boolean
     >
       <Icon className="size-3.5" />
     </span>
+  )
+}
+
+/** A single sheet, like the paper a courier carries in 3D. */
+function PaperSheet({ colour }: { colour?: string }) {
+  return (
+    <span
+      className="inline-block h-5 w-4 rounded-[2px] border-2 bg-surface"
+      style={{ borderColor: colour }}
+    />
   )
 }
 

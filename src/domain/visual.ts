@@ -41,6 +41,13 @@ export type StatusIconKey = (typeof STATUS_ICON_KEYS)[number]
 export const EMOTE_KEYS = ['talk', 'think', 'note', 'zzz', 'heart', 'coffee', 'ball', 'stuck', 'wave'] as const
 export type EmoteKey = (typeof EMOTE_KEYS)[number]
 
+/**
+ * Emotes the director shows for plan steps (asking a colleague: a wave, then
+ * a chat), on top of the ones idle options name. The legend lists only the
+ * emotes something actually draws.
+ */
+export const PLAN_EMOTE_KEYS: readonly EmoteKey[] = ['talk', 'wave']
+
 export const StatusLookSchema = z.object({
   swatch: SwatchKeySchema,
   /** null = no icon. */

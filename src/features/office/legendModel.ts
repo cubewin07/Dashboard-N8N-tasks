@@ -2,8 +2,10 @@ import type { PaletteSwatch, Platform } from '@/domain/config'
 import type { Label, Priority } from '@/domain/primitives'
 import {
   EMOTE_KEYS,
+  PLAN_EMOTE_KEYS,
   VISUAL_STATUS_KEYS,
   type EmoteKey,
+  type IdleBehaviours,
   type StatusIconKey,
   type VisualLanguage,
   type VisualStatusKey,
@@ -111,8 +113,16 @@ export interface LegendEmoteRow {
   title: string
 }
 
-export function legendEmoteRows(text: LegendText): LegendEmoteRow[] {
-  return EMOTE_KEYS.map((key) => ({ key, title: text.emotes[key] }))
+/** Emotes that are really drawn: those named by idle options plus the plan ones. */
+export function drawnEmotes(idle: IdleBehaviours): ReadonlySet<EmoteKey> {
+  const keys = new Set<EmoteKey>(PLAN_EMOTE_KEYS)
+  for (const option of idle.options) if (option.emote) keys.add(option.emote)
+  return keys
+}
+
+export function legendEmoteRows(text: LegendText, idle: IdleBehaviours): LegendEmoteRow[] {
+  const drawn = drawnEmotes(idle)
+  return EMOTE_KEYS.filter((key) => drawn.has(key)).map((key) => ({ key, title: text.emotes[key] }))
 }
 
 function capitalise(s: string): string {

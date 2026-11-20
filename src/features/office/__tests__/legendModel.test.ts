@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { makeSeedConfig } from '@/domain/__fixtures__/builders'
-import { VISUAL_STATUS_KEYS, EMOTE_KEYS } from '@/domain/visual'
+import { EMOTE_KEYS, PLAN_EMOTE_KEYS, VISUAL_STATUS_KEYS } from '@/domain/visual'
 import { en } from '@/i18n/en'
 import { vi } from '@/i18n/vi'
-import { visualLanguage } from '@/office/visualConfig'
+import { idleBehaviours, visualLanguage } from '@/office/visualConfig'
 import {
+  drawnEmotes,
   legendEmoteRows,
   legendPileRows,
   legendPlatformRows,
@@ -47,10 +48,24 @@ describe('legendModel (P05-T14)', () => {
     expect(rows[0]!.detail).toContain('Khẩn cấp')
   })
 
-  it('names every emote in both languages', () => {
-    expect(legendEmoteRows(vi.office.legend).map((r) => r.key)).toEqual([...EMOTE_KEYS])
-    for (const r of [...legendEmoteRows(vi.office.legend), ...legendEmoteRows(en.office.legend)]) {
+  it('lists exactly the emotes something draws, in both languages', () => {
+    const drawn = drawnEmotes(idleBehaviours)
+    const rows = legendEmoteRows(vi.office.legend, idleBehaviours)
+    expect(rows.map((r) => r.key)).toEqual(EMOTE_KEYS.filter((k) => drawn.has(k)))
+    // Idle options and the plan's wave + chat are drawn; nothing draws `stuck`.
+    for (const key of PLAN_EMOTE_KEYS) expect(drawn.has(key)).toBe(true)
+    for (const o of idleBehaviours.options) if (o.emote) expect(drawn.has(o.emote)).toBe(true)
+    expect(rows.map((r) => r.key)).not.toContain('stuck')
+    for (const r of [...rows, ...legendEmoteRows(en.office.legend, idleBehaviours)]) {
       expect(r.title.length).toBeGreaterThan(0)
     }
+  })
+
+  it('shows no icon for a status the scene draws without one (the carried paper is not an icon)', () => {
+    const delivering = legendStatusRows(vi.office.legend, visualLanguage, config.palette).find(
+      (r) => r.key === 'delivering',
+    )!
+    expect(delivering.icon).toBeNull()
+    expect(delivering.ring).toBe('none')
   })
 })
