@@ -32,13 +32,8 @@
         "forearm_l",
         "forearm_r"
       ],
-      "bodyLimits": {
-        "Heavy": [
-          0.0,
-          0.6
-        ]
-      },
-      "maxPenetrationMm": 2.58
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
     }
   }
 }

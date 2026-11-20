@@ -34,12 +34,6 @@
         "top",
         "fullbody"
       ],
-      "bodyLimits": {
-        "build": [
-          0.0,
-          0.87
-        ]
-      },
       "tags": [
         "office",
         "formal"
@@ -87,12 +81,6 @@
         "top",
         "fullbody"
       ],
-      "bodyLimits": {
-        "build": [
-          0.0,
-          0.87
-        ]
-      },
       "tags": [
         "office",
         "casual"
@@ -139,12 +127,6 @@
         "top",
         "fullbody"
       ],
-      "bodyLimits": {
-        "build": [
-          0.0,
-          0.87
-        ]
-      },
       "tags": [
         "street"
       ],
@@ -187,12 +169,6 @@
         "top",
         "fullbody"
       ],
-      "bodyLimits": {
-        "build": [
-          0.0,
-          0.87
-        ]
-      },
       "tags": [
         "casual"
       ],

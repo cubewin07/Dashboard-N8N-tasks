@@ -25,18 +25,15 @@
       "hideRegions": [
         "chest",
         "belly",
+        "upper_arm_l",
+        "upper_arm_r",
         "elbow_l",
         "elbow_r",
         "forearm_l",
         "forearm_r"
       ],
-      "bodyLimits": {
-        "Heavy": [
-          0.0,
-          0.6
-        ]
-      },
-      "maxPenetrationMm": 2.49
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
     }
   }
 }
