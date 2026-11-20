@@ -112,6 +112,10 @@ interface Hooks {
   board(p: Person): void
 }
 
+function byNumber(a: number, b: number): number {
+  return a - b
+}
+
 function flip(d: Dir): Dir {
   return d === 1 ? -1 : d === -1 ? 1 : 0
 }
@@ -300,6 +304,7 @@ export class ElevatorSystem {
   private readonly floorCount: number
   private readonly timing: Timing
   private readonly carList: Car[]
+  private readonly carViews: CarState[] = []
   private readonly people = new Map<string, Person>()
   /** Waiting passengers in call order (seq ascending). */
   private waiting: Person[] = []
@@ -416,6 +421,38 @@ export class ElevatorSystem {
         stops: [...stops].sort((a, b) => a - b),
       }
     })
+  }
+
+  /**
+   * The same data as `cars()` without allocating: the returned array and the
+   * objects in it are reused and rewritten on every call. Read, do not keep.
+   * For the per-frame renderer and the director's per-tick lookups.
+   */
+  view(): readonly CarState[] {
+    const cache = this.carViews
+    for (let i = 0; i < this.carList.length; i += 1) {
+      const car = this.carList[i]!
+      let v = cache[i]
+      if (!v) {
+        v = { index: car.index, position: 0, phase: 'idle', direction: 0, door01: 0, riders: [], stops: [] }
+        cache[i] = v
+      }
+      v.index = car.index
+      v.position = car.position
+      v.phase = car.phase
+      v.direction = car.direction
+      v.door01 = car.door01
+      const riders = v.riders as string[]
+      riders.length = car.riders.length
+      for (let r = 0; r < car.riders.length; r += 1) riders[r] = car.riders[r]!.id
+      const stops = v.stops as number[]
+      stops.length = 0
+      for (const r of car.riders) if (!stops.includes(r.to)) stops.push(r.to)
+      for (const p of this.waiting) if (p.car === car.index && !stops.includes(p.from)) stops.push(p.from)
+      stops.sort(byNumber)
+    }
+    cache.length = this.carList.length
+    return cache
   }
 
   /** `dt` in seconds. Sub-steps internally at <= 0.1 s. */

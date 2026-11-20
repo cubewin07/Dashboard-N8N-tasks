@@ -590,3 +590,20 @@ describe('ElevatorSystem: property test', () => {
     expect(r.maxRiders).toBeLessThanOrEqual(BASE.capacity)
   })
 })
+
+describe('ElevatorSystem.view', () => {
+  it('matches cars() and reuses its objects between calls', () => {
+    const sys = make()
+    sys.call('a', 0, 5)
+    sys.call('b', 2, 4)
+    const first = sys.view()
+    const firstCar = first[0]
+    for (let i = 0; i < 40; i += 1) {
+      sys.step(DT)
+      const view = sys.view()
+      expect(view).toBe(first)
+      expect(view[0]).toBe(firstCar)
+      expect(JSON.parse(JSON.stringify(view))).toEqual(JSON.parse(JSON.stringify(sys.cars())))
+    }
+  })
+})
