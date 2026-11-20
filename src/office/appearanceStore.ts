@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { create } from 'zustand'
-import { LocalAppearanceStore } from '@/adapters/local/LocalAppearanceStore'
+import { LocalAppearanceStore, type LocalAppearanceStoreOptions } from '@/adapters/local/LocalAppearanceStore'
 import type { AppearanceV1 } from '@/domain/appearance'
+import { hashAppearance } from '@/scene/characters/appearance'
 import { generateAppearance } from '@/scene/characters/generate'
 import type { AppearanceEntry, AppearanceStore } from '@/ports/AppearanceStore'
 
@@ -22,6 +23,11 @@ export const useAppearanceCache = create<AppearanceCacheState>(() => ({
 let activeStore: AppearanceStore | null = null
 let unsubscribe: (() => void) | null = null
 
+/** Keep the object identity when the look is unchanged (no needless re-assembly downstream). */
+function sameIdentity(existing: AppearanceV1 | undefined, next: AppearanceV1): AppearanceV1 {
+  return existing && hashAppearance(existing) === hashAppearance(next) ? existing : next
+}
+
 function applyEntries(entries: Record<string, AppearanceEntry>): void {
   useAppearanceCache.setState((s) => {
     const docs = { ...s.docs }
@@ -29,7 +35,7 @@ function applyEntries(entries: Record<string, AppearanceEntry>): void {
     for (const [id, e] of Object.entries(entries)) {
       const prev = s.versions[id]
       if (prev === e.version && s.docs[id]) continue
-      docs[id] = e.doc
+      docs[id] = sameIdentity(s.docs[id], e.doc)
       versions[id] = e.version
     }
     return { docs, versions }
@@ -47,11 +53,16 @@ export function setAppearanceStore(store: AppearanceStore): void {
   })
   unsubscribe = store.subscribe((id, doc) => {
     // Show the new look at once, then pick up the stored version.
-    useAppearanceCache.setState((s) => ({ docs: { ...s.docs, [id]: doc } }))
+    useAppearanceCache.setState((s) => ({ docs: { ...s.docs, [id]: sameIdentity(s.docs[id], doc) } }))
     void store.getEntries().then((entries) => {
       if (activeStore === store) applyEntries(entries)
     })
   })
+}
+
+/** Use a fresh browser-local store with the given storage (tests, or a custom Storage). */
+export function configureLocalAppearanceStore(options?: LocalAppearanceStoreOptions): void {
+  setAppearanceStore(new LocalAppearanceStore(options))
 }
 
 function getStore(): AppearanceStore {
@@ -78,7 +89,7 @@ export async function saveAppearance(
   const store = getStore()
   const res = await store.save(employeeId, doc, expectedVersion)
   useAppearanceCache.setState((s) => ({
-    docs: { ...s.docs, [employeeId]: doc },
+    docs: { ...s.docs, [employeeId]: sameIdentity(s.docs[employeeId], doc) },
     versions: { ...s.versions, [employeeId]: res.version },
   }))
   return res

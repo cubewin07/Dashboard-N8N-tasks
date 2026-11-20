@@ -17,6 +17,7 @@ import { moveFactor, TUNING } from '@/scene/director/tuning'
 import { watchIdleDebug } from '@/scene/dev/idleDebug'
 import type { BuildingLayout } from '@/scene/layout'
 import { CharacterPeople, resolveCharacterMode } from '@/scene/characters/CharacterVisual'
+import { bindSavedAppearances } from '@/scene/characters/appearanceSync'
 import { CapsulePeople } from './CapsulePeople'
 import { toWorldX, toWorldZ } from './coords'
 import { ElevatorCars } from './ElevatorCars'
@@ -205,8 +206,16 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
           },
         }
       : null
+    // Saved looks (wardrobe) show without reload; only the changed character re-assembles.
+    const unbindAppearances = characterPeople
+      ? bindSavedAppearances(characterPeople, () => {
+          settleRef.current = Math.max(settleRef.current, 2)
+          invalidate()
+        })
+      : null
     invalidate()
     return () => {
+      unbindAppearances?.()
       peopleRuntime.characters = null
       visualRef.current = null
       characterPeopleRef.current = null

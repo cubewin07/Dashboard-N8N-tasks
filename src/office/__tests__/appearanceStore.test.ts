@@ -30,7 +30,7 @@ describe('office appearance store', () => {
     const a = generateAppearance('emp_a')
     expect(await saveAppearance('emp_a', a, 0)).toEqual({ version: 1 })
     const st = useAppearanceCache.getState()
-    expect(st.docs.emp_a).toBe(a)
+    expect(st.docs.emp_a).toEqual(a)
     expect(st.versions.emp_a).toBe(1)
     await expect(saveAppearance('emp_a', a, 0)).rejects.toBeInstanceOf(AppearanceConflictError)
   })
