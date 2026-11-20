@@ -98,7 +98,7 @@ One agent per batch; batches touch disjoint files (one JSON file per slot, one g
 - [x] **P08a-T12** Worst-case budget script (`scripts/catalog-budget.mjs`): heaviest combos ≤ 8 000 tris; per-slot byte totals. *Acceptance:* R3, R7 numbers in PR.
 - [x] **P08a-T13** Ledger + credits + optimisation + validators green; update `generateAppearance` **data weights only** (`catalog/generator-weights.json`: which tags are "office-like" defaults) so seeded looks stay office-appropriate. *Acceptance:* R7, R9.
 - [x] **P08a-T14** Write `art/RECIPE-add-item.md`, then a different agent adds one bonus item (e.g. `top_ao_ba_ba`) using only the recipe and reports friction; fix the recipe. *Acceptance:* R6; the bonus item is in the catalogue.
-- [ ] **P08a-T15** (follow-up) Outer-over-top poke-through at body extremes: give each top an "under-outer" variant without sleeves/shoulders, swapped in at runtime when an outer is worn (same mechanism as the hat-cut hair), or redesign the outers' neck/arm_top rings to follow the tops' Heavy/Muscle deltas. *Acceptance:* `npm run catalog:layering` exits 0 with no new `conflicts`.
+- [ ] **P08a-T15** (follow-up, issue #19) Outer-over-top poke-through at body extremes: give each top an "under-outer" variant without sleeves/shoulders, swapped in at runtime when an outer is worn (same mechanism as the hat-cut hair), or redesign the outers' neck/arm_top rings to follow the tops' Heavy/Muscle deltas. *Acceptance:* `npm run catalog:layering` exits 0 with no new `conflicts`.
 
 ## 6. Dependencies
 - **Needs:** P07a pipeline, rig, bases; P07b (to see items in the running app and for `generateAppearance`); `assets.md`.
