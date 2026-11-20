@@ -82,6 +82,13 @@ export function PersonDrawer({ placement = 'screen', className }: PersonDrawerPr
     }
   }, [open])
 
+  // The keep-focus request belongs to one selection change. When the drawer
+  // was already open the effect above did not run, so drop it here instead of
+  // letting it swallow the focus of some later open.
+  useEffect(() => {
+    consumeKeepFocus()
+  }, [selectedId])
+
   if (!person) return null
 
   const [activityRaw = 'idle', pileRaw = '0', queueRaw = '0', ...titleParts] =
