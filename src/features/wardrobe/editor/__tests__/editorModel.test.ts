@@ -38,7 +38,8 @@ const fitted: CatalogItem = {
 
 function limitedCatalog() {
   const slots = [
-    { items: DEFAULT_CATALOG.items.filter((i) => i.slot !== 'top') },
+    // No fullbody either, so the seeded look has to wear the fitted top.
+    { items: DEFAULT_CATALOG.items.filter((i) => i.slot !== 'top' && i.slot !== 'fullbody' && !i.bodyLimits) },
     { items: [fitted] },
   ]
   return loadCatalog({ slotFiles: slots })

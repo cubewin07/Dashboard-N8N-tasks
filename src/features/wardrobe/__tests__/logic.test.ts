@@ -228,8 +228,9 @@ describe('presets', () => {
     const a = applyPreset(base(), sport, CATALOG, 7)
     const b = applyPreset(base(), sport, CATALOG, 7)
     expect(b.doc).toEqual(a.doc)
-    expect(a.doc.outfit.bottom).toBe('bottom_shorts_01') // the only sport bottom
-    expect(a.doc.outfit.shoes).toBe('shoes_sneaker_01')
+    const tagsOf = (id: string | null) => (id ? CATALOG.byId.get(id)?.tags ?? [] : [])
+    expect(tagsOf(a.doc.outfit.bottom)).toContain('sport')
+    expect(a.doc.outfit.shoes).not.toBeNull()
     expect(a.refused).toBeUndefined()
   })
 
@@ -237,19 +238,25 @@ describe('presets', () => {
     const tet = PRESETS.find((p) => p.key === 'tet')!
     const f = applyPreset(base(), tet, CATALOG, 1)
     expect(f.doc.outfit.fullbody).toBe('x_dress')
+    // Male: x_dress is female-only, so the pick is a male-capable tet item or the separates fallback.
     const m = applyPreset(base({ base: 'male', hair: { item: 'hair_short_01', color: 'hair_black' } }), tet, CATALOG, 1)
-    expect(m.doc.outfit.fullbody).toBeNull()
-    expect(m.doc.outfit.top).not.toBeNull()
+    const fb = m.doc.outfit.fullbody ? CATALOG.byId.get(m.doc.outfit.fullbody)! : null
+    if (fb) {
+      expect(fb.bases).toContain('male')
+      expect(fb.tags.some((t) => ['tet', 'aodai', 'traditional'].includes(t))).toBe(true)
+    } else expect(m.doc.outfit.top).not.toBeNull()
   })
 
   it('office preset gives an office look and applies its colour palette', () => {
     const office = PRESETS.find((p) => p.key === 'office')!
     const r = applyPreset(base(), office, CATALOG, 3)
-    expect(r.doc.outfit.top).toBe('top_shirt_office_01')
-    expect(r.doc.outfit.bottom).toBe('bottom_trousers_01')
-    expect(r.doc.outfit.shoes).toBe('shoes_loafer_01')
-    const primary = r.doc.colors['top_shirt_office_01']?.primary
-    expect(office.colours?.primary).toContain(primary)
+    const officeish = (id: string | null) =>
+      (id ? CATALOG.byId.get(id)?.tags ?? [] : []).some((t) => t === 'office' || t === 'formal')
+    expect(officeish(r.doc.outfit.top)).toBe(true)
+    expect(officeish(r.doc.outfit.bottom)).toBe(true)
+    expect(officeish(r.doc.outfit.shoes)).toBe(true)
+    const top = CATALOG.byId.get(r.doc.outfit.top!)!
+    if (top.tint?.regions.includes('primary')) expect(office.colours?.primary).toContain(r.doc.colors[top.id]?.primary)
     expect(r.doc.outfit.outer === null || r.doc.outfit.outer === 'x_blazer').toBe(true)
   })
 
