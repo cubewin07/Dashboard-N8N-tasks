@@ -101,6 +101,9 @@ export function PeoplePicker({ people, departments, selectedId, savedIds, onSele
           <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
+            name="q"
+            autoComplete="off"
+            spellCheck={false}
             aria-label={t.wardrobe.picker.searchLabel}
             placeholder={t.wardrobe.picker.searchPlaceholder}
             value={filter.query}

@@ -108,6 +108,8 @@ export function LoginPage() {
                   <Input
                     id="login-email"
                     type="email"
+                    name="email"
+                    spellCheck={false}
                     required
                     autoComplete="email"
                     placeholder={t.login.emailPlaceholder}
@@ -137,6 +139,7 @@ export function LoginPage() {
                       id="login-password"
                       type={showPassword ? 'text' : 'password'}
                       required
+                      name="password"
                       autoComplete="current-password"
                       placeholder={t.login.passwordPlaceholder}
                       value={password}
@@ -193,6 +196,8 @@ export function LoginPage() {
                   <Input
                     id="reset-email"
                     type="email"
+                    name="email"
+                    spellCheck={false}
                     required
                     autoComplete="email"
                     placeholder={t.login.emailPlaceholder}

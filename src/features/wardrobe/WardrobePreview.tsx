@@ -214,7 +214,7 @@ function ThumbnailStack({ worn, failed }: { worn: ReturnType<typeof visibleWorn>
         <ul aria-label={t.wardrobe.preview.stackLabel} className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {worn.map((w) => (
             <li key={w.slot} className="flex flex-col items-center gap-1 rounded-xl bg-surface p-2 text-center">
-              <img src={assetUrl(w.item.thumb)} alt="" loading="lazy" className="size-14 object-contain" />
+              <img src={assetUrl(w.item.thumb)} alt="" loading="lazy" width={56} height={56} className="size-14 object-contain" />
               <span className="text-xs leading-tight">
                 <span className="block text-muted-foreground">{t.wardrobe.slots[w.slot]}</span>
                 {label(w.item.label)}
