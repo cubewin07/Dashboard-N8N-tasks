@@ -41,6 +41,76 @@
       "hides": [],
       "tags": ["casual", "office"],
       "credit": "own-generated"
+    },
+    {
+      "id": "eyes_04",
+      "slot": "eyes",
+      "label": { "vi": "Mắt to long lanh", "en": "Wide sparkly eyes" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [0, 3] },
+      "thumb": "thumbs/eyes_04.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "eyes_05",
+      "slot": "eyes",
+      "label": { "vi": "Mắt lim dim", "en": "Sleepy eyes" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [4, 0] },
+      "thumb": "thumbs/eyes_05.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "eyes_06",
+      "slot": "eyes",
+      "label": { "vi": "Mắt mi cong", "en": "Lashed eyes" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [4, 1] },
+      "thumb": "thumbs/eyes_06.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "eyes_07",
+      "slot": "eyes",
+      "label": { "vi": "Mắt trong veo", "en": "Glassy eyes" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [4, 2] },
+      "thumb": "thumbs/eyes_07.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "eyes_08",
+      "slot": "eyes",
+      "label": { "vi": "Mắt chấm", "en": "Dot eyes" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [4, 3] },
+      "thumb": "thumbs/eyes_08.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
     }
   ]
 }
