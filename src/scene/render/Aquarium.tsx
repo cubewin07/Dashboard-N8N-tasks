@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
 import { toWorldX, toWorldZ } from './coords'
+import { fishYaw, lifeTime } from './lifeClock'
 import { getSwatchColor, SCENE_PALETTE } from './palette'
 import { activeFloorIndexOf, isCutAway } from './place'
 
@@ -52,20 +53,19 @@ export function Aquarium({ layout, reducedMotion = false }: AquariumProps) {
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
   }, [])
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const group = groupRef.current
     const mesh = fishRef.current
     if (!group || !mesh || !lobby) return
     const active = activeFloorIndexOf(layout, useViewStore.getState())
     group.visible = !isCutAway(lobby.index, active)
     if (!group.visible) return
-    const t = reducedMotion ? 0 : clock.elapsedTime
+    const t = reducedMotion ? 0 : lifeTime(clock.elapsedTime, delta)
     const span = TANK.w / 2 - FISH.length
     lanes.forEach((lane, i) => {
       const s = Math.sin(t * lane.speed + lane.phase)
-      const dir = Math.cos(t * lane.speed + lane.phase) >= 0 ? 1 : -1
       tmp.position.set(s * span, TANK.standH + lane.y, lane.z)
-      tmp.rotation.set(0, dir > 0 ? 0 : Math.PI, 0)
+      tmp.rotation.set(0, fishYaw(Math.cos(t * lane.speed + lane.phase)), 0)
       tmp.updateMatrix()
       mesh.setMatrixAt(i, tmp.matrix)
     })

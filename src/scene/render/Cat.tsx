@@ -9,6 +9,7 @@ import type { BuildingLayout } from '@/scene/layout'
 import { catAt, catHomes, catLoop } from './catModel'
 import { isNight, localMinutes } from './clock'
 import { toWorldX, toWorldZ } from './coords'
+import { lifeTime } from './lifeClock'
 import { getSwatchColor } from './palette'
 import { activeFloorIndexOf, isCutAway } from './place'
 
@@ -54,7 +55,7 @@ export function Cat({ layout, reducedMotion = false }: CatProps) {
     }
   }, [layout])
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const mesh = meshRef.current
     const feed = getFeedClock()
     if (!mesh || !feed) return
@@ -82,7 +83,7 @@ export function Cat({ layout, reducedMotion = false }: CatProps) {
       return
     }
     mesh.visible = true
-    const bob = pose.walking && !reducedMotion ? Math.abs(Math.sin(clock.elapsedTime * 9)) * 0.02 : 0
+    const bob = pose.walking && !reducedMotion ? Math.abs(Math.sin(lifeTime(clock.elapsedTime, delta) * 9)) * 0.02 : 0
     mesh.position.set(toWorldX(pose.x, floor.size.w), floor.y + bob, toWorldZ(pose.z, floor.size.d))
     // Floor-local heading → world yaw (world z runs opposite to floor z).
     mesh.rotation.set(0, Math.PI - pose.heading, 0)

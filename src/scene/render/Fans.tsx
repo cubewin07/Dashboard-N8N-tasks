@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
+import { lifeTime } from './lifeClock'
 import { toWorldX, toWorldZ } from './coords'
 import { SCENE_PALETTE } from './palette'
 import { activeFloorIndexOf, isCutAway } from './place'
@@ -63,11 +64,11 @@ export function Fans({ layout, reducedMotion = false }: FansProps) {
   )
   const count = Math.max(1, spots.length)
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const mesh = meshRef.current
     if (!mesh) return
     const active = activeFloorIndexOf(layout, useViewStore.getState())
-    const angle = reducedMotion ? 0.4 : clock.elapsedTime * FAN.turnsPerSecond * Math.PI * 2
+    const angle = reducedMotion ? 0.4 : lifeTime(clock.elapsedTime, delta) * FAN.turnsPerSecond * Math.PI * 2
     spots.forEach((s, i) => {
       tmp.position.set(s.x, s.y, s.z)
       tmp.rotation.set(0, angle + i * 0.9, 0)
