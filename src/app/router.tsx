@@ -44,6 +44,12 @@ export const router = createHashRouter([
         }),
       },
       {
+        path: '/wardrobe',
+        lazy: async () => ({
+          Component: (await import('@/features/wardrobe/WardrobePage')).WardrobePage,
+        }),
+      },
+      {
         path: '/settings',
         lazy: async () => ({
           Component: (await import('@/features/settings/SettingsPage')).SettingsPage,

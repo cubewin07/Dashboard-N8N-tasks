@@ -14,6 +14,7 @@ import {
   Play,
   Plus,
   Settings,
+  Shirt,
   Users,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
@@ -41,7 +42,7 @@ import { useOfficeSelector } from '@/office/hooks'
 import { useAuth } from './auth'
 import { useStartWork } from './startWork'
 
-type MainNavKey = 'office' | 'org' | 'queue' | 'activity'
+type MainNavKey = 'office' | 'org' | 'queue' | 'activity' | 'wardrobe'
 type LegacyNavKey = 'overview' | 'inbox' | 'tasks' | 'start' | 'library' | 'team'
 
 const MAIN_NAV: { key: MainNavKey; to: string; icon: typeof Building2 }[] = [
@@ -49,6 +50,7 @@ const MAIN_NAV: { key: MainNavKey; to: string; icon: typeof Building2 }[] = [
   { key: 'org', to: '/org', icon: Network },
   { key: 'queue', to: '/queue', icon: CheckSquare },
   { key: 'activity', to: '/activity', icon: Activity },
+  { key: 'wardrobe', to: '/wardrobe', icon: Shirt },
 ]
 
 const LEGACY_NAV: { key: LegacyNavKey; to: string; icon: typeof Inbox }[] = [
