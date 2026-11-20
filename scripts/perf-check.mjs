@@ -76,8 +76,9 @@ try {
   await page.waitForSelector('[data-office-canvas][data-ready="true"]', { timeout: 120_000 })
 
   await page.locator('[data-sim-speed="30"]').first().click()
-  await page.locator('[data-sim-scenario="hire_temps"]').first().click()
-  // Hires walk in over a while; top up until the building is as full as R15 asks.
+  // "Đông người" pads the staff to 80 (hire_temps stops at the temp cap, 38 people).
+  await page.locator('[data-sim-scenario="crowded"]').first().click()
+  // Hires walk in over a while; wait until the building is as full as R15 asks.
   const count = () => page.evaluate(() => window.__office_debug?.director?.people().length ?? 0)
   const deadline = Date.now() + 90_000
   let lastCount = await count()
@@ -86,7 +87,7 @@ try {
     await page.waitForTimeout(1000)
     const now = await count()
     if (now === lastCount && Date.now() - lastClick > 8000) {
-      await page.locator('[data-sim-scenario="hire_temps"]').first().click()
+      await page.locator('[data-sim-scenario="crowded"]').first().click()
       lastClick = Date.now()
     }
     lastCount = now
