@@ -7,6 +7,7 @@ import type { ConnectionState, OfficeFeed } from '@/ports/OfficeFeed'
 import { loadConfig } from './configStore'
 import { officeExtensions } from './extensions'
 import { createFeed } from './feedRegistry'
+import { getCommandsAllowed } from './sessionRole'
 
 export type OfficeCommandState =
   | 'idle'
@@ -153,6 +154,9 @@ function withCommand(
 }
 
 export async function sendCommand(cmd: Command): Promise<CommandAck> {
+  if (!getCommandsAllowed()) {
+    return { commandId: cmd.id, status: 'rejected', reason: 'forbidden' }
+  }
   if (!activeFeed) {
     useOffice.setState((prev) => ({
       commands: withCommand(prev.commands, {

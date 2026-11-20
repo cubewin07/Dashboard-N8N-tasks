@@ -40,6 +40,7 @@ import { useOffice } from '@/office'
 import { officeExtensions } from '@/office/extensions'
 import { useOfficeSelector } from '@/office/hooks'
 import { useAuth } from './auth'
+import { can } from './roles'
 import { useStartWork } from './startWork'
 
 type MainNavKey = 'office' | 'org' | 'queue' | 'activity' | 'wardrobe'
@@ -113,7 +114,8 @@ function BossQueueBadge({ className }: { className?: string }) {
 
 function Sidebar() {
   const { t } = useI18n()
-  const { signOut } = useAuth()
+  const { session, signOut } = useAuth()
+  const role = session?.role
   const { openStartWork } = useStartWork()
   const location = useLocation()
   const [legacyOpen, setLegacyOpen] = useState(() => isLegacyPath(location.pathname))
@@ -133,7 +135,7 @@ function Sidebar() {
       </div>
 
       <nav aria-label={t.common.nav.mainMenu} className="mt-8 flex flex-col gap-1 overflow-y-auto">
-        {MAIN_NAV.map(({ key, to, icon: Icon }) => (
+        {MAIN_NAV.filter(({ key }) => can(role, key)).map(({ key, to, icon: Icon }) => (
           <NavLink key={key} to={to} end={to === '/'} className={navCls}>
             <Icon className="size-[18px]" aria-hidden />
             <span className="flex-1">{t.common.nav[key]}</span>
@@ -141,6 +143,7 @@ function Sidebar() {
           </NavLink>
         ))}
 
+        {can(role, 'legacy') && (
         <div className="mt-3 border-t border-border pt-3">
           <button
             type="button"
@@ -178,12 +181,15 @@ function Sidebar() {
             </div>
           )}
         </div>
+        )}
       </nav>
 
       <div className="mt-auto flex flex-col gap-1 border-t border-border pt-4">
-        <div className="px-3 pb-2">
-          <TeamOnlineIndicator />
-        </div>
+        {can(role, 'command') && (
+          <div className="px-3 pb-2">
+            <TeamOnlineIndicator />
+          </div>
+        )}
         <NavLink to="/settings" className={navCls}>
           <Settings className="size-[18px]" aria-hidden />
           {t.common.nav.settings}
@@ -199,6 +205,8 @@ function Sidebar() {
 
 function TopBar() {
   const { t, lang } = useI18n()
+  const { session } = useAuth()
+  const role = session?.role
   const now = useNow(30_000)
   const h = ictHour(now)
   const greeting =
@@ -215,13 +223,13 @@ function TopBar() {
           <Logo />
         </div>
         <div className="hidden min-w-0 lg:block">
-          <p className="truncate text-[15px] font-semibold">{greeting}</p>
+          {can(role, 'command') && <p className="truncate text-[15px] font-semibold">{greeting}</p>}
           <p className="tabular truncate text-[13px] text-muted-foreground first-letter:uppercase">
             {formatHeaderDate(now, lang)} ICT
           </p>
         </div>
         <div className="hidden flex-1 justify-center px-4 lg:flex">
-          <IntakeBox compact />
+          {can(role, 'command') && <IntakeBox compact />}
         </div>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <span
@@ -230,7 +238,7 @@ function TopBar() {
           >
             {t.common.demo.badge}
           </span>
-          <LiveBadge />
+          {can(role, 'office') && <LiveBadge />}
         </div>
       </div>
     </header>
@@ -239,7 +247,8 @@ function TopBar() {
 
 function MobileTabBar() {
   const { t } = useI18n()
-  const { signOut } = useAuth()
+  const { session, signOut } = useAuth()
+  const role = session?.role
   const { openStartWork } = useStartWork()
   const [moreOpen, setMoreOpen] = useState(false)
   const location = useLocation()
@@ -256,12 +265,12 @@ function MobileTabBar() {
       active ? 'text-primary' : 'text-muted-foreground',
     )
 
-  const items: { key: MainNavKey; to: string; icon: typeof Building2; label: string }[] = [
-    { key: 'office', to: '/', icon: Building2, label: t.common.nav.office },
-    { key: 'org', to: '/org', icon: Network, label: t.common.nav.org },
-    { key: 'queue', to: '/queue', icon: CheckSquare, label: t.common.nav.queue },
-    { key: 'activity', to: '/activity', icon: Activity, label: t.common.nav.activity },
-  ]
+  // Boss keeps four tabs; the wardrobe sits in the "more" sheet so the bar is not crowded.
+  const tabKeys: MainNavKey[] = can(role, 'office') ? ['office', 'org', 'queue', 'activity'] : ['wardrobe']
+  const items = MAIN_NAV.filter(({ key }) => tabKeys.includes(key) && can(role, key)).map((n) => ({
+    ...n,
+    label: t.common.nav[n.key],
+  }))
 
   return (
     <>
@@ -301,6 +310,16 @@ function MobileTabBar() {
           </SheetHeader>
 
           <div className="mt-4 flex flex-col gap-1">
+            {can(role, 'office') && can(role, 'wardrobe') && (
+              <NavLink
+                to="/wardrobe"
+                onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-3 text-base hover:bg-surface-muted"
+              >
+                <Shirt className="size-5 text-muted-foreground" aria-hidden />
+                {t.common.nav.wardrobe}
+              </NavLink>
+            )}
             <NavLink
               to="/settings"
               onClick={() => setMoreOpen(false)}
@@ -310,12 +329,13 @@ function MobileTabBar() {
               {t.common.nav.settings}
             </NavLink>
 
-            {ControlPanel && (
+            {ControlPanel && can(role, 'command') && (
               <div className="my-2 border-t border-border pt-3">
                 <ControlPanel />
               </div>
             )}
 
+            {can(role, 'legacy') && (
             <div className="my-2 border-t border-border pt-2">
               <button
                 type="button"
@@ -362,10 +382,13 @@ function MobileTabBar() {
                 </div>
               )}
             </div>
+            )}
 
-            <div className="my-3 border-t border-border px-3 pt-4">
-              <TeamOnlineIndicator />
-            </div>
+            {can(role, 'command') && (
+              <div className="my-3 border-t border-border px-3 pt-4">
+                <TeamOnlineIndicator />
+              </div>
+            )}
 
             <button
               type="button"
@@ -383,6 +406,7 @@ function MobileTabBar() {
 }
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const { session } = useAuth()
   return (
     <div className="flex min-h-dvh">
       <Sidebar />
@@ -394,7 +418,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
       <MobileTabBar />
-      <StartWorkSheet />
+      {can(session?.role, 'command') && <StartWorkSheet />}
     </div>
   )
 }
