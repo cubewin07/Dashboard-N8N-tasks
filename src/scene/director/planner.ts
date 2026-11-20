@@ -5,7 +5,6 @@ import { route } from '@/scene/nav/routeGraph'
 import type { NavGrid, Vec2 } from '@/scene/nav/types'
 import { INTENT_VERTICAL_MODE, type Intent } from './intents'
 import { SlotLedger } from './slots'
-import { nearestFree } from './seating'
 import {
   approachOf,
   cellCentre,
@@ -331,7 +330,16 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
       }
       const key = SlotLedger.key(floor.key, slot.id)
       // The idle brain reserved the place already (the ledger is idempotent).
-      const place = Math.max(0, ctx.ledger.reserve(key, me.id, slot.capacity ?? 1))
+      const place = ctx.ledger.reserve(key, me.id, slot.capacity ?? 1)
+      if (place < 0) {
+        // Nobody may stand on someone else's place: go back to the desk instead.
+        if (desk && !atDesk) {
+          standUp(out, me)
+          toStation(out, cursor, ctx, desk, mode)
+        }
+        out.push({ k: 'hold', pose: 'sit' })
+        return out
+      }
       const station =
         place > 0 && isStandSlot(slot)
           ? partnerStation(floor, ctx.grid(floor.index), slot, place)
@@ -359,25 +367,55 @@ export function partnerStation(floor: FloorLayout, grid: NavGrid, slot: Slot, pl
   const base = stationFor(floor, slot, 0)
   const centre: Vec2 = { x: slot.x, z: slot.z }
   const first = base.approach
-  const candidates: Vec2[] = []
-  if (place === 1) candidates.push({ x: 2 * centre.x - first.x, z: 2 * centre.z - first.z })
-  const dx = first.x - centre.x
-  const dz = first.z - centre.z
-  const len = Math.hypot(dx, dz) || 1
-  const side = place % 2 === 1 ? 1 : -1
-  const reach = 0.75 * Math.ceil(place / 2)
-  candidates.push({ x: first.x + (-dz / len) * reach * side, z: first.z + (dx / len) * reach * side })
+  const taken = new Set<string>([cellKey(grid, first)])
   let point = first
+  // Places 1..place in order, each on a cell nobody before it stands on.
+  for (let k = 1; k <= place; k += 1) {
+    const candidates: Vec2[] = []
+    if (k === 1) candidates.push({ x: 2 * centre.x - first.x, z: 2 * centre.z - first.z })
+    const dx = first.x - centre.x
+    const dz = first.z - centre.z
+    const len = Math.hypot(dx, dz) || 1
+    const side = k % 2 === 1 ? 1 : -1
+    const reach = 0.75 * Math.ceil(k / 2)
+    candidates.push({ x: first.x + (-dz / len) * reach * side, z: first.z + (dx / len) * reach * side })
+    point = freeCellNear(grid, candidates, taken) ?? point
+    taken.add(cellKey(grid, point))
+  }
+  const heading = place === 1 && cellKey(grid, point) !== cellKey(grid, first) ? headingTo(point, centre) : headingTo(point, first)
+  return { ...base, approach: point, seat: point, heading }
+}
+
+function cellKey(grid: NavGrid, p: Vec2): string {
+  const [col, row] = grid.toCell(p)
+  return `${col},${row}`
+}
+
+/**
+ * The first candidate on a free, untaken cell; failing that the nearest such
+ * cell (within 3 cells) to the last candidate. Null only when the area is full.
+ */
+function freeCellNear(grid: NavGrid, candidates: readonly Vec2[], taken: ReadonlySet<string>): Vec2 | null {
   for (const c of candidates) {
     const [col, row] = grid.toCell(c)
-    if (!grid.isBlocked(col, row)) {
-      point = grid.toWorld(col, row)
-      break
-    }
-    point = nearestFree(grid, c, 2)
+    if (!grid.isBlocked(col, row) && !taken.has(`${col},${row}`)) return grid.toWorld(col, row)
   }
-  const heading = place === 1 && point !== first ? headingTo(point, centre) : headingTo(point, first)
-  return { ...base, approach: point, seat: point, heading }
+  const from = candidates[candidates.length - 1]!
+  const [pc, pr] = grid.toCell(from)
+  let best: Vec2 | null = null
+  let bestDist = Infinity
+  for (let row = pr - 3; row <= pr + 3; row += 1) {
+    for (let col = pc - 3; col <= pc + 3; col += 1) {
+      if (grid.isBlocked(col, row) || taken.has(`${col},${row}`)) continue
+      const w = grid.toWorld(col, row)
+      const dist = (w.x - from.x) ** 2 + (w.z - from.z) ** 2
+      if (dist < bestDist - 1e-9) {
+        bestDist = dist
+        best = w
+      }
+    }
+  }
+  return best
 }
 
 /** Grep-friendly proof of R5: the vertical steps a plan contains. */
