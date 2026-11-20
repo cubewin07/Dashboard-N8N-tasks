@@ -1,0 +1,41 @@
+{
+  "_comment": "Weights for seeded default looks (P08a-T13). An item's weight = product of tagMultipliers over its tags (missing tag = 1) x items[base][id] (default 1). slotChance = probability that an optional slot is worn (number, or per base). Data only: tune here, not in code.",
+  "tagMultipliers": {
+    "office": 3,
+    "formal": 1.2,
+    "casual": 1,
+    "street": 0.6,
+    "sport": 0.4,
+    "traditional": 0.2,
+    "tet": 0.5,
+    "party": 0.4,
+    "winter": 0.6,
+    "summer": 0.8,
+    "fitted": 0.7
+  },
+  "items": {
+    "female": {
+      "hair_long_01": 2.1,
+      "hair_bob_01": 1.75,
+      "hair_bun_01": 1.4,
+      "hair_short_01": 1
+    },
+    "male": {
+      "hair_short_01": 4.5,
+      "hair_bun_01": 0.4,
+      "hair_bob_01": 0.5,
+      "hair_long_01": 0.3
+    }
+  },
+  "slotChance": {
+    "fullbody": 0.25,
+    "outer": 0.15,
+    "facial_hair": { "female": 0, "male": 0.2 },
+    "head": 0,
+    "glasses": 0.28,
+    "ears": { "female": 0.3, "male": 0.04 },
+    "neck": { "female": 0.22, "male": 0.12 },
+    "wrist": 0.2,
+    "bag": 0
+  }
+}
