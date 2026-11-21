@@ -46,6 +46,12 @@ export const SIM_ODDS = {
   autoApproveBossRealMs: 2 * 60_000,
   queueOverloadThreshold: 6,
   queueOverloadWindowSimMs: 20 * 60_000,
+  /**
+   * Filings that happen once a quarter: the random accounting generator only
+   * creates them at quarter-end (the month_end scenario and boss messages
+   * can still create them any time).
+   */
+  quarterlyTypeKeys: ['acc.vat_return'] as readonly string[],
   hourlyTaskRates: {
     csDay: [10, 14] as const,
     csNight: [3, 5] as const,

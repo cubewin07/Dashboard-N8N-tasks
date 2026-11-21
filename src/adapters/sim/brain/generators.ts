@@ -131,8 +131,11 @@ export function runGenerators(ctx: SimBrainContext): void {
   const isMonthEnd =
     ctx.forceMonthEnd || ctx.clock.isMonthEnd() || ctx.clock.isQuarterEnd()
   while (nowMs >= ctx.generators.accounting.nextFireSimMs) {
+    const atQuarterEnd = ctx.forceMonthEnd || ctx.clock.isQuarterEnd()
     const accTypes = ctx.state.config.taskTypes.filter(
-      (t) => t.departmentKey === 'accounting',
+      (t) =>
+        t.departmentKey === 'accounting' &&
+        (atQuarterEnd || !SIM_ODDS.quarterlyTypeKeys.includes(t.key)),
     )
     if (accTypes.length > 0) {
       const chosen = pick(ctx.rng, accTypes)
