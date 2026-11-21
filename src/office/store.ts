@@ -69,7 +69,9 @@ export function flushOfficeEvents(): void {
   let commandsChanged = false
 
   for (const evt of drained) {
-    if (evt.causedBy) {
+    // Only commands this client sent are tracked. Events caused by sim
+    // intake messages carry other ids and would grow `commands` for ever.
+    if (evt.causedBy && store.commands[evt.causedBy]) {
       if (!commandsChanged) {
         nextCommands = { ...store.commands }
         commandsChanged = true
@@ -128,17 +130,36 @@ function syncDebugWindow(): void {
   }
 }
 
+/** Command records kept for the UI; older ones are dropped. */
+export const MAX_COMMAND_RECORDS = 200
+
+function withCommand(
+  commands: Record<string, OfficeCommandRecord>,
+  record: OfficeCommandRecord,
+): Record<string, OfficeCommandRecord> {
+  const next = { ...commands, [record.id]: record }
+  const ids = Object.keys(next)
+  if (ids.length <= MAX_COMMAND_RECORDS) return next
+  // Objects keep insertion order: drop the oldest records first (never one still being sent).
+  let excess = ids.length - MAX_COMMAND_RECORDS
+  for (const id of ids) {
+    if (excess <= 0) break
+    const status = next[id]!.status
+    if (id === record.id || status === 'sending') continue
+    delete next[id]
+    excess -= 1
+  }
+  return next
+}
+
 export async function sendCommand(cmd: Command): Promise<CommandAck> {
   if (!activeFeed) {
     useOffice.setState((prev) => ({
-      commands: {
-        ...prev.commands,
-        [cmd.id]: {
-          id: cmd.id,
-          status: 'failed',
-          reason: 'not_booted',
-        },
-      },
+      commands: withCommand(prev.commands, {
+        id: cmd.id,
+        status: 'failed',
+        reason: 'not_booted',
+      }),
     }))
     return {
       commandId: cmd.id,
@@ -148,14 +169,11 @@ export async function sendCommand(cmd: Command): Promise<CommandAck> {
   }
 
   useOffice.setState((prev) => ({
-    commands: {
-      ...prev.commands,
-      [cmd.id]: {
-        id: cmd.id,
-        status: 'sending',
-        reason: null,
-      },
-    },
+    commands: withCommand(prev.commands, {
+      id: cmd.id,
+      status: 'sending',
+      reason: null,
+    }),
   }))
 
   const ack = await activeFeed.send(cmd)

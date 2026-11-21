@@ -15,6 +15,7 @@ import { createFeed } from '../feedRegistry'
 import {
   bootOffice,
   getOfficeState,
+  MAX_COMMAND_RECORDS,
   sendCommand,
   stopOffice,
   useOffice,
@@ -242,5 +243,43 @@ describe('office store, feedRegistry, and command tracking (P03-T12)', () => {
     expect(useOffice.getState().state?.now).toBe('2026-11-10T02:03:00.000Z')
 
     unsub()
+  })
+
+  it('does not track events caused by something other than a sent command', async () => {
+    vi.useFakeTimers()
+    const fakeFeed = new FakeFeed()
+    await bootOffice(fakeFeed)
+
+    fakeFeed.emit([
+      makeEvent(
+        'system.heartbeat',
+        { source: 'sim', version: '1.0.0' },
+        { seq: 1, causedBy: 'msg_01JTESTINTAKEMESSAGE000001' },
+      ),
+    ])
+    vi.advanceTimersByTime(20)
+
+    expect(useOffice.getState().commands).toEqual({})
+  })
+
+  it('keeps at most MAX_COMMAND_RECORDS command records', async () => {
+    const fakeFeed = new FakeFeed()
+    await bootOffice(fakeFeed)
+
+    for (let i = 0; i < MAX_COMMAND_RECORDS + 25; i += 1) {
+      await sendCommand(
+        makeCommand(
+          'intake.submit',
+          { text: `việc ${i}`, modality: 'text' },
+          { id: `cmd_${String(i).padStart(26, '0')}` },
+        ),
+      )
+    }
+
+    const ids = Object.keys(useOffice.getState().commands)
+    expect(ids.length).toBe(MAX_COMMAND_RECORDS)
+    // The newest record survives, the oldest was dropped.
+    expect(ids).toContain(`cmd_${String(MAX_COMMAND_RECORDS + 24).padStart(26, '0')}`)
+    expect(ids).not.toContain(`cmd_${'0'.padStart(26, '0')}`)
   })
 })
