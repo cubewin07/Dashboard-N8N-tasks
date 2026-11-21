@@ -42,10 +42,29 @@ describe('talkTurn', () => {
   })
 })
 
+type AgentView = { idleKey: string | null; planIdleKey: string | null; plan: { k: string }[]; step: number }
+
+/**
+ * Still settled at the chat with someone to talk to (director internals), so
+ * turn-taking can be told apart from company or the person coming and going.
+ */
+function settledWithCompany(director: unknown, id: string): boolean {
+  const d = director as { agents: Map<string, AgentView>; hasCompany(agent: AgentView): boolean }
+  const agent = d.agents.get(id)
+  return (
+    agent !== undefined &&
+    agent.plan[agent.step]?.k === 'hold' &&
+    agent.planIdleKey === agent.idleKey &&
+    d.hasCompany(agent)
+  )
+}
+
 function observe(reduced: boolean) {
   // A blink: the bubble goes off and comes back within 5 s of the same visit.
   const live = new Map<string, { key: string; talk: boolean; offAt: number }>()
   let blinks = 0
+  // A turn: the bubble goes off although the person still has company.
+  let turns = 0
   const lonely: string[] = []
   let sawTalk = false
   runDirector({
@@ -79,13 +98,16 @@ function observe(reduced: boolean) {
           live.set(p.id, { key: p.idleKey!, talk: talking, offAt: -1000 })
           continue
         }
-        if (cur.talk && !talking) cur.offAt = tickNo
+        if (cur.talk && !talking) {
+          cur.offAt = tickNo
+          if (settledWithCompany(director, p.id)) turns += 1
+        }
         if (!cur.talk && talking && tickNo - cur.offAt <= 50) blinks += 1
         cur.talk = talking
       }
     },
   })
-  return { blinks, lonely, sawTalk }
+  return { blinks, turns, lonely, sawTalk }
 }
 
 describe('chat bubbles in a run (P05 review)', () => {
@@ -98,8 +120,13 @@ describe('chat bubbles in a run (P05 review)', () => {
   it('take turns normally but stay on under reduced motion', () => {
     const normal = observe(false)
     expect(normal.blinks).toBeGreaterThan(0)
+    expect(normal.turns).toBeGreaterThan(0)
     const reduced = observe(true)
     expect(reduced.sawTalk).toBe(true)
-    expect(reduced.blinks).toBe(0)
+    // Under reduced motion the bubble never goes off while there is company.
+    // It may still go off and on when company walks away and comes back,
+    // which is real state, not turn-taking; that stays rare.
+    expect(reduced.turns).toBe(0)
+    expect(reduced.blinks).toBeLessThan(normal.blinks / 20)
   })
 })
