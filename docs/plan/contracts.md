@@ -1,9 +1,10 @@
 # Contracts
 
-Version: **office-contract v1.0 (draft)**. This replaces `docs/CONTRACT.md` v0.2.
+Version: **office-contract v1.1 (draft)**. This replaces `docs/CONTRACT.md` v0.2.
 Any change to a port, event, command, config schema or appearance schema bumps the version (minor = additive, major = breaking) and adds a line to the changelog below. Zod schemas in `src/domain/{events,commands,config,appearance}.ts` are the executable form; this file is the readable form. A unit test (`contracts.test.ts`) fails if the `CONTRACT_VERSION` constant and this file's version differ.
 
 ### Changelog
+- **v1.1 (2026-11-21, P08b, additive):** `AppearanceStore.getEntries()` returns saved looks with their versions (the editor needs the version for `save`); `save` rejects with `AppearanceConflictError { employeeId, current, currentVersion, expectedVersion }` on a version mismatch (unknown employee = version 0).
 - **v1.0 (draft):** Ports (`OfficeFeed`, `ConfigSource`, `AppearanceStore`, `AuthPort`), event envelope + catalogue, commands, config/appearance write rule.
 
 ## 1. Ports (`src/ports/*.ts`, interfaces only)
@@ -33,7 +34,9 @@ interface ConfigSource {
 interface AppearanceStore {
   get(employeeId: string): Promise<AppearanceV1 | null>         // null → generated default
   getAll(): Promise<Record<string, AppearanceV1>>
+  getEntries(): Promise<Record<string, { doc: AppearanceV1; version: number }>>  // v1.1
   save(employeeId: string, doc: AppearanceV1, expectedVersion: number): Promise<{ version: number }>
+                                                                // version mismatch → AppearanceConflictError (v1.1)
   subscribe(cb: (employeeId: string, doc: AppearanceV1) => void): () => void
 }
 

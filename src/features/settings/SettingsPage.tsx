@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '@/app/auth'
+import { can } from '@/app/roles'
 import { useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTier'
 import { useDrive } from '@/app/drive'
 import { useI18n, type Lang } from '@/i18n'
@@ -48,6 +49,7 @@ import {
 export function SettingsPage() {
   const { t, lang, setLang } = useI18n()
   const { session, signOut } = useAuth()
+  const full = can(session?.role, 'settings.full')
   const { tier, override: tierOverride, setOverride: setTierOverride } = useDeviceTierPreference()
   const drive = useDrive()
   const { heartbeatAt, version } = useTeamOnline()
@@ -179,6 +181,8 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
+{full && (
+<>
         {/* 1b. Device tier section (3D / 2D) */}
         <Card>
           <CardHeader>
@@ -416,6 +420,9 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
+        </>
+)}
+
         {/* 3. Account section */}
         <Card>
           <CardHeader>
@@ -443,6 +450,7 @@ export function SettingsPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
+                {full && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -453,6 +461,7 @@ export function SettingsPage() {
                 >
                   {t.settings.account.changePasswordButton}
                 </Button>
+                )}
 
                 <Button
                   variant="ghost"
@@ -468,6 +477,8 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
+{full && (
+<>
         {/* 4. System info section */}
         <Card>
           <CardHeader>
@@ -614,6 +625,9 @@ export function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        </>
+)}
 
         {/* Asset credits */}
         <Card>

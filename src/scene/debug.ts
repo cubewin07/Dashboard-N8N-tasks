@@ -108,6 +108,8 @@ export function makeCameraDebug(
 
 export interface CharactersDebug {
   readonly assembled: number
+  /** Cumulative assemblies: +1 each time a character is (re)assembled, e.g. after a saved look. */
+  readonly assemblies: number
   readonly total: number
   readonly queued: number
   readonly failed: number
@@ -120,6 +122,7 @@ export interface CharactersDebug {
 
 const emptyCharactersSnapshot = {
   assembled: 0,
+  assemblies: 0,
   total: 0,
   queued: 0,
   failed: 0,
@@ -136,6 +139,7 @@ function snapshotCharacters() {
 export const charactersDebug: CharactersDebug = Object.defineProperties(
   {
     assembled: 0,
+    assemblies: 0,
     total: 0,
     queued: 0,
     failed: 0,
@@ -151,6 +155,7 @@ export const charactersDebug: CharactersDebug = Object.defineProperties(
   },
   {
     assembled: { get: () => snapshotCharacters().assembled, enumerable: true },
+    assemblies: { get: () => snapshotCharacters().assemblies, enumerable: true },
     total: { get: () => snapshotCharacters().total, enumerable: true },
     queued: { get: () => snapshotCharacters().queued, enumerable: true },
     failed: { get: () => snapshotCharacters().failed, enumerable: true },

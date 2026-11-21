@@ -22,6 +22,8 @@ export interface PersonSight {
 
 export interface CharactersRuntimeSnapshot {
   assembled: number
+  /** Cumulative number of finished assemblies since load (one per re-assembled character). */
+  assemblies: number
   total: number
   queued: number
   failed: number

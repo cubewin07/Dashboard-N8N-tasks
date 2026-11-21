@@ -92,6 +92,7 @@ export function ResetPasswordPage() {
                       id="reset-new-password"
                       type={showPassword ? 'text' : 'password'}
                       required
+                      name="new-password"
                       autoComplete="new-password"
                       placeholder={t.login.resetPage.newPasswordPlaceholder}
                       value={password}
@@ -122,6 +123,7 @@ export function ResetPasswordPage() {
                       id="reset-confirm-password"
                       type={showConfirm ? 'text' : 'password'}
                       required
+                      name="new-password"
                       autoComplete="new-password"
                       placeholder={t.login.resetPage.confirmPasswordPlaceholder}
                       value={confirmPassword}

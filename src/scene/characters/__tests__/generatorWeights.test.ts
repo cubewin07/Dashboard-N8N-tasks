@@ -71,3 +71,17 @@ describe('generator weights (P08a-T13)', () => {
     }
   })
 })
+
+describe('retired items', () => {
+  it('never appear in seeded looks', () => {
+    const hair = DEFAULT_CATALOG.bySlot.hair
+    const retiredId = hair[0].id
+    const catalog = {
+      ...DEFAULT_CATALOG,
+      bySlot: { ...DEFAULT_CATALOG.bySlot, hair: hair.map((h, i) => (i === 0 ? { ...h, retired: true } : h)) },
+    }
+    for (let i = 0; i < 200; i++) {
+      expect(generateAppearance(`retired-${i}`, catalog).hair.item).not.toBe(retiredId)
+    }
+  })
+})

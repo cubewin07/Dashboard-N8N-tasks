@@ -1,10 +1,12 @@
-import { createHashRouter, Navigate, Outlet } from 'react-router-dom'
+import { createHashRouter, Outlet } from 'react-router-dom'
 import { LoginPage } from '@/features/login/LoginPage'
-import { OfficePage } from '@/features/office/OfficePage'
 import { AppLayout } from './AppLayout'
 import { AuthGuard } from './auth'
+import { authPort } from './authRegistry'
+import { can } from './roles'
 import { LegacyBoundary } from './LegacyBoundary'
 import { RouteError } from './RouteError'
+import { RoleGuard, UnknownRoute } from './RoleGuard'
 
 export const router = createHashRouter([
   { path: '/login', element: <LoginPage />, errorElement: <RouteError /> },
@@ -18,13 +20,24 @@ export const router = createHashRouter([
     element: (
       <AuthGuard>
         <AppLayout>
-          <Outlet />
+          <RoleGuard>
+            <Outlet />
+          </RoleGuard>
         </AppLayout>
       </AuthGuard>
     ),
     errorElement: <RouteError />,
     children: [
-      { path: '/', element: <OfficePage />, errorElement: <RouteError /> },
+      {
+        // Lazy so a stylist session never downloads the 3D office chunk.
+        path: '/',
+        lazy: async () => {
+          // Router lazy() runs before any guard: check the role here so a stylist fetches nothing.
+          if (!can(authPort.session()?.role, 'office')) return { Component: UnknownRoute }
+          return { Component: (await import('@/features/office/OfficePage')).OfficePage }
+        },
+        errorElement: <RouteError />,
+      },
       {
         path: '/org',
         lazy: async () => ({
@@ -41,6 +54,12 @@ export const router = createHashRouter([
         path: '/activity',
         lazy: async () => ({
           Component: (await import('@/features/activity/ActivityPage')).ActivityPage,
+        }),
+      },
+      {
+        path: '/wardrobe',
+        lazy: async () => ({
+          Component: (await import('@/features/wardrobe/WardrobePage')).WardrobePage,
         }),
       },
       {
@@ -113,8 +132,8 @@ export const router = createHashRouter([
           },
         ],
       },
-      // Unknown hash (typo, or a dev-only route on the production build): go home.
-      { path: '*', element: <Navigate to="/" replace /> },
+      // Unknown hash (typo, or a dev-only route on the production build): go to the role's home.
+      { path: '*', element: <UnknownRoute /> },
     ],
   },
 ])

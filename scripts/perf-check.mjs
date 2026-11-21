@@ -197,7 +197,7 @@ try {
   const viewport = { width: 1440, height: 900 }
   const page = await browser.newPage({ viewport })
   await page.goto(`${baseUrl}#/login`)
-  await page.locator('#login-email').fill('boss@example.com')
+  await page.locator('#login-email').fill('boss@demo.local')
   await page.locator('#login-password').fill('123456')
   await page.locator('button[type="submit"]').click()
   await page.waitForSelector('[data-office-canvas][data-ready="true"]', { timeout: 120_000 })

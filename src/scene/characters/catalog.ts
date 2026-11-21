@@ -56,9 +56,12 @@ export interface CatalogItem {
     defaults: Partial<Record<TintRegion, string>>
   } | null
   hides: CatalogSlot[]
+  /** Any-of: the item is only worn when at least one of these slots is worn (e.g. outer needs top or fullbody). */
   requires?: CatalogSlot[]
   /** Item ids that cannot be worn together with this one (either row may list the other). */
   conflicts?: string[]
+  /** Retired items stay renderable for saved looks but are no longer offered. */
+  retired?: boolean
   bodyLimits?: Partial<Record<CatalogBodyKey, [number, number]>>
   tags: string[]
   credit: string

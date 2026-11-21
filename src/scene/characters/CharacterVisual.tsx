@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { AppearanceV1 } from '@/domain/appearance'
 import type { EmployeeId } from '@/domain/primitives'
+import { useSavedAppearance } from '@/office/appearanceStore'
 import { hashString } from '@/scene/director/rng'
 import { getLoadProgress, subscribeModels } from '@/scene/render/assets/modelStore'
 import { CapsulePeople } from '@/scene/render/CapsulePeople'
@@ -51,6 +52,8 @@ export function resolveCharacterMode(
 
 export interface CharacterDebugSnapshot {
   assembled: number
+  /** Cumulative finished assemblies (a saved look re-assembles that one character once). */
+  assemblies: number
   total: number
   queued: number
   failed: number
@@ -174,7 +177,24 @@ function collectDesiredWardrobeItems(
     }
   }
 
-  return resolved.filter((item) => !hiddenSlots.has(item.slot))
+  const visible = resolved.filter((item) => !hiddenSlots.has(item.slot))
+  // `requires` is any-of: an outer layer with nothing under it is not rendered.
+  const presentSlots = new Set<string>(visible.map((item) => item.slot))
+  return visible.filter(
+    (item) => !item.requires || item.requires.length === 0 || item.requires.some((s) => presentSlots.has(s)),
+  )
+}
+
+/** Hair file to load: the hat-cut variant when a worn item clips the crown (`hairClip: 'crown'`). */
+export function resolveHairModelPath(
+  item: CatalogItem,
+  meta: WardrobeMeta,
+  wornMetas: ReadonlyArray<WardrobeMeta | undefined>,
+  defaultPath: string,
+): string {
+  if (item.slot !== 'hair' || !meta.hatcut) return defaultPath
+  const clipped = wornMetas.some((m) => m !== undefined && m !== meta && m.hairClip === 'crown')
+  return clipped ? meta.hatcut : defaultPath
 }
 
 /**
@@ -233,6 +253,7 @@ export class CharacterPeople implements PersonVisualSystem {
   private totalDisposedCount = 0
   private totalAssemblyMs = 0
   private totalAssemblyCount = 0
+  private assembliesDone = 0
   private inFlightCount = 0
 
   constructor(deps: CharacterPeopleDeps = {}) {
@@ -349,6 +370,7 @@ export class CharacterPeople implements PersonVisualSystem {
 
     return {
       assembled,
+      assemblies: this.assembliesDone,
       total: this.lastCount > 0 ? this.lastCount : this.slots.size,
       queued: this.assemblyQueue.length + this.inFlightCount,
       failed,
@@ -807,10 +829,13 @@ export class CharacterPeople implements PersonVisualSystem {
         Promise.all(
           items.map(async (item): Promise<WardrobePartInput | null> => {
             const meta = await this.loadWardrobeMetaSafe(item)
-            const modelPath =
-              item.model?.[base] ??
-              meta.bases[base]?.file ??
-              `models/wardrobe/${item.id}.glb`
+            const wornMetas = await Promise.all(items.map((it) => this.loadWardrobeMetaSafe(it)))
+            const modelPath = resolveHairModelPath(
+              item,
+              meta,
+              wornMetas,
+              item.model?.[base] ?? meta.bases[base]?.file ?? `models/wardrobe/${item.id}.glb`,
+            )
             const asset = await this.loadWardrobeAssetSafe(base, modelPath)
             return {
               id: item.id,
@@ -848,6 +873,7 @@ export class CharacterPeople implements PersonVisualSystem {
       })
       this.totalAssemblyMs += performance.now() - tAssembleStart
       this.totalAssemblyCount += 1
+      this.assembliesDone += 1
 
       if (this.disposed || slot.disposed) {
         assembled.dispose()
@@ -1106,6 +1132,13 @@ export function CharacterVisual({
       system.dispose()
     }
   }, [system])
+
+  // A saved look (wardrobe) re-assembles this character only; with none saved, the
+  // generated default (same as the office) is used.
+  const saved = useSavedAppearance(employeeId)
+  useEffect(() => {
+    if (saved) system.setAppearance(employeeId, saved)
+  }, [system, employeeId, saved])
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.05)

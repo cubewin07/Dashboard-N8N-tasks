@@ -11,7 +11,7 @@ test.describe('P02 building blockout and camera modes', () => {
     test.setTimeout(90_000)
 
     await page.goto('./#/login')
-    await page.locator('#login-email').fill('boss@example.com')
+    await page.locator('#login-email').fill('boss@demo.local')
     await page.locator('#login-password').fill('123456')
     await page.locator('button[type="submit"]').click()
 

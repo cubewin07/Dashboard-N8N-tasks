@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuth } from '@/app/auth'
+import { authPort, DEMO_ACCOUNT_EMAILS } from '@/app/authRegistry'
+import { canAccessRoute, landingFor } from '@/app/roles'
 import { useI18n } from '@/i18n'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,10 +26,10 @@ export function LoginPage() {
 
   // Redirect if already signed in
   if (session) {
-    return <Navigate to="/" replace />
+    return <Navigate to={landingFor(session.role)} replace />
   }
 
-  const from = (location.state as { from?: string } | undefined)?.from || '/'
+  const requestedFrom = (location.state as { from?: string } | undefined)?.from
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault()
@@ -35,7 +37,13 @@ export function LoginPage() {
     setLoading(true)
     try {
       await signIn(email.trim(), password)
-      navigate(from, { replace: true })
+      // The session is now set; the redirect above also covers it. Respect `from` only when allowed.
+      const role = authPort.session()?.role
+      const target =
+        role && requestedFrom && canAccessRoute(role, requestedFrom)
+          ? requestedFrom
+          : landingFor(role ?? 'boss')
+      navigate(target, { replace: true })
     } catch {
       setError(t.login.invalidCredentials)
     } finally {
@@ -100,6 +108,8 @@ export function LoginPage() {
                   <Input
                     id="login-email"
                     type="email"
+                    name="email"
+                    spellCheck={false}
                     required
                     autoComplete="email"
                     placeholder={t.login.emailPlaceholder}
@@ -129,6 +139,7 @@ export function LoginPage() {
                       id="login-password"
                       type={showPassword ? 'text' : 'password'}
                       required
+                      name="password"
                       autoComplete="current-password"
                       placeholder={t.login.passwordPlaceholder}
                       value={password}
@@ -185,6 +196,8 @@ export function LoginPage() {
                   <Input
                     id="reset-email"
                     type="email"
+                    name="email"
+                    spellCheck={false}
                     required
                     autoComplete="email"
                     placeholder={t.login.emailPlaceholder}
@@ -219,6 +232,20 @@ export function LoginPage() {
         <p className="mt-4 text-center text-xs text-muted-foreground">
           {t.login.demoHint}
         </p>
+        <ul data-demo-accounts className="mt-2 space-y-1 text-center text-xs text-muted-foreground">
+          {DEMO_ACCOUNT_EMAILS.map((addr) => (
+            <li key={addr}>
+              <button
+                type="button"
+                className="font-mono hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                onClick={() => setEmail(addr)}
+              >
+                {addr}
+              </button>
+              <span> · {addr.startsWith('boss') ? t.login.roleBoss : t.login.roleStylist}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )

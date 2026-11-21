@@ -1,8 +1,9 @@
-// MVP auth: demo-only, accepts any email + password (≥ 6 chars). Later: Supabase Auth (email + password).
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+// Auth context over the AuthPort (LocalAuth demo now, Supabase later). Role comes with the session.
+import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+import type { AuthPort, Session } from '@/ports/AuthPort'
+import { authPort } from './authRegistry'
 
-interface Session { email: string }
 interface AuthValue {
   session: Session | null
   signIn: (email: string, password: string) => Promise<void>
@@ -10,46 +11,20 @@ interface AuthValue {
   sendPasswordReset: (email: string) => Promise<void>
 }
 const AuthContext = createContext<AuthValue | null>(null)
-const KEY = 'shophq.demo-session' // demo flag only, not a token
 
-function load(): Session | null {
-  try {
-    const v = localStorage.getItem(KEY)
-    return v ? (JSON.parse(v) as Session) : null
-  } catch {
-    return null
-  }
-}
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(load)
+export function AuthProvider({ children, port = authPort }: { children: ReactNode; port?: AuthPort }) {
+  const session = useSyncExternalStore(
+    (cb) => port.onChange(cb),
+    () => port.session(),
+  )
   const value = useMemo<AuthValue>(
     () => ({
       session,
-      async signIn(email, password) {
-        await new Promise((r) => setTimeout(r, 600))
-        if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 6) throw new Error('invalid_credentials')
-        const s = { email }
-        try {
-          localStorage.setItem(KEY, JSON.stringify(s))
-        } catch {
-          /* ignore */
-        }
-        setSession(s)
-      },
-      signOut() {
-        try {
-          localStorage.removeItem(KEY)
-        } catch {
-          /* ignore */
-        }
-        setSession(null)
-      },
-      async sendPasswordReset() {
-        await new Promise((r) => setTimeout(r, 600))
-      },
+      signIn: (email, password) => port.signIn(email, password),
+      signOut: () => void port.signOut(),
+      sendPasswordReset: (email) => port.sendPasswordReset(email),
     }),
-    [session],
+    [session, port],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
