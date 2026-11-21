@@ -183,6 +183,7 @@ export class AtlasBillboards {
     this.mesh.name = o.name
     this.mesh.frustumCulled = false
     this.mesh.renderOrder = o.renderOrder ?? 10
+    this.mesh.castShadow = false
     this.mesh.raycast = () => {}
     base.dispose()
   }

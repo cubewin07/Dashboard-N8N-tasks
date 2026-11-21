@@ -1,10 +1,11 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type * as THREE from 'three'
 import type { BuildingLayout } from '@/scene/layout'
 import { SCENE_PALETTE } from './palette'
+import { initShadowLight, requestShadowUpdate } from './shadowCache'
 
 /** Noon values; `DayNight` scales and tints from these. */
-export const LIGHT_BASE = { hemi: 0.95, sun: 1.35 } as const
+export const LIGHT_BASE = { hemi: 0.8, sun: 1.25, env: 0.35 } as const
 
 /**
  * The scene's two lights, for `DayNight` to tint imperatively (P05-T12).
@@ -33,6 +34,7 @@ export function Lights({ layout }: LightsProps) {
   useLayoutEffect(() => {
     lightRig.hemi = hemiRef.current
     lightRig.sun = sunRef.current
+    initShadowLight(sunRef.current)
     return () => {
       lightRig.hemi = null
       lightRig.sun = null
@@ -48,6 +50,10 @@ export function Lights({ layout }: LightsProps) {
     cam.updateProjectionMatrix()
   }, [extentX, extentY, near, far])
 
+  useEffect(() => {
+    requestShadowUpdate()
+  }, [layout])
+
   return (
     <group name="scene-lights">
       <hemisphereLight
@@ -60,6 +66,7 @@ export function Lights({ layout }: LightsProps) {
         intensity={LIGHT_BASE.sun}
         color={SCENE_PALETTE.sunLight}
         castShadow
+        shadow-autoUpdate={false}
         shadow-mapSize={[SHADOW_MAP_SIZE, SHADOW_MAP_SIZE]}
         shadow-bias={-0.0004}
         shadow-camera-left={-extentX}

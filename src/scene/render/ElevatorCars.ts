@@ -7,6 +7,9 @@ import { toWorldX, toWorldZ } from './coords'
 import { useViewStore } from '@/scene/camera/viewStore'
 import { getSwatchHex, SCENE_PALETTE } from './palette'
 import { activeFloorIndexOf, isCutAway } from './place'
+import { FURNITURE_MAP } from './assets/furnitureMap'
+import { getSharedMaterials } from './assets/materials'
+import { getModelParts, getNodeParts, isModelReady } from './assets/modelStore'
 
 /** Door opening between two ticks: 0 closed … 1 open, interpolated like positions are. */
 export function doorOpening(prev: number, current: number, alpha: number): number {
@@ -38,14 +41,19 @@ interface Indicator {
 
 interface CarVisual {
   group: THREE.Group
-  doorA: THREE.Mesh
-  doorB: THREE.Mesh
-  light: THREE.Mesh
+  doorA: THREE.Object3D
+  doorB: THREE.Object3D
+  light: THREE.Object3D
   width: number
   prev: number
   prevDoor: number
   indicator: Indicator | null
+  /** Slides the doors; 0 shut, 1 open. Swapped when the car model arrives. */
+  slide: (open: number) => void
 }
+
+/** Size of `kit.elevatorCar` in its own space (manifest bbox), for fitting the bay. */
+const MODEL_CAR = { width: 2.02, depth: 2.0 } as const
 
 /**
  * The moving elevator cars: an open frame (floor, roof, back wall, two
@@ -57,6 +65,7 @@ export class ElevatorCars {
   private cars: CarVisual[] = []
   private floorHeight = 4
   private layout: BuildingLayout | null = null
+  private modelApplied = false
   private cutaway: number | null | undefined = undefined
   private readonly materials: THREE.Material[] = []
   private readonly geometries: THREE.BufferGeometry[] = []
@@ -69,6 +78,7 @@ export class ElevatorCars {
     this.clear()
     this.layout = layout
     this.cutaway = undefined
+    this.modelApplied = false
     this.floorHeight = layout.floorHeight
     const floor = layout.floors[0]
     if (!floor) return
@@ -113,9 +123,16 @@ export class ElevatorCars {
       const doorB = new THREE.Mesh(leaf, door)
       doorA.position.set(-CAR.depth / 2, (CAR.height - 0.2) / 2, -width / 4)
       doorB.position.set(-CAR.depth / 2, (CAR.height - 0.2) / 2, width / 4)
+      for (const part of [base, roof, wall, light, doorA, doorB]) part.castShadow = false
       group.add(base, roof, wall, light, doorA, doorB)
       this.object.add(group)
-      this.cars.push({ group, doorA, doorB, light, width, prev: 0, prevDoor: 0, indicator: this.indicator(layout, i) })
+      const slide = (open: number) => {
+        // Leaves slide apart along the door line.
+        const offset = (width / 4) * (1 + open * 0.96)
+        doorA.position.z = -offset
+        doorB.position.z = offset
+      }
+      this.cars.push({ group, doorA, doorB, light, width, prev: 0, prevDoor: 0, indicator: this.indicator(layout, i), slide })
     }
   }
 
@@ -189,7 +206,57 @@ export class ElevatorCars {
     }
   }
 
+  /**
+   * Swaps every car's primitive frame for `kit.elevatorCar` once it has
+   * loaded (P06b-T06): body in one piece, the two leaves as their own nodes.
+   */
+  private applyModel(): void {
+    this.modelApplied = true
+    const model = FURNITURE_MAP.kit.elevatorCar
+    const doors = FURNITURE_MAP.life?.elevator
+    if (!doors) return
+    const body = getModelParts(model, undefined, [doors.doorLeft, doors.doorRight])
+    const left = getNodeParts(model, doors.doorLeft)
+    const right = getNodeParts(model, doors.doorRight)
+    if (!body || !left || !right) return
+    const materials = getSharedMaterials()
+    for (const car of this.cars) {
+      car.group.clear()
+      const root = new THREE.Group()
+      // The model's front (−Z) faces the floor (−X), like the doors.
+      root.rotation.y = Math.PI / 2
+      root.scale.set(car.width / MODEL_CAR.width, 1, CAR.depth / MODEL_CAR.depth)
+      for (const part of body) {
+        const mesh = new THREE.Mesh(part.geometry, materials[part.kind])
+        mesh.receiveShadow = part.kind !== 'glass'
+        mesh.renderOrder = part.kind === 'glass' ? 2 : 0
+        root.add(mesh)
+      }
+      const leaf = (node: typeof left) => {
+        const g = new THREE.Group()
+        g.position.set(node.pivot[0], node.pivot[1], node.pivot[2])
+        for (const part of node.parts) g.add(new THREE.Mesh(part.geometry, materials[part.kind]))
+        root.add(g)
+        return g
+      }
+      const doorL = leaf(left)
+      const doorR = leaf(right)
+      const leafWidth = Math.abs(right.pivot[0] - left.pivot[0])
+      car.group.add(root)
+      car.doorA = doorL
+      car.doorB = doorR
+      car.light = new THREE.Object3D()
+      car.slide = (open: number) => {
+        doorL.position.x = left.pivot[0] - leafWidth * open * 0.96
+        doorR.position.x = right.pivot[0] + leafWidth * open * 0.96
+      }
+    }
+  }
+
   update(cars: readonly CarState[], alpha: number): void {
+    if (!this.modelApplied && this.cars.length > 0 && isModelReady(FURNITURE_MAP.kit.elevatorCar)) {
+      this.applyModel()
+    }
     const layout = this.layout
     const active = layout ? activeFloorIndexOf(layout, useViewStore.getState()) : null
     const cutawayChanged = active !== this.cutaway
@@ -204,12 +271,9 @@ export class ElevatorCars {
       visual.group.visible = true
       const position = visual.prev + (car.position - visual.prev) * alpha
       visual.group.position.y = position * this.floorHeight
-      // Leaves slide apart along the door line.
       const door = doorOpening(visual.prevDoor, car.door01, alpha)
       const open = door * door * (3 - 2 * door)
-      const slide = (visual.width / 4) * (1 + open * 0.96)
-      visual.doorA.position.z = -slide
-      visual.doorB.position.z = slide
+      visual.slide(open)
       visual.light.visible = car.riders.length > 0 || door > 0.05
       const ind = visual.indicator
       if (ind && layout) {

@@ -8,6 +8,10 @@ import { useOffice } from '@/office/store'
 import { visualLanguage } from '@/office/visualConfig'
 import { useViewStore } from '@/scene/camera/viewStore'
 import type { BuildingLayout } from '@/scene/layout'
+import { getSharedMaterials } from './assets/materials'
+import { getModelParts } from './assets/modelStore'
+import { useArtLayout } from './assets/useArtLayout'
+import { LIFE, useModelReady } from './liveParts'
 import { bandOf } from './lod'
 import { getSwatchColor, SCENE_PALETTE } from './palette'
 import { peopleRuntime } from './peopleRuntime'
@@ -34,7 +38,9 @@ export interface DocPilesProps {
  * follows `pileVisualCount` so a paper joins the pile when its courier
  * arrives, not at event time.
  */
-export function DocPiles({ layout }: DocPilesProps) {
+export function DocPiles({ layout: baseLayout }: DocPilesProps) {
+  // Piles sit on the desk models' `pile` anchors once the manifest is in.
+  const layout = useArtLayout(baseLayout)
   const config = useOfficeSelector((s) => s?.config ?? null)
   const { maxSheets, sheetHeight, sheetSize, priorityEdge, paperSwatch } = visualLanguage.pile
   const anchors = useMemo(
@@ -51,10 +57,31 @@ export function DocPiles({ layout }: DocPilesProps) {
   // Per pile: what was last written, so matrices change only when a pile does.
   const lastRef = useRef<string[]>([])
 
-  const geometry = useMemo(
-    () => new THREE.BoxGeometry(sheetSize[0], sheetHeight * 0.85, sheetSize[1]),
-    [sheetSize, sheetHeight],
-  )
+  const paperReady = useModelReady(LIFE?.paper)
+  // One sheet: the paper model squashed to sheet size and thickness, centred
+  // like the P05 box it replaces; the box stays until the model loads.
+  const geometry = useMemo(() => {
+    const thickness = sheetHeight * 0.85
+    const part = LIFE && paperReady ? getModelParts(LIFE.paper)?.find((p) => p.kind === 'palette') : null
+    if (!part) return new THREE.BoxGeometry(sheetSize[0], thickness, sheetSize[1])
+    const g = part.geometry.clone()
+    g.computeBoundingBox()
+    const long = g.boundingBox!
+    // Lay the paper's long side along x, like the sheet size.
+    if (long.max.z - long.min.z > long.max.x - long.min.x) g.rotateY(Math.PI / 2)
+    g.computeBoundingBox()
+    const b = g.boundingBox!
+    const c = new THREE.Vector3()
+    b.getCenter(c)
+    g.translate(-c.x, -c.y, -c.z)
+    g.scale(
+      sheetSize[0] / Math.max(1e-3, b.max.x - b.min.x),
+      thickness / Math.max(1e-3, b.max.y - b.min.y),
+      sheetSize[1] / Math.max(1e-3, b.max.z - b.min.z),
+    )
+    return g
+  }, [sheetSize, sheetHeight, paperReady])
+  const sheetMaterial = paperReady ? getSharedMaterials().palette : null
   useLayoutEffect(() => () => geometry.dispose(), [geometry])
 
   useLayoutEffect(() => {
@@ -68,7 +95,7 @@ export function DocPiles({ layout }: DocPilesProps) {
     mesh.instanceMatrix.needsUpdate = true
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     lastRef.current = anchors.map(() => '')
-  }, [anchors, capacity, paperSwatch])
+  }, [anchors, capacity, paperSwatch, geometry])
 
   useFrame(({ camera }) => {
     const mesh = meshRef.current
@@ -142,14 +169,15 @@ export function DocPiles({ layout }: DocPilesProps) {
   return (
     <group name="doc-piles">
       <instancedMesh
-        key={capacity}
+        key={`${capacity}:${geometry.uuid}`}
         ref={meshRef}
         args={[geometry, undefined, capacity]}
         castShadow={false}
         receiveShadow
         frustumCulled={false}
+        {...(sheetMaterial ? { material: sheetMaterial } : {})}
       >
-        <meshStandardMaterial roughness={0.9} />
+        {sheetMaterial ? null : <meshStandardMaterial roughness={0.9} />}
       </instancedMesh>
       {anchors.map((a, i) => (
         <Text

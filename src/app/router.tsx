@@ -61,6 +61,12 @@ export const router = createHashRouter([
           ]
         : []),
       {
+        path: '/credits',
+        lazy: async () => ({
+          Component: (await import('@/features/credits/CreditsPage')).CreditsPage,
+        }),
+      },
+      {
         element: <LegacyBoundary />,
         children: [
           {
