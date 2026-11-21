@@ -277,7 +277,7 @@ export function createTaskInBrain(
     opts.amountVnd !== undefined
       ? opts.amountVnd
       : tags.includes('refund') || typeKey === 'acc.supplier_payment'
-        ? intRange(ctx.rng, 800_000, 3_500_000)
+        ? intRange(ctx.rng, 800_000, 3_200_000)
         : tags.includes('money')
           ? intRange(ctx.rng, 250_000, 2_400_000)
           : null

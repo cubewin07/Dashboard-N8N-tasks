@@ -562,7 +562,7 @@
       "en": "Calculate monthly PIT"
     },
     "specialty": "tax",
-    "tags": ["tax", "money"],
+    "tags": ["money"],
     "defaultPriority": "high",
     "durationMinutes": [30, 50],
     "platformKeys": [],
