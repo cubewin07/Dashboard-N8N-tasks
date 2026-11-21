@@ -1,0 +1,39 @@
+{
+  "id": "top_hoodie_01",
+  "slot": "top",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/top_hoodie_01_f.glb",
+      "tris": 700,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.68
+    },
+    "male": {
+      "file": "models/wardrobe/top_hoodie_01_m.glb",
+      "tris": 700,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 4.08
+    }
+  }
+}

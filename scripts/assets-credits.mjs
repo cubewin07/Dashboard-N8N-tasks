@@ -1,7 +1,7 @@
 // Keeps the licence ledger in sync for project-generated assets (assets.md §5):
 // public/assets/credits.json (shipped) and the table in art/LICENSES.md (human).
 // External assets are added by hand / by importers and are left untouched.
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { ASSETS_DIR, loadTargets, MODELS_DIR, rel, ROOT, sha256, walk } from './lib/assets.mjs'
 
@@ -10,9 +10,33 @@ const targets = new Map(loadTargets().map((t) => [t.name, t]))
 const generated = []
 const palette = join(ASSETS_DIR, 'textures', 'palette.png')
 generated.push({ file: palette, title: 'Palette texture', source: 'art/blender/gen_palette.py' })
+const faceAtlas = join(ASSETS_DIR, 'textures', 'face_atlas.png')
+if (existsSync(faceAtlas)) {
+  generated.push({ file: faceAtlas, title: 'Face atlas texture', source: 'art/blender/gen_face_atlas.py' })
+}
 for (const file of walk(MODELS_DIR).filter((f) => f.endsWith('.glb'))) {
   const t = targets.get(basename(file, '.glb'))
   if (t && t.source === 'generated') generated.push({ file, title: t.name, source: t.script })
+}
+for (const meta of walk(MODELS_DIR).filter((f) => f.endsWith('.meta.json'))) {
+  const stem = basename(meta, '.meta.json')
+  // A meta sidecar comes from the same script as its GLB(s): `<stem>.glb` (rigid) or `<stem>_f/_m.glb` (skinned).
+  const t = targets.get(stem) ?? targets.get(`${stem}_f`) ?? targets.get(`${stem}_m`)
+  const source = stem === 'body' ? 'art/blender/gen_body.py' : (t?.script ?? 'art/blender/gen_wardrobe.py')
+  generated.push({ file: meta, title: `${stem} metadata`, source })
+}
+for (const animName of ['library.glb', 'library.json']) {
+  const af = join(ASSETS_DIR, 'anim', animName)
+  if (existsSync(af)) {
+    generated.push({ file: af, title: `Animation ${animName}`, source: 'art/blender/gen_anims.py' })
+  }
+}
+for (const thumb of walk(join(ASSETS_DIR, 'thumbs')).filter((f) => f.endsWith('.webp'))) {
+  generated.push({
+    file: thumb,
+    title: `Thumbnail ${basename(thumb, '.webp')}`,
+    source: 'art/blender/render_thumbs.py',
+  })
 }
 const genPaths = new Set(generated.map((g) => rel(g.file).replace(/^public\//, '')))
 

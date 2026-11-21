@@ -1,0 +1,77 @@
+{
+  "sources": [],
+  "evaluated": [
+    {
+      "key": "quaternius_universal_animation_library",
+      "name": "Universal Animation Library",
+      "author": "Quaternius",
+      "urls": [
+        "https://quaternius.com/packs/universalanimationlibrary",
+        "https://quaternius.itch.io/universal-animation-library"
+      ],
+      "license": "CC0-1.0",
+      "licenseEvidence": "CC0 1.0 Universal (Public Domain; commercial use and modification allowed without attribution) verified via web search of quaternius.com and itch.io on 2026-11-14; direct curl blocked by sandbox HTTP proxy policy.",
+      "retrievedAt": "2026-11-14",
+      "inspectedLocally": false,
+      "rigVerification": "not verified (archive not downloaded/inspected in Blender)",
+      "clothesSeparation": "N/A (animation pack)",
+      "shapeKeys": "not verified (archive not downloaded)",
+      "decision": "unused",
+      "reason": "All 21 clips authored directly in art/blender/gen_anims.py for exact rig.py bone names and office seat/desk/bed heights without retargeting drift."
+    },
+    {
+      "key": "quaternius_ultimate_modular_men_women",
+      "name": "Ultimate Modular Men Pack / Ultimate Modular Women Pack",
+      "author": "Quaternius",
+      "urls": [
+        "https://quaternius.com/packs/ultimatemodularmen",
+        "https://quaternius.com/packs/ultimatemodularwomen"
+      ],
+      "license": "CC0-1.0",
+      "licenseEvidence": "CC0 1.0 Universal (Public Domain) verified via web search of quaternius.com on 2026-11-14; direct curl blocked by sandbox HTTP proxy policy.",
+      "retrievedAt": "2026-11-14",
+      "inspectedLocally": false,
+      "rigVerification": "not verified (archive not downloaded/inspected in Blender)",
+      "clothesSeparation": "Pack page notes 4 swappable modular parts; layered garment separation vs baked parts not verified locally.",
+      "shapeKeys": "not verified (archive not downloaded)",
+      "decision": "unused",
+      "reason": "Continuous 6-axis body sliders (Heavy, Slim, Muscle, Chest, Hips, Shoulders) require controlled shape keys across both base bodies and fitted garments."
+    },
+    {
+      "key": "kaykit_character_packs",
+      "name": "KayKit Character Packs (Adventurers / Skeletons / Animations)",
+      "author": "Kay Lousberg",
+      "urls": [
+        "https://kaylousberg.itch.io/kaykit-character-pack-adventurers",
+        "https://kaylousberg.com/"
+      ],
+      "license": "CC0-1.0",
+      "licenseEvidence": "CC0 1.0 Universal (Public Domain, free personal/commercial, no attribution required) verified via web search of kaylousberg.itch.io on 2026-11-14; direct curl blocked by sandbox HTTP proxy policy.",
+      "retrievedAt": "2026-11-14",
+      "inspectedLocally": false,
+      "rigVerification": "not verified (archive not downloaded/inspected in Blender)",
+      "clothesSeparation": "not verified (archive not downloaded)",
+      "shapeKeys": "not verified (archive not downloaded)",
+      "decision": "unused",
+      "reason": "Stylized chibi/fantasy proportions do not match our 1.70 m modern office proportions or layered wardrobe pipeline."
+    },
+    {
+      "key": "kenney_characters",
+      "name": "Kenney Blocky Characters / Mini Characters",
+      "author": "Kenney",
+      "urls": [
+        "https://kenney.nl/assets/blocky-characters",
+        "https://kenney.nl/assets/mini-characters"
+      ],
+      "license": "CC0-1.0",
+      "licenseEvidence": "CC0 1.0 Universal (Public Domain) verified via web search of kenney.nl on 2026-11-14; direct curl blocked by sandbox HTTP proxy policy.",
+      "retrievedAt": "2026-11-14",
+      "inspectedLocally": false,
+      "rigVerification": "not verified (archive not downloaded/inspected in Blender)",
+      "clothesSeparation": "not verified (archive not downloaded)",
+      "shapeKeys": "not verified (archive not downloaded)",
+      "decision": "unused",
+      "reason": "Blocky/mini stylized proportions and non-layered outfits do not support continuous body sliders or fitted garments."
+    }
+  ]
+}
