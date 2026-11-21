@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { OrgList } from '@/features/org/OrgList'
 import { useI18n } from '@/i18n'
+import { useOffice } from '@/office'
+import { officeExtensions } from '@/office/extensions'
 
 const LazyOfficeCanvas = lazy(() => import('@/scene/OfficeCanvas'))
 
@@ -43,6 +45,8 @@ class CanvasErrorBoundary extends Component<
 export function OfficePage() {
   const { t } = useI18n()
   const { tier, setOverride } = useDeviceTierPreference()
+  useOffice((s) => Boolean(s.state))
+  const ControlPanel = officeExtensions.controlPanel
 
   if (tier === 'fallback') {
     return (
@@ -61,6 +65,7 @@ export function OfficePage() {
             </Button>
           }
         />
+        {ControlPanel ? <ControlPanel /> : null}
         <OrgList compact />
       </div>
     )
@@ -83,33 +88,41 @@ export function OfficePage() {
         }
       />
 
-      <CanvasErrorBoundary
-        fallback={
-          <div className="space-y-4">
-            <p
-              role="status"
-              className="rounded-xl border border-waiting/30 bg-waiting-soft px-4 py-3 text-xs text-waiting"
-            >
-              {t.office.canvasError}
-            </p>
-            <OrgList compact />
+      <div className="relative space-y-4">
+        {ControlPanel ? (
+          <div className="lg:absolute lg:right-4 lg:top-4 lg:z-20 lg:w-60">
+            <ControlPanel />
           </div>
-        }
-      >
-        <Suspense
+        ) : null}
+
+        <CanvasErrorBoundary
           fallback={
-            <div
-              aria-busy="true"
-              aria-label={t.office.loadingCanvas}
-              className="h-[calc(100dvh-11rem)] min-h-[420px] w-full"
-            >
-              <Skeleton className="h-full w-full rounded-[14px]" />
+            <div className="space-y-4">
+              <p
+                role="status"
+                className="rounded-xl border border-waiting/30 bg-waiting-soft px-4 py-3 text-xs text-waiting"
+              >
+                {t.office.canvasError}
+              </p>
+              <OrgList compact />
             </div>
           }
         >
-          <LazyOfficeCanvas />
-        </Suspense>
-      </CanvasErrorBoundary>
+          <Suspense
+            fallback={
+              <div
+                aria-busy="true"
+                aria-label={t.office.loadingCanvas}
+                className="h-[calc(100dvh-11rem)] min-h-[420px] w-full"
+              >
+                <Skeleton className="h-full w-full rounded-[14px]" />
+              </div>
+            }
+          >
+            <LazyOfficeCanvas />
+          </Suspense>
+        </CanvasErrorBoundary>
+      </div>
     </div>
   )
 }

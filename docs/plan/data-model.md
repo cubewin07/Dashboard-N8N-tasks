@@ -125,8 +125,8 @@ Seed rules (start strict):
 
 | id | when | level |
 |---|---|---|
-| `boss_sensitive` | tagsAny: `money, tax, legal, refund, angry_customer, irreversible, new_account, hire_over_cap` | boss |
-| `boss_big_amount` | amountVndGte: 2 000 000 | boss |
+| `boss_sensitive` | tagsAny: `tax, legal, irreversible, new_account, hire_over_cap` | boss |
+| `boss_big_amount` | amountVndGte: 3 000 000 | boss |
 | `dm_public` | tagsAny: `public_post, campaign` | dept_manager |
 | `dm_cross_dept` | crossDepartment: true | dept_manager |
 | `reviewer_routine` | tagsAny: `routine_draft, faq_reply, internal_note` | reviewer |

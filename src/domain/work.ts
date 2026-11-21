@@ -24,6 +24,8 @@ import {
   type TaskId,
 } from './primitives'
 
+export type { ApprovalLevel, Priority } from './primitives'
+
 export type PersonActivity =
   | 'idle'
   | 'working'

@@ -4,6 +4,8 @@ export const common = {
   nav: {
     office: 'Văn phòng',
     org: 'Sơ đồ',
+    queue: 'Hàng chờ',
+    activity: 'Nhật ký',
     legacyGroup: 'Bản cũ',
     overview: 'Tổng quan',
     inbox: 'Cần bạn xử lý',
@@ -92,11 +94,11 @@ export const common = {
     queued: 'Đã gửi, chờ đội ngũ nhận',
     queuedOffline: 'Đã lưu: sẽ chạy ngay khi đội ngũ trực lại',
     accepted: 'Đội ngũ đã nhận…',
-    applied: 'Đã xong',
+    applied: 'Đã áp dụng',
     failed: 'Không thành công',
     alreadyResolved: 'Việc này đã được xử lý trên Telegram',
   },
   empty: { generic: 'Chưa có gì ở đây' },
-  error: { generic: 'Có lỗi xảy ra. Vui lòng thử lại.', routeTitle: 'Không tải được trang', routeHint: 'Có thể ứng dụng vừa được cập nhật. Hãy tải lại trang để dùng bản mới nhất.', reload: 'Tải lại trang' },
+  error: { generic: 'Có lỗi xảy ra. Vui lòng thử lại.', routeTitle: 'Không tải được trang', routeHint: 'Có thể ứng dụng vừa được cập nhật. Hãy tải lại trang để dùng bản mới nhất.', reload: 'Tải lại trang', loadTitle: 'Không tải được dữ liệu văn phòng', loadHint: 'Không đọc được cấu hình hoặc kết nối tới đội ngũ bị lỗi. Hãy thử lại.' },
   demo: { badge: 'Bản demo', note: 'Dữ liệu mẫu, chưa kết nối hệ thống thật' },
 }
