@@ -80,6 +80,12 @@ Bundle and assets:
 
 The author fills the row for their layer and copies the table (with earlier rows) into the PR body so the trend is visible in the stack review (`stacked-prs.md` §6).
 
+### Recorded numbers
+| Phase | Date | Mode | People | fps | Draw calls | Triangles | Director tick |
+|---|---|---|---|---|---|---|---|
+| P04 | 2026-11-12 | Mac, real GPU, 1440×900, overview, 30× | 38 | 60 | 111 | 394 k | 0.18 ms |
+| P04 | 2026-11-12 | SwiftShader (CI mode), same view | 38 | ≈ 9 (warning only) | 111 | 394 k | 0.04 ms |
+
 ## 6. Regression policy
 
 - A PR that worsens any §2 budget number by **> 10 %** versus the layer below must either fix it or justify it in the PR body with the reviewer's explicit sign-off.

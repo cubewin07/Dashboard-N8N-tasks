@@ -117,7 +117,14 @@ function makeFloorLayout(params: {
   }
 }
 
-export function buildBuildingLayout(config: OrgConfig): BuildingLayout {
+/**
+ * `previous` is the layout this one replaces: seats are kept where possible,
+ * so hiring somebody does not reshuffle the people already sitting.
+ */
+export function buildBuildingLayout(
+  config: OrgConfig,
+  previous?: Pick<BuildingLayout, 'seatOf'> | null,
+): BuildingLayout {
   const templateMap = buildTemplateMap(config.floorTemplates)
   const roleByKey = new Map<string, RoleDef>()
   for (const role of config.roles) {
@@ -218,7 +225,7 @@ export function buildBuildingLayout(config: OrgConfig): BuildingLayout {
     }),
   )
 
-  const seatAssignments = allocateSeats(config, floors)
+  const seatAssignments = allocateSeats(config, floors, previous?.seatOf)
   const byKey: Record<string, number> = {}
   for (const f of floors) {
     byKey[f.key] = f.index

@@ -49,19 +49,6 @@ export function ElevatorShaft({ layout }: ElevatorShaftProps) {
           </mesh>
         )),
       )}
-
-      {/* Parked elevator cars at ground level (P04 animates these) */}
-      {doors.slice(0, layout.elevatorCarCount).map((door, idx) => (
-        <mesh
-          key={`car_${door.id}_${idx}`}
-          position={[shaftCenterX, 1.15, toWorldZ(door.z, d)]}
-          castShadow
-          receiveShadow
-        >
-          <boxGeometry args={[1.5, 2.2, 1.4]} />
-          <meshStandardMaterial color={SCENE_PALETTE.elevatorCar} roughness={0.5} />
-        </mesh>
-      ))}
     </group>
   )
 }

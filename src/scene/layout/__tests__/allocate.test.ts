@@ -135,4 +135,30 @@ describe('allocateSeats (R4)', () => {
     expect(layout.seatAssignments[extraReviewers[2]!.id]?.slotId).toBe('desk_2')
     expect(layout.seatAssignments[extraReviewers[3]!.id]?.slotId).toBe('desk_3')
   })
+
+  it('keeps everybody in their seat when somebody senior is hired (P04)', () => {
+    const base = makeSeedConfig()
+    const before = computeBuildingLayout(base)
+    const template = base.employees.find(
+      (e) => e.departmentId === 'dep_cs' && before.seatOf[e.id]?.slotId.startsWith('desk_'),
+    )!
+    // Created long ago, so a fresh allocation would put them first in line.
+    const hire: Employee = {
+      ...template,
+      id: 'emp_aaa_hire' as EmployeeId,
+      name: 'Người mới',
+      createdAt: '2020-01-01T00:00:00Z',
+    }
+    const config = { ...base, employees: [...base.employees, hire] }
+
+    const after = computeBuildingLayout(config, before)
+    for (const [id, seat] of Object.entries(before.seatOf)) {
+      expect(after.seatOf[id as EmployeeId]).toEqual(seat)
+    }
+    const seat = after.seatOf[hire.id]
+    expect(seat).toBeDefined()
+    const taken = Object.values(before.seatOf).map((a) => `${a.floorKey}::${a.slotId}`)
+    expect(taken).not.toContain(`${seat!.floorKey}::${seat!.slotId}`)
+    expect(after.floors[after.byKey[seat!.floorKey]!]!.occupants[seat!.slotId]).toBe(hire.id)
+  })
 })

@@ -71,6 +71,28 @@ export function serializeViewSearch(
 }
 
 /**
+ * The floor the "floor view" action (F key, toolbar button) goes to: the one
+ * under the pointer, else the one already focused, else the second floor
+ * (the first with a department). One rule for both, so they never disagree.
+ */
+export function defaultFloorTarget(
+  view: { hoveredFloorKey: string | null; focusedFloorKey: string | null },
+  floorKeys: readonly string[],
+): string | null {
+  return (
+    view.hoveredFloorKey ??
+    view.focusedFloorKey ??
+    floorKeys[Math.min(1, Math.max(0, floorKeys.length - 1))] ??
+    null
+  )
+}
+
+/** True for floors above the focused one (cut away). Allocation-free, safe per frame. */
+export function isFloorFaded(floorIndex: number, activeFloorIndex: number | null): boolean {
+  return activeFloorIndex !== null && floorIndex > activeFloorIndex
+}
+
+/**
  * Shared floor fade target selector used by Floor.tsx and P04's follow camera mode.
  * Floors above the active/focused floor fade to 15% opacity and stop casting shadows.
  */
@@ -78,7 +100,7 @@ export function getFloorFadeTarget(
   floorIndex: number,
   activeFloorIndex: number | null,
 ): { opacity: number; faded: boolean; castShadow: boolean } {
-  if (activeFloorIndex !== null && floorIndex > activeFloorIndex) {
+  if (isFloorFaded(floorIndex, activeFloorIndex)) {
     return { opacity: 0.15, faded: true, castShadow: false }
   }
   return { opacity: 1, faded: false, castShadow: true }
