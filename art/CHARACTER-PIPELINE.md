@@ -25,7 +25,10 @@ contract (bone table, shape-key names). Changing anything here after P07a is exp
 | `public/assets/anim/library.glb` + `library.json` | `library` | armature only (no mesh), one glTF animation per clip |
 | `public/assets/textures/face_atlas.png` | – | 512², 8 × 8 cells of 64 px |
 
-Item ids / file stems are `slot_name_NN` (`top_tshirt_crew_01`); per-base files add `_f` / `_m`.
+Item ids / file stems are `slot_name_NN` (`top_tshirt_crew_01`); per-base files add `_f` / `_m`; hair hat-cut
+variants add `_hatcut`. **Item ids are permanent**: retire with `"retired": true`, never rename or delete.
+Generators: skinned items register in `art/blender/items_skinned/<batch>.py` (built by `gen_wardrobe.py`), rigid
+items in `art/blender/items_rigid/<batch>.py` (built by `gen_rigid.py`); see `art/RECIPE-add-item.md`.
 
 ## 3. Vertex colour (`COLOR_0`, the active colour attribute; RGBA) — meaning depends on the primitive
 | Primitive | R | G | B | A |
@@ -53,8 +56,12 @@ Item ids / file stems are `slot_name_NN` (`top_tshirt_crew_01`); per-base files 
 - The atlas is an **ink mask**: RGB grey level 0 = "ink" (replaced at runtime by a colour: eye colour, hair colour
   for brows, lip colour for the mouth), 1 = white (eye highlight, teeth); alpha = coverage. So draw black shapes with
   optional white highlights on a transparent background.
-- Cells `[col,row]`, row 0 at the TOP of the image: eyes style *n* = row *n* (0..2), columns `open, half, closed, happy`
-  (0..3); brows row 4 (col = style); mouths row 5 (col = style). Other cells stay transparent (reserved).
+- Cells `[col,row]`, row 0 at the TOP of the image. **Eyes** take 4 cells each, columns `open, half, closed, happy`
+  added to the style's base cell: styles 1–4 at `[0,0] [0,1] [0,2] [0,3]`, styles 5–8 at `[4,0] [4,1] [4,2] [4,3]`
+  (P08a; the P07a styles 1–3 keep their cells). **Brows** row 4 (col = style, up to 8). **Mouths** row 5 (col = style,
+  up to 8). Rows 6–7 stay transparent (reserved). The base cell of each part lives in `face-atlas.json` `cells`.
+- **Facial hair is not an atlas part** (the body has only the 5 face quads and is frozen): moustache, goatee and
+  stubble are thin rigid meshes on `Head` (slot `facial_hair`, `items_rigid/`), coloured with the hair UVs.
 
 ## 5. `<item>.meta.json`
 ```json
@@ -65,6 +72,14 @@ Item ids / file stems are `slot_name_NN` (`top_tshirt_crew_01`); per-base files 
              "male":   { "…": "…" } } }
 ```
 Rigid: `{ "id", "slot", "kind": "rigid", "bone": "Head", "merge": true, "bases": { "female": { "file": "models/wardrobe/hair_short_01.glb", "offset": [0,0,0], "scale": 1 }, "male": {…} } }`.
+Optional rigid meta fields (P08a): `hatcut` (hair only, written by `gen_rigid.py` for every hair: the path of
+`<id>_hatcut.glb`, the same hair with the crown removed above the shared hat band) and `hairClip: "crown"` (hats:
+while worn, the runtime swaps the worn hair to its `hatcut` file). The hat band is `lib/rigid_common.hat_band_z`
+(brow top + 28 mm); hats cover the scalp from the band up with their inner surface at `HAT_CLEAR_M` (35 mm), and
+hair stays within `HAIR_MAX_UNDER_HAT_M` (30 mm) of the scalp at the band. Skinned meta may carry item hints
+merged by the dispatcher (`maxStride`, `seatedVariant`, `heelLift`).
+Rigid attach bones (catalogue `attach.bone`): `Head` (hair, facial hair, hats, glasses, ears), `Neck` (necklaces,
+chains, ties, bow ties, scarves), `Spine2` (lanyard badge, bags), `LeftForeArm` (wrist items).
 `bodyLimits` keys are shape-key names, values the safe `[min,max]` morph weights (omitted = full range of the runtime map:
 Heavy 0..0.8, Slim 0..0.6, Muscle 0..0.8, Chest/Hips/Shoulders 0..1).
 

@@ -1,15 +1,5 @@
-import bottomJson from '@/content/catalog/bottom.json'
-import browsJson from '@/content/catalog/brows.json'
 import colorsJson from '@/content/catalog/colors.json'
-import eyesJson from '@/content/catalog/eyes.json'
 import faceAtlasJson from '@/content/catalog/face-atlas.json'
-import fullbodyJson from '@/content/catalog/fullbody.json'
-import glassesJson from '@/content/catalog/glasses.json'
-import hairJson from '@/content/catalog/hair.json'
-import mouthJson from '@/content/catalog/mouth.json'
-import neckJson from '@/content/catalog/neck.json'
-import shoesJson from '@/content/catalog/shoes.json'
-import topJson from '@/content/catalog/top.json'
 import palette3dJson from '@/content/palette3d.json'
 
 export const BASE_BODIES = ['female', 'male'] as const
@@ -67,6 +57,8 @@ export interface CatalogItem {
   } | null
   hides: CatalogSlot[]
   requires?: CatalogSlot[]
+  /** Item ids that cannot be worn together with this one (either row may list the other). */
+  conflicts?: string[]
   bodyLimits?: Partial<Record<CatalogBodyKey, [number, number]>>
   tags: string[]
   credit: string
@@ -95,13 +87,15 @@ export interface ColorEntry {
   fashion?: boolean
 }
 
-export type ColorGroup = 'skin' | 'hair' | 'eyes' | 'fabric' | 'lip'
+export type ColorGroup = 'skin' | 'hair' | 'eyes' | 'fabric' | 'metal' | 'lip'
 
 export interface ColorSwatches {
   skin: ColorEntry[]
   hair: ColorEntry[]
   eyes: ColorEntry[]
   fabric: ColorEntry[]
+  /** Metal and gem swatches for jewellery / hardware tints (P08a). */
+  metal?: ColorEntry[]
   lip: ColorEntry[]
 }
 
@@ -130,18 +124,26 @@ export interface CatalogLoadInput {
   paletteSwatches?: readonly PaletteSwatchEntry[]
 }
 
-const DEFAULT_SLOT_FILES: ReadonlyArray<{ items: readonly CatalogItem[] }> = [
-  topJson as unknown as { items: CatalogItem[] },
-  bottomJson as unknown as { items: CatalogItem[] },
-  fullbodyJson as unknown as { items: CatalogItem[] },
-  shoesJson as unknown as { items: CatalogItem[] },
-  hairJson as unknown as { items: CatalogItem[] },
-  glassesJson as unknown as { items: CatalogItem[] },
-  neckJson as unknown as { items: CatalogItem[] },
-  eyesJson as unknown as { items: CatalogItem[] },
-  browsJson as unknown as { items: CatalogItem[] },
-  mouthJson as unknown as { items: CatalogItem[] },
-]
+/**
+ * Every one-slot item file in `src/content/catalog/` (`<slot>.json`), so adding a slot file or an
+ * item never needs a code change. Non-slot data files (colours, atlas, presets, weights) are skipped.
+ */
+const SLOT_FILE_MODULES = import.meta.glob<{ items: CatalogItem[] }>(
+  [
+    '/src/content/catalog/*.json',
+    '!/src/content/catalog/colors.json',
+    '!/src/content/catalog/face-atlas.json',
+    '!/src/content/catalog/generator-weights.json',
+    '!/src/content/catalog/presets.json',
+  ],
+  { eager: true, import: 'default' },
+)
+
+const DEFAULT_SLOT_FILES: ReadonlyArray<{ items: readonly CatalogItem[] }> = Object.keys(
+  SLOT_FILE_MODULES,
+)
+  .sort()
+  .map((path) => SLOT_FILE_MODULES[path] as { items: CatalogItem[] })
 
 /** Build an indexed wardrobe catalog from JSON data (defaults to bundled seed catalog). */
 export function loadCatalog(input?: CatalogLoadInput): Catalog {
@@ -191,6 +193,7 @@ export function loadCatalog(input?: CatalogLoadInput): Catalog {
     hair: new Set(colors.hair.map((c) => c.key)),
     eyes: new Set(colors.eyes.map((c) => c.key)),
     fabric: new Set(colors.fabric.map((c) => c.key)),
+    metal: new Set((colors.metal ?? []).map((c) => c.key)),
     lip: new Set(colors.lip.map((c) => c.key)),
   }
 
@@ -263,7 +266,7 @@ export function isValidColorKey(
 
 /** Return the first swatch key configured for a color group. */
 export function getDefaultColorKey(catalog: Catalog, group: ColorGroup): string {
-  const first = catalog.colors[group][0]?.key
+  const first = catalog.colors[group]?.[0]?.key
   if (first) return first
   throw new Error(`Catalog has no colors for group "${group}"`)
 }

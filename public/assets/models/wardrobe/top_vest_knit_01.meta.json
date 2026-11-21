@@ -1,0 +1,39 @@
+{
+  "id": "top_vest_knit_01",
+  "slot": "top",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/top_vest_knit_01_f.glb",
+      "tris": 716,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.4
+    },
+    "male": {
+      "file": "models/wardrobe/top_vest_knit_01_m.glb",
+      "tris": 716,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 4.28
+    }
+  }
+}

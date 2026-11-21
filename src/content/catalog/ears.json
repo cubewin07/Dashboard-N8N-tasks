@@ -1,0 +1,61 @@
+{
+  "items": [
+    {
+      "id": "ears_stud_01",
+      "slot": "ears",
+      "label": { "vi": "Khuyên tai nụ", "en": "Stud earrings" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/ears_stud_01.glb",
+        "male": "models/wardrobe/ears_stud_01.glb"
+      },
+      "thumb": "thumbs/ears_stud_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "gold" }
+      },
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "ears_hoop_01",
+      "slot": "ears",
+      "label": { "vi": "Khuyên tai tròn", "en": "Hoop earrings" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/ears_hoop_01.glb",
+        "male": "models/wardrobe/ears_hoop_01.glb"
+      },
+      "thumb": "thumbs/ears_hoop_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "gold" }
+      },
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "ears_drop_01",
+      "slot": "ears",
+      "label": { "vi": "Khuyên tai dài", "en": "Drop earrings" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/ears_drop_01.glb",
+        "male": "models/wardrobe/ears_drop_01.glb"
+      },
+      "thumb": "thumbs/ears_drop_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary", "secondary"],
+        "defaults": { "primary": "silver", "secondary": "gem_sapphire" }
+      },
+      "hides": [],
+      "tags": ["party", "casual"],
+      "credit": "own-generated"
+    }
+  ]
+}

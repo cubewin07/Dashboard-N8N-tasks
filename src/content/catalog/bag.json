@@ -1,0 +1,85 @@
+{
+  "items": [
+    {
+      "id": "bag_backpack_01",
+      "slot": "bag",
+      "label": {
+        "vi": "Ba lô",
+        "en": "Backpack"
+      },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/bag_backpack_01.glb",
+        "male": "models/wardrobe/bag_backpack_01.glb"
+      },
+      "thumb": "thumbs/bag_backpack_01.webp",
+      "attach": {
+        "bone": "Spine2"
+      },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {
+          "primary": "c_olive",
+          "accent": "c_black"
+        }
+      },
+      "hides": [],
+      "tags": ["casual", "street"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "bag_crossbody_01",
+      "slot": "bag",
+      "label": {
+        "vi": "Túi đeo chéo",
+        "en": "Crossbody bag"
+      },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/bag_crossbody_01.glb",
+        "male": "models/wardrobe/bag_crossbody_01.glb"
+      },
+      "thumb": "thumbs/bag_crossbody_01.webp",
+      "attach": {
+        "bone": "Spine2"
+      },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {
+          "primary": "c_brown",
+          "accent": "c_beige"
+        }
+      },
+      "hides": [],
+      "tags": ["street", "casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "bag_tote_01",
+      "slot": "bag",
+      "label": {
+        "vi": "Túi tote",
+        "en": "Tote bag"
+      },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/bag_tote_01.glb",
+        "male": "models/wardrobe/bag_tote_01.glb"
+      },
+      "thumb": "thumbs/bag_tote_01.webp",
+      "attach": {
+        "bone": "Spine2"
+      },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": {
+          "primary": "c_beige",
+          "accent": "c_brown"
+        }
+      },
+      "hides": [],
+      "tags": ["office", "casual"],
+      "credit": "own-generated"
+    }
+  ]
+}

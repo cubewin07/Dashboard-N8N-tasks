@@ -13,10 +13,19 @@ import {
   getSlotItems,
   type Catalog,
   type CatalogItem,
+  type CatalogSlot,
 } from './catalog'
+import {
+  DEFAULT_GENERATOR_WEIGHTS,
+  itemWeight,
+  slotChance,
+  type GeneratorWeights,
+} from './generatorWeights'
 
 export interface GenerateAppearanceOptions {
   name?: string
+  /** Seeded-look weights; defaults to `catalog/generator-weights.json`. */
+  weights?: GeneratorWeights
 }
 
 interface OutfitColorScheme {
@@ -179,6 +188,21 @@ function pickWeighted<T>(
   return (entries[entries.length - 1] as { value: T }).value
 }
 
+/** Weighted pick by `generator-weights.json`; uniform when every weight is 0. */
+function pickItem(
+  items: readonly CatalogItem[],
+  weights: GeneratorWeights,
+  base: AppearanceBase,
+  rng: Rng,
+): CatalogItem {
+  const entries = items.map((item) => ({ value: item, weight: itemWeight(weights, item, base) }))
+  if (entries.every((e) => e.weight <= 0)) return pickFrom(items, rng)
+  return pickWeighted(
+    entries.filter((e) => e.weight > 0),
+    rng,
+  )
+}
+
 function round2(n: number): number {
   return Math.round(n * 100) / 100
 }
@@ -224,6 +248,13 @@ export function generateAppearance(
 ): AppearanceV1 {
   const rng = makeRng(`appearance:${employeeId}`)
   const base = inferBase(employeeId, opts?.name, rng)
+  const weights = opts?.weights ?? DEFAULT_GENERATOR_WEIGHTS
+  const pick = (items: readonly CatalogItem[]) => pickItem(items, weights, base, rng)
+  /** Roll for an optional slot; no RNG draw when the slot cannot be worn. */
+  const wears = (slot: CatalogSlot, options: readonly CatalogItem[]) => {
+    const chance = slotChance(weights, slot, base)
+    return options.length > 0 && chance > 0 && rng() < chance
+  }
 
   // Body proportions (natural office variation within 0..1)
   const body: AppearanceBody = {
@@ -244,21 +275,7 @@ export function generateAppearance(
 
   // Hair item & colour
   const hairOptions = getSlotItems(catalog, 'hair', base)
-  let hairItem: string | null = null
-  if (hairOptions.length > 0) {
-    const preferredOrder =
-      base === 'female'
-        ? ['hair_long_01', 'hair_bob_01', 'hair_bun_01', 'hair_short_01']
-        : ['hair_short_01', 'hair_bun_01', 'hair_bob_01', 'hair_long_01']
-    const weights =
-      base === 'female' ? [0.34, 0.28, 0.22, 0.16] : [0.55, 0.18, 0.15, 0.12]
-    const weighted = hairOptions.map((item) => {
-      const rank = preferredOrder.indexOf(item.id)
-      const weight = rank >= 0 ? (weights[rank] ?? 0.1) : 0.15
-      return { value: item.id, weight }
-    })
-    hairItem = pickWeighted(weighted, rng)
-  }
+  const hairItem = hairOptions.length > 0 ? pick(hairOptions).id : null
 
   const naturalHairColors = catalog.colors.hair.filter((c) => !c.fashion)
   const fashionHairColors = catalog.colors.hair.filter((c) => c.fashion)
@@ -274,11 +291,13 @@ export function generateAppearance(
   const eyesOptions = getSlotItems(catalog, 'eyes', base)
   const browsOptions = getSlotItems(catalog, 'brows', base)
   const mouthOptions = getSlotItems(catalog, 'mouth', base)
-  const eyes = eyesOptions.length > 0 ? pickFrom(eyesOptions, rng).id : 'eyes_01'
-  const brows = browsOptions.length > 0 ? pickFrom(browsOptions, rng).id : 'brows_01'
-  const mouth = mouthOptions.length > 0 ? pickFrom(mouthOptions, rng).id : 'mouth_01'
+  const eyes = eyesOptions.length > 0 ? pick(eyesOptions).id : 'eyes_01'
+  const brows = browsOptions.length > 0 ? pick(browsOptions).id : 'brows_01'
+  const mouth = mouthOptions.length > 0 ? pick(mouthOptions).id : 'mouth_01'
   const eyeColor = pickFrom(catalog.colors.eyes, rng).key
   const blush = base === 'female' ? rng() < 0.35 : false
+  const facialHairOptions = getSlotItems(catalog, 'facial_hair', base)
+  const facialHair = wears('facial_hair', facialHairOptions) ? pick(facialHairOptions).id : null
 
   // Outfit
   const fullbodyOptions = getSlotItems(catalog, 'fullbody', base)
@@ -312,10 +331,10 @@ export function generateAppearance(
   let bottom: string | null = null
 
   const wearFullbody =
-    fullbodyOptions.length > 0 && (topOptions.length === 0 || rng() < 0.25)
+    fullbodyOptions.length > 0 && (topOptions.length === 0 || wears('fullbody', fullbodyOptions))
 
   if (wearFullbody) {
-    const dress = pickFrom(fullbodyOptions, rng)
+    const dress = pick(fullbodyOptions)
     fullbody = dress.id
     const c = buildItemColors(
       dress,
@@ -328,7 +347,7 @@ export function generateAppearance(
     if (c) colors[dress.id] = c
   } else {
     if (topOptions.length > 0) {
-      const chosenTop = pickFrom(topOptions, rng)
+      const chosenTop = pick(topOptions)
       top = chosenTop.id
       const c = buildItemColors(
         chosenTop,
@@ -341,7 +360,7 @@ export function generateAppearance(
       if (c) colors[chosenTop.id] = c
     }
     if (bottomOptions.length > 0) {
-      const chosenBottom = pickFrom(bottomOptions, rng)
+      const chosenBottom = pick(bottomOptions)
       bottom = chosenBottom.id
       const c = buildItemColors(
         chosenBottom,
@@ -355,9 +374,34 @@ export function generateAppearance(
     }
   }
 
+  // Outer layer (needs a top or a fullbody underneath: catalogue `requires`).
+  let outer: string | null = null
+  const outerOptions = getSlotItems(catalog, 'outer', base)
+  if ((top || fullbody) && wears('outer', outerOptions)) {
+    const inner = top ?? fullbody
+    const innerItem = inner ? catalog.byId.get(inner) : undefined
+    // Never pick a pair where either row lists the other in `conflicts` (layering test, P08a-T10).
+    const compatible = outerOptions.filter(
+      (o) => !o.conflicts?.includes(inner ?? '') && !innerItem?.conflicts?.includes(o.id),
+    )
+    if (compatible.length > 0) {
+      const chosenOuter = pick(compatible)
+      outer = chosenOuter.id
+      const c = buildItemColors(
+        chosenOuter,
+        scheme.bottomPrimary,
+        scheme.topPrimary,
+        scheme.topSecondary,
+        catalog,
+        defaultFabric,
+      )
+      if (c) colors[chosenOuter.id] = c
+    }
+  }
+
   let shoes: string | null = null
   if (shoesOptions.length > 0) {
-    const chosenShoes = pickFrom(shoesOptions, rng)
+    const chosenShoes = pick(shoesOptions)
     shoes = chosenShoes.id
     const c = buildItemColors(
       chosenShoes,
@@ -373,8 +417,8 @@ export function generateAppearance(
   // Accessories
   const accessories: AppearanceV1['accessories'] = {}
   const glassesOptions = getSlotItems(catalog, 'glasses', base)
-  if (glassesOptions.length > 0 && rng() < 0.28) {
-    const glasses = pickFrom(glassesOptions, rng)
+  if (wears('glasses', glassesOptions)) {
+    const glasses = pick(glassesOptions)
     accessories.glasses = glasses.id
     const frameColor = pickFrom(['c_black', 'c_charcoal', 'c_brown'], rng)
     const c = buildItemColors(
@@ -389,10 +433,14 @@ export function generateAppearance(
   }
 
   const neckOptions = getSlotItems(catalog, 'neck', base)
-  if (neckOptions.length > 0 && base === 'female' && rng() < 0.22) {
-    const neck = pickFrom(neckOptions, rng)
+  if (wears('neck', neckOptions)) {
+    const neck = pick(neckOptions)
     accessories.neck = neck.id
-    const c = buildItemColors(
+    // Jewellery keeps its metal defaults; cloth (tie, scarf, lanyard) follows the outfit.
+    const isMetal = Object.values(neck.tint?.defaults ?? {}).some((k) =>
+      catalog.colorKeys.metal.has(k),
+    )
+    const c = isMetal ? undefined : buildItemColors(
       neck,
       scheme.shoesAccent,
       scheme.topSecondary,
@@ -401,6 +449,12 @@ export function generateAppearance(
       defaultFabric,
     )
     if (c) colors[neck.id] = c
+  }
+
+  // Remaining accessories keep their catalogue default colours (metal for jewellery).
+  for (const slot of ['ears', 'wrist', 'head', 'bag'] as const) {
+    const options = getSlotItems(catalog, slot, base)
+    if (wears(slot, options)) accessories[slot] = pick(options).id
   }
 
   const doc: AppearanceV1 = {
@@ -413,7 +467,7 @@ export function generateAppearance(
       brows,
       mouth,
       eyeColor,
-      facialHair: null,
+      facialHair,
       blush,
     },
     hair: {
@@ -424,7 +478,7 @@ export function generateAppearance(
       top,
       bottom,
       fullbody,
-      outer: null,
+      outer,
       shoes,
     },
     accessories,

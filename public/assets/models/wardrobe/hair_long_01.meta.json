@@ -23,5 +23,6 @@
       ],
       "scale": 1
     }
-  }
+  },
+  "hatcut": "models/wardrobe/hair_long_01_hatcut.glb"
 }

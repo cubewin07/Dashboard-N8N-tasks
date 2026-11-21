@@ -1,0 +1,27 @@
+{
+  "id": "wrist_watch_01",
+  "slot": "wrist",
+  "kind": "rigid",
+  "bone": "LeftForeArm",
+  "merge": true,
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/wrist_watch_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    },
+    "male": {
+      "file": "models/wardrobe/wrist_watch_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    }
+  }
+}

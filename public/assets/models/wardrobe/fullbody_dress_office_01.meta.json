@@ -1,0 +1,19 @@
+{
+  "id": "fullbody_dress_office_01",
+  "slot": "fullbody",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/fullbody_dress_office_01_f.glb",
+      "tris": 658,
+      "hideRegions": [
+        "belly",
+        "hips",
+        "thigh_l",
+        "thigh_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    }
+  }
+}

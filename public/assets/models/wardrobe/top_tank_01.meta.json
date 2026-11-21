@@ -1,0 +1,25 @@
+{
+  "id": "top_tank_01",
+  "slot": "top",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/top_tank_01_f.glb",
+      "tris": 272,
+      "hideRegions": [
+        "belly"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    },
+    "male": {
+      "file": "models/wardrobe/top_tank_01_m.glb",
+      "tris": 272,
+      "hideRegions": [
+        "belly"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    }
+  }
+}

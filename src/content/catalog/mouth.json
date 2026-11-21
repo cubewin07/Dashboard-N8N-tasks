@@ -41,6 +41,48 @@
       "hides": [],
       "tags": ["casual", "party"],
       "credit": "own-generated"
+    },
+    {
+      "id": "mouth_04",
+      "slot": "mouth",
+      "label": { "vi": "Miệng cười toe toét", "en": "Wide grin" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [3, 5] },
+      "thumb": "thumbs/mouth_04.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "mouth_05",
+      "slot": "mouth",
+      "label": { "vi": "Miệng cười nhỏ", "en": "Small smile" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [4, 5] },
+      "thumb": "thumbs/mouth_05.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "mouth_06",
+      "slot": "mouth",
+      "label": { "vi": "Miệng mèo", "en": "Cat mouth" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [5, 5] },
+      "thumb": "thumbs/mouth_06.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
     }
   ]
 }
