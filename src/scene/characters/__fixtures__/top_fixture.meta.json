@@ -1,0 +1,21 @@
+{
+  "id": "top_fixture",
+  "slot": "top",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "top_fixture.glb",
+      "tris": 4,
+      "hideRegions": [
+        "chest"
+      ]
+    },
+    "male": {
+      "file": "top_fixture.glb",
+      "tris": 4,
+      "hideRegions": [
+        "chest"
+      ]
+    }
+  }
+}

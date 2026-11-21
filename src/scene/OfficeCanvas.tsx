@@ -26,9 +26,11 @@ import {
   useViewStore,
 } from '@/scene/camera/viewStore'
 import {
+  charactersDebug,
   directorDebug,
   makeCameraDebug,
   type CameraDebug,
+  type CharactersDebug,
   type DirectorDebug,
 } from '@/scene/debug'
 import { buildBuildingLayout, type BuildingLayout } from '@/scene/layout'
@@ -58,6 +60,7 @@ export interface OfficeDebugInfo {
   removeDepartment: (key: string) => void
   director?: DirectorDebug
   camera?: CameraDebug
+  characters?: CharactersDebug
   getState?: () => unknown
   sim?: unknown
 }
@@ -191,6 +194,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       removeDepartment: removeDepartmentFromStore,
       director: directorDebug,
       camera: cameraDebug,
+      characters: charactersDebug,
     }
   })
 
