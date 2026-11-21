@@ -2,9 +2,11 @@ import type { SimBrainContext } from '../brain/context'
 import type { ScenarioKey } from '../controls'
 import { runAngryRefundScenario } from './angry_refund'
 import { runBossTelegramScenario } from './boss_telegram'
+import { runBusyDayScenario } from './busy_day'
 import { runCrowdedScenario } from './crowded'
 import { runHireTempsScenario } from './hire_temps'
 import { runLongQueueScenario } from './long_queue'
+import { runLunchScenario } from './lunch'
 import { runMonthEndScenario } from './month_end'
 import { runSale1212Scenario } from './sale_1212'
 import { runTeamOfflineScenario } from './team_offline'
@@ -22,6 +24,8 @@ export const SCENARIO_DESCRIPTORS: readonly ScenarioDescriptor[] = [
   { key: 'hire_temps', group: 'main' },
   { key: 'team_offline', group: 'main' },
   { key: 'boss_telegram', group: 'main' },
+  { key: 'busy_day', group: 'main' },
+  { key: 'lunch', group: 'main' },
   { key: 'crowded', group: 'perf' },
 ] as const
 
@@ -53,6 +57,12 @@ export function executeScenario(
       break
     case 'crowded':
       runCrowdedScenario(ctx)
+      break
+    case 'busy_day':
+      runBusyDayScenario(ctx)
+      break
+    case 'lunch':
+      runLunchScenario(ctx)
       break
   }
 }

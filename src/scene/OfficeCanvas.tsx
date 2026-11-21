@@ -15,6 +15,7 @@ import { ShortcutHint } from '@/features/office/ShortcutHint'
 import { useFollowUrlSync } from '@/features/office/useFollowUrlSync'
 import { useConfigStore } from '@/office/configStore'
 import { useOfficeSelector } from '@/office/hooks'
+import { useReducedMotionPref } from '@/office/prefs'
 import { usePeopleUi } from '@/office/uiStore'
 import { CameraRig } from '@/scene/camera/CameraRig'
 import { useKeyboardShortcuts } from '@/scene/camera/useKeyboardShortcuts'
@@ -33,6 +34,7 @@ import { buildBuildingLayout, type BuildingLayout } from '@/scene/layout'
 import { Building } from '@/scene/render/Building'
 import { Environment } from '@/scene/render/Environment'
 import { Lights } from '@/scene/render/Lights'
+import { OfficeLife } from '@/scene/render/OfficeLife'
 import { People } from '@/scene/render/People'
 
 export interface OfficeDebugInfo {
@@ -183,23 +185,6 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   return null
 }
 
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  })
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  return reduced
-}
-
 /** Never render more pixels than the screen has: a 1x monitor stays at 1x. */
 function maxDpr(): number {
   return Math.min(2, Math.max(1, window.devicePixelRatio || 1))
@@ -224,7 +209,7 @@ export function OfficeCanvas() {
   const config = useConfigStore((s) => s.config)
   const [ready, setReady] = useState(false)
   const [dpr, setDpr] = useState(IS_E2E ? 1 : Math.min(1.5, maxDpr()))
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = useReducedMotionPref()
 
   const location = useLocation()
   const [, setSearchParams] = useSearchParams()
@@ -350,6 +335,7 @@ export function OfficeCanvas() {
           elevator={config.building.elevator}
           reducedMotion={reducedMotion}
         />
+        <OfficeLife layout={layout} reducedMotion={reducedMotion} />
         <CameraRig layout={layout} reducedMotion={reducedMotion} />
         <SceneTelemetry
           floorKeys={floorKeys}

@@ -18,6 +18,7 @@ export const TUNING = {
   fadeSeconds: 0.3,
   dropWaitSeconds: 1,
   askChatSeconds: 3,
+  askWaveSeconds: 1.2,
   pickSeconds: 0.35,
 
   /** Sim-speed → movement factor anchors (rate, factor), log-interpolated. */
@@ -46,11 +47,17 @@ export const TUNING = {
     dwellSimMinutes: [20, 90] as readonly [number, number],
     /** Dwell also ends after this many visual seconds per sim minute, so 1× is not frozen. */
     visualSecondsPerSimMinute: 3.2,
+    /** A visit lasts at least this many visual seconds after arrival, at any speed. */
+    minHoldSeconds: 8,
     /** At most this share of a department on a leisure floor at once. */
     maxDeptAwayShare: 0.3,
     /** People do not all stand up in the same tick. */
     startJitterSeconds: 9,
     firstDwellScale: 0.5,
+    /** P05: a chatting pair takes turns showing the speech bubble. */
+    talkTurnSeconds: 2.5,
+    /** A chat bubble needs a settled person within this distance on the same choice. */
+    chatReachMetres: 3,
   },
 
   separation: {

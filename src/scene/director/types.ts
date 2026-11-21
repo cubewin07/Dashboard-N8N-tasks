@@ -1,5 +1,6 @@
 import type { CarriedItem, Slot } from '@/domain/config'
 import type { EmployeeId } from '@/domain/primitives'
+import type { EmoteKey } from '@/domain/visual'
 import type { Vec2 } from '@/scene/nav/types'
 import type { PoseKey } from './poses'
 
@@ -72,6 +73,18 @@ export interface PersonSim {
   visible: boolean
   /** Elevator car index while riding, else -1 (the camera tracks the car). */
   inCar: number
+  /** P05: emote bubble to show right now (chat, karaoke note, zzz…), or null. */
+  emote: EmoteKey | null
+  /** P05: idle option key (`idle-behaviours.json`) while idling, else null. */
+  idleKey: string | null
+}
+
+/** P05 (R5, R13): where somebody waits for a face-to-face answer. */
+export interface WaitingSpot {
+  nearEmployeeId: EmployeeId
+  /** 0-based place in arrival order (seats first, then the standing line). */
+  index: number
+  seated: boolean
 }
 
 /** A visual consequence of an event that needs legs: carry a paper to someone. */

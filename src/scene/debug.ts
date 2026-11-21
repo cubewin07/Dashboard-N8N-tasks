@@ -1,6 +1,7 @@
 import type { EmployeeId } from '@/domain/primitives'
 import { usePeopleUi } from '@/office/uiStore'
 import type { DirectorStats, PersonDebug } from '@/scene/director/director'
+import { lodRuntime } from '@/scene/render/lod'
 import { peopleRuntime, type PersonSight } from '@/scene/render/peopleRuntime'
 
 /** One person as the tests and the perf check see them (world metres). */
@@ -25,6 +26,14 @@ export interface DirectorDebug {
   tickMs: () => number
   /** 0 while the office is paused. */
   moveFactor: () => number
+  /** P05: per-person indicators drawn last frame. */
+  indicators: () => { rings: number; icons: number; badges: number; emotes: number }
+  /** P05-T13: name labels in use (0 at overview zoom). */
+  namesInUse: () => number
+  /** P05-T14: status ring pulse amplitude (0 under reduced motion). */
+  ringPulse: () => number
+  /** P05: LOD band per floor index. */
+  lodBands: () => string[]
 }
 
 export interface CameraDebug {
@@ -69,6 +78,10 @@ export const directorDebug: DirectorDebug = {
   stats: () => peopleRuntime.director?.stats() ?? null,
   tickMs: () => peopleRuntime.tickMs,
   moveFactor: () => peopleRuntime.moveFactor,
+  indicators: () => ({ ...peopleRuntime.indicators }),
+  namesInUse: () => peopleRuntime.namesInUse,
+  ringPulse: () => peopleRuntime.ringPulse,
+  lodBands: () => [...lodRuntime.bands],
 }
 
 export function makeCameraDebug(

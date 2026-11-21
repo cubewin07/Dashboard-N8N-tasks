@@ -37,6 +37,8 @@ export const CAPSULE = {
   bedHeight: 0.4,
   carryY: 0.78,
   carryZ: 0.3,
+  /** Extra forward reach of the hands when seated (over the desk / lap). */
+  seatedReach: 0.12,
   /** Top of the head, for the status dot and the name label. */
   standTop: 1.48,
   seatedTop: 1.16,

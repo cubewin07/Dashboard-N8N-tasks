@@ -1,10 +1,20 @@
 import type { EmployeeId } from '@/domain/primitives'
+import type { Slot } from '@/domain/config'
 import type { BuildingLayout, FloorLayout } from '@/scene/layout'
 import { route } from '@/scene/nav/routeGraph'
 import type { NavGrid, Vec2 } from '@/scene/nav/types'
 import { INTENT_VERTICAL_MODE, type Intent } from './intents'
 import { SlotLedger } from './slots'
-import { approachOf, cellCentre, chairPoint, findSlot, isDeskSlot, stationFor } from './stations'
+import {
+  approachOf,
+  cellCentre,
+  chairPoint,
+  findSlot,
+  headingTo,
+  isDeskSlot,
+  isStandSlot,
+  stationFor,
+} from './stations'
 import { TUNING } from './tuning'
 import type { Action, Station, VerticalMode } from './types'
 
@@ -24,7 +34,13 @@ export interface PlanContext {
   deskOf: (id: EmployeeId) => Station | null
   /** Pre-drawn start delay (visual seconds) for leisure plans. */
   jitterSeconds: number
+  /** P05-T07: the seat or line place of somebody waiting face to face (`seating.ts`). */
+  waitingPlace?: (id: EmployeeId) => WaitingPlace | null
 }
+
+export type WaitingPlace =
+  | { kind: 'seat'; station: Station }
+  | { kind: 'line'; floorIndex: number; point: Vec2; facing: Vec2 }
 
 interface Cursor {
   floor: number
@@ -180,10 +196,15 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
       out.push({ k: 'pick', item: 'document' })
       travel(out, cursor, ctx, target.floorIndex, visitorPoint(ctx, target, me.id), mode)
       out.push({ k: 'face', toward: { x: target.slot.x, z: target.slot.z } })
+      // R6: review papers join the approver's pile; handed-off / assigned
+      // work is put on the new owner's desk.
       out.push({
         k: 'drop',
         item: 'document',
-        at: SlotLedger.key(target.floorKey, `${target.slot.id}.pile`),
+        at: SlotLedger.key(
+          target.floorKey,
+          intent.reviewId ? `${target.slot.id}.pile` : target.slot.id,
+        ),
         errandId: intent.errandId,
       })
       out.push({ k: 'wait', seconds: TUNING.dropWaitSeconds })
@@ -199,6 +220,7 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
       standUp(out, me)
       travel(out, cursor, ctx, target.floorIndex, visitorPoint(ctx, target, me.id), mode)
       out.push({ k: 'face', toward: target.seat })
+      out.push({ k: 'emote', kind: 'wave', seconds: TUNING.askWaveSeconds })
       out.push({
         k: 'emote',
         kind: 'talk',
@@ -217,6 +239,18 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
       }
       const floor = ctx.layout.floors[target.floorIndex]!
       standUp(out, me)
+      const place = ctx.waitingPlace?.(me.id) ?? null
+      if (place?.kind === 'seat') {
+        toStation(out, cursor, ctx, place.station, mode)
+        out.push({ k: 'hold', pose: 'wait_seat' })
+        return out
+      }
+      if (place?.kind === 'line') {
+        travel(out, cursor, ctx, place.floorIndex, place.point, mode)
+        out.push({ k: 'face', toward: place.facing })
+        out.push({ k: 'hold', pose: 'wait_stand' })
+        return out
+      }
       for (const slot of floor.slots) {
         if (slot.type !== 'waiting_seat') continue
         const key = SlotLedger.key(floor.key, slot.id)
@@ -276,7 +310,7 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
 
     case 'IdleAtDesk':
     case 'NapAtDesk': {
-      const pose = intent.kind === 'NapAtDesk' ? 'nap_desk' : 'sit'
+      const pose = intent.kind === 'NapAtDesk' ? 'nap_desk' : (intent.pose ?? 'sit')
       if (desk && !atDesk) {
         if (ctx.jitterSeconds > 0) out.push({ k: 'wait', seconds: ctx.jitterSeconds })
         standUp(out, me)
@@ -296,12 +330,25 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
         return out
       }
       const key = SlotLedger.key(floor.key, slot.id)
-      const place = Math.max(0, ctx.ledger.reserve(key, me.id, slot.capacity ?? 1))
-      const station = stationFor(floor, slot, place)
+      // The idle brain reserved the place already (the ledger is idempotent).
+      const place = ctx.ledger.reserve(key, me.id, slot.capacity ?? 1)
+      if (place < 0) {
+        // Nobody may stand on someone else's place: go back to the desk instead.
+        if (desk && !atDesk) {
+          standUp(out, me)
+          toStation(out, cursor, ctx, desk, mode)
+        }
+        out.push({ k: 'hold', pose: 'sit' })
+        return out
+      }
+      const station =
+        place > 0 && isStandSlot(slot)
+          ? partnerStation(floor, ctx.grid(floor.index), slot, place)
+          : stationFor(floor, slot, place)
       if (ctx.jitterSeconds > 0) out.push({ k: 'wait', seconds: ctx.jitterSeconds })
       standUp(out, me)
       toStation(out, cursor, ctx, station, mode)
-      out.push({ k: 'hold', pose: station.pose })
+      out.push({ k: 'hold', pose: intent.pose ?? station.pose })
       return out
     }
 
@@ -310,6 +357,66 @@ export function plan(intent: Intent, me: PlanPerson, ctx: PlanContext): Action[]
       return exhaustive
     }
   }
+}
+
+/**
+ * P05-T09: the second (third…) person at a spot made for one standing person
+ * (ping-pong, a chat corner): across the slot when that side is free, else
+ * the nearest free cell beside the first person. Faces the slot.
+ */
+export function partnerStation(floor: FloorLayout, grid: NavGrid, slot: Slot, place: number): Station {
+  const base = stationFor(floor, slot, 0)
+  const centre: Vec2 = { x: slot.x, z: slot.z }
+  const first = base.approach
+  const taken = new Set<string>([cellKey(grid, first)])
+  let point = first
+  // Places 1..place in order, each on a cell nobody before it stands on.
+  for (let k = 1; k <= place; k += 1) {
+    const candidates: Vec2[] = []
+    if (k === 1) candidates.push({ x: 2 * centre.x - first.x, z: 2 * centre.z - first.z })
+    const dx = first.x - centre.x
+    const dz = first.z - centre.z
+    const len = Math.hypot(dx, dz) || 1
+    const side = k % 2 === 1 ? 1 : -1
+    const reach = 0.75 * Math.ceil(k / 2)
+    candidates.push({ x: first.x + (-dz / len) * reach * side, z: first.z + (dx / len) * reach * side })
+    point = freeCellNear(grid, candidates, taken) ?? point
+    taken.add(cellKey(grid, point))
+  }
+  const heading = place === 1 && cellKey(grid, point) !== cellKey(grid, first) ? headingTo(point, centre) : headingTo(point, first)
+  return { ...base, approach: point, seat: point, heading }
+}
+
+function cellKey(grid: NavGrid, p: Vec2): string {
+  const [col, row] = grid.toCell(p)
+  return `${col},${row}`
+}
+
+/**
+ * The first candidate on a free, untaken cell; failing that the nearest such
+ * cell (within 3 cells) to the last candidate. Null only when the area is full.
+ */
+function freeCellNear(grid: NavGrid, candidates: readonly Vec2[], taken: ReadonlySet<string>): Vec2 | null {
+  for (const c of candidates) {
+    const [col, row] = grid.toCell(c)
+    if (!grid.isBlocked(col, row) && !taken.has(`${col},${row}`)) return grid.toWorld(col, row)
+  }
+  const from = candidates[candidates.length - 1]!
+  const [pc, pr] = grid.toCell(from)
+  let best: Vec2 | null = null
+  let bestDist = Infinity
+  for (let row = pr - 3; row <= pr + 3; row += 1) {
+    for (let col = pc - 3; col <= pc + 3; col += 1) {
+      if (grid.isBlocked(col, row) || taken.has(`${col},${row}`)) continue
+      const w = grid.toWorld(col, row)
+      const dist = (w.x - from.x) ** 2 + (w.z - from.z) ** 2
+      if (dist < bestDist - 1e-9) {
+        bestDist = dist
+        best = w
+      }
+    }
+  }
+  return best
 }
 
 /** Grep-friendly proof of R5: the vertical steps a plan contains. */

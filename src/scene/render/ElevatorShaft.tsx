@@ -1,12 +1,15 @@
 import type { BuildingLayout } from '@/scene/layout'
 import { toWorldX, toWorldZ } from './coords'
 import { SCENE_PALETTE } from './palette'
+import { shaftHeight } from './place'
 
 export interface ElevatorShaftProps {
   layout: BuildingLayout
+  /** Focused floor in floor mode; the shaft stops at its slab like the floor cut-away. */
+  activeFloorIndex?: number | null
 }
 
-export function ElevatorShaft({ layout }: ElevatorShaftProps) {
+export function ElevatorShaft({ layout, activeFloorIndex = null }: ElevatorShaftProps) {
   const firstFloor = layout.floors[0]
   if (!firstFloor || firstFloor.elevatorDoorSlots.length === 0) {
     return null
@@ -21,7 +24,7 @@ export function ElevatorShaft({ layout }: ElevatorShaftProps) {
   const shaftDepth = Math.max(2.4, maxZ - minZ + 1.8)
   const shaftWidth = 1.9
   const shaftCenterX = toWorldX(avgX + 0.95, w)
-  const totalH = layout.totalHeight
+  const totalH = shaftHeight(layout.totalHeight, layout.floorHeight, activeFloorIndex)
 
   return (
     <group name="elevator-shaft">
