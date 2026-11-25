@@ -43,6 +43,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"appearances": {
+                  Row: {
+                    "doc": NonNullable<Json>,"employee_id": string,"updated_at": string,"updated_by": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "doc": NonNullable<Json>,"employee_id": string,"updated_at"?: string,"updated_by": string,"version"?: number
+                  }
+                  Update: {
+                    "doc"?: NonNullable<Json>,"employee_id"?: string,"updated_at"?: string,"updated_by"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "appearances_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: true
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"approval_rules": {
                   Row: {
                     "enabled": boolean,"id": string,"label": NonNullable<Json>,"level": Database["public"]['Enums']["approval_level"],"order": number,"when": NonNullable<Json>
@@ -53,6 +73,20 @@ isOneToOne: false
                   }
                   Update: {
                     "enabled"?: boolean,"id"?: string,"label"?: NonNullable<Json>,"level"?: Database["public"]['Enums']["approval_level"],"order"?: number,"when"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"config_audit": {
+                  Row: {
+                    "action": string,"actor": string,"after": Json | null,"at": string,"before": Json | null,"entity": string,"entity_id": string,"id": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor": string,"after"?: Json | null,"at"?: string,"before"?: Json | null,"entity": string,"entity_id": string,"id"?: never
+                  }
+                  Update: {
+                    "action"?: string,"actor"?: string,"after"?: Json | null,"at"?: string,"before"?: Json | null,"entity"?: string,"entity_id"?: string,"id"?: never
                   }
                   Relationships: [
                     
@@ -193,14 +227,65 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "app_role":
+            "_audit":
+{ Args: { "p_action": string,"p_after": Json,"p_before": Json,"p_entity": string,"p_entity_id": string }; Returns: undefined
+                           },
+"_require_boss":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"_require_keys":
+{ Args: { "p": Json,"p_keys": (string)[] }; Returns: undefined
+                           },
+"app_role":
 { Args: Record<PropertyKey, never>; Returns: Database["public"]['Enums']["app_role"]
+                           },
+"archive_employee":
+{ Args: { "p_id": string,"p_reason": string }; Returns: undefined
+                           },
+"delete_approval_rule":
+{ Args: { "p_id": string }; Returns: undefined
                            },
 "is_boss":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "is_staff":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"reorder_approval_rules":
+{ Args: { "p_ids": (string)[] }; Returns: undefined
+                           },
+"restore_employee":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"save_appearance":
+{ Args: { "p_doc": Json,"p_employee_id": string,"p_expected_version": number }; Returns: number
+                           },
+"set_policy":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"upsert_approval_rule":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"upsert_department":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"upsert_employee":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"upsert_platform":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"upsert_role":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"upsert_shop":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"upsert_specialty":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"upsert_task_type":
+{ Args: { "p": Json }; Returns: undefined
                            }
           }
           Enums: {
