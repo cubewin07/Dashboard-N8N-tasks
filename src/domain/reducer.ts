@@ -256,6 +256,21 @@ function skipWarn(state: OfficeState, event: OfficeEvent, reason: string): Offic
   return state
 }
 
+/**
+ * Swap in a whole new config snapshot: active employees keep their runtime (or start idle),
+ * archived or removed ones leave `people`. Used by `config.changed` and by the office store
+ * when the ConfigSource pushes a newer config (P09: a change made in another browser).
+ */
+export function withConfig(state: OfficeState, config: OrgConfig, now: Iso): OfficeState {
+  const people: Record<EmployeeId, PersonRuntime> = {}
+  for (const emp of config.employees) {
+    if (emp.state === 'active') {
+      people[emp.id] = state.people[emp.id] ?? makeIdlePerson(emp.id, now)
+    }
+  }
+  return { ...state, config, people }
+}
+
 export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
   if (event.seq <= state.seq) {
     return state
@@ -1468,19 +1483,10 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
     case 'config.changed': {
       const payload = event.payload as OfficeEvent<'config.changed'>['payload']
       const nextConfig = applyConfigChange(state.config, payload.change, event.at)
-      const nextPeople: Record<EmployeeId, PersonRuntime> = {}
-      for (const emp of nextConfig.employees) {
-        if (emp.state === 'active') {
-          nextPeople[emp.id] =
-            state.people[emp.id] ?? makeIdlePerson(emp.id, event.at)
-        }
-      }
       return {
-        ...state,
+        ...withConfig(state, nextConfig, event.at),
         now: event.at,
         seq: event.seq,
-        config: nextConfig,
-        people: nextPeople,
         log: appendLog(state.log, event),
       }
     }
