@@ -134,9 +134,10 @@ export const wardrobeEditor = {
     unsaved: 'Có thay đổi chưa lưu',
   },
   conflict: {
-    title: 'Diện mạo vừa được người khác lưu',
-    description: 'Bản lưu trên thiết bị đã thay đổi từ lúc bạn mở. Bạn muốn giữ bản nào?',
-    keepMine: 'Giữ bản của tôi',
-    takeTheirs: 'Lấy bản đã lưu',
+    title: 'Người khác vừa đổi diện mạo này',
+    description: 'Bản đã lưu thay đổi từ lúc bạn mở. Tải lại để lấy bản mới (bản đang sửa sẽ mất), hoặc ghi đè bằng bản của bạn.',
+    reload: 'Tải lại',
+    overwrite: 'Ghi đè',
+    remoteChange: 'Có thay đổi mới',
   },
 }

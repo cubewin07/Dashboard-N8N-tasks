@@ -111,26 +111,26 @@ describe('save', () => {
     expect(useWardrobeEditor.getState().version).toBe(1)
   })
 
-  it('on conflict, "keep mine" re-saves over their version', async () => {
+  it('on conflict, "overwrite" re-saves over their version', async () => {
     renderBar()
     edit(0.3)
     store.bump('emp_t', other)
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }))
     await screen.findByRole('dialog')
-    fireEvent.click(screen.getByRole('button', { name: 'Giữ bản của tôi' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ghi đè' }))
     await waitFor(() => expect(useWardrobeEditor.getState().dirty).toBe(false))
     expect(store.saves.map((s) => s.expected)).toEqual([0, 1])
     expect(store.entries.emp_t!.doc.body.height).toBe(0.3)
     expect(useWardrobeEditor.getState().version).toBe(2)
   })
 
-  it('on conflict, "take theirs" adopts the stored look', async () => {
+  it('on conflict, "reload" adopts the stored look', async () => {
     renderBar()
     edit(0.3)
     store.bump('emp_t', other)
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }))
     await screen.findByRole('dialog')
-    fireEvent.click(screen.getByRole('button', { name: 'Lấy bản đã lưu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lại' }))
     await waitFor(() => expect(draft().body.height).toBe(0.11))
     expect(useWardrobeEditor.getState()).toMatchObject({ version: 1, dirty: false })
     expect(store.saves).toHaveLength(1)
