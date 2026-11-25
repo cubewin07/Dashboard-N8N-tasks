@@ -88,6 +88,18 @@ export const settings = {
     contractVersion: 'Phiên bản hợp đồng',
     contractVersionValue: 'v0.2',
   },
+  importLooks: {
+    title: 'Nhập diện mạo từ trình duyệt này',
+    description: 'Chuyển các diện mạo đã lưu trên thiết bị này lên máy chủ, một lần. Nhân viên đã có diện mạo trên máy chủ sẽ được giữ nguyên.',
+    button: 'Nhập diện mạo',
+    running: 'Đang nhập…',
+    none: 'Không có diện mạo nào lưu trên thiết bị này.',
+    resultsLabel: 'Kết quả nhập',
+    imported: 'Đã nhập',
+    exists: 'Đã có sẵn, giữ nguyên',
+    failed: 'Không nhập được',
+    summary: 'Đã nhập {imported}, bỏ qua {exists}, lỗi {failed}.',
+  },
   demo: {
     badge: 'Chỉ dành cho Bản Demo',
     title: 'Chế độ mô phỏng kiểm thử',

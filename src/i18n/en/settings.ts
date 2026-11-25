@@ -89,6 +89,18 @@ export const settings: typeof viSettings = {
     contractVersion: 'Contract version',
     contractVersionValue: 'v0.2',
   },
+  importLooks: {
+    title: 'Import looks from this browser',
+    description: 'Copy the looks saved on this device to the server, once. Employees that already have a look on the server are left as they are.',
+    button: 'Import looks',
+    running: 'Importing…',
+    none: 'No looks are saved on this device.',
+    resultsLabel: 'Import results',
+    imported: 'Imported',
+    exists: 'Already exists, kept',
+    failed: 'Could not import',
+    summary: 'Imported {imported}, skipped {exists}, failed {failed}.',
+  },
   demo: {
     badge: 'Demo Only',
     title: 'Demo simulation controls',

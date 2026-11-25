@@ -20,7 +20,9 @@ import { useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTi
 import { useDrive } from '@/app/drive'
 import { useI18n, type Lang } from '@/i18n'
 import { useTeamOnline, useSystemStatus } from '@/hooks/queries'
+import { isBackendConfigured } from '@/office/appearanceStore'
 import { useOfficePrefs } from '@/office/prefs'
+import { ImportLocalLooks } from './ImportLocalLooks'
 import { formatDateTime } from '@/lib/time'
 import { fmt, cn } from '@/lib/utils'
 import {
@@ -631,6 +633,8 @@ export function SettingsPage() {
 
         </>
 )}
+
+        {session?.role === 'boss' && isBackendConfigured() && <ImportLocalLooks />}
 
         {/* Asset credits */}
         <Card>
