@@ -15,7 +15,8 @@ export function getClient(): Db {
   client = createClient<Database>(env.url, env.anonKey, {
     // The Supabase session lives in localStorage (supabase-js default). That is allowed;
     // the Drive token rule (memory only) is separate and unchanged.
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    // PKCE: the recovery link carries `?code=` before the `#`, so it does not collide with HashRouter.
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' },
   })
   return client
 }
