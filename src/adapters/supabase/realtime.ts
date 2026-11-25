@@ -15,7 +15,7 @@ export class RealtimeHub implements RealtimeStatus {
   private current: ConnectionState = 'reconnecting'
   /** The first 'live' is the initial join, not a recovery: no reload then. */
   private everLive = false
-  private browserOnline = typeof navigator === 'undefined' ? true : navigator.onLine
+  private browserOnline = typeof navigator === 'undefined' ? true : navigator.onLine !== false
 
   constructor() {
     if (typeof window !== 'undefined') {
