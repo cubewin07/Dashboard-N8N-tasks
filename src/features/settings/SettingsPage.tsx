@@ -50,7 +50,7 @@ import {
 
 export function SettingsPage() {
   const { t, lang, setLang } = useI18n()
-  const { session, signOut, updatePassword } = useAuth()
+  const { session, signIn, signOut, updatePassword } = useAuth()
   const full = can(session?.role, 'settings.full')
   const { tier, override: tierOverride, setOverride: setTierOverride } = useDeviceTierPreference()
   const drive = useDrive()
@@ -91,8 +91,16 @@ export function SettingsPage() {
 
     setPasswordSaving(true)
     try {
-      if (updatePassword) await updatePassword(newPassword)
-      else await new Promise((resolve) => setTimeout(resolve, 700))
+      if (updatePassword && session) {
+        // Re-check the current password first: an open session alone must not be enough.
+        try {
+          await signIn(session.email, currentPassword)
+        } catch {
+          setPasswordError(t.settings.account.currentPasswordWrong)
+          return
+        }
+        await updatePassword(newPassword)
+      } else await new Promise((resolve) => setTimeout(resolve, 700))
       setPasswordDialogOpen(false)
       setCurrentPassword('')
       setNewPassword('')

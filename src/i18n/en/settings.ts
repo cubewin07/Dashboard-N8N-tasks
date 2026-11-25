@@ -68,6 +68,7 @@ export const settings: typeof viSettings = {
     dialogDescription: 'Enter your current password and your new password.',
     currentPasswordLabel: 'Current password',
     currentPasswordPlaceholder: '••••••••',
+    currentPasswordWrong: 'The current password is wrong.',
     newPasswordLabel: 'New password',
     newPasswordPlaceholder: 'At least 6 characters',
     confirmPasswordLabel: 'Confirm new password',

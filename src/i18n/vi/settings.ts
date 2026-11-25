@@ -67,6 +67,7 @@ export const settings = {
     dialogDescription: 'Nhập mật khẩu hiện tại và mật khẩu mới cho tài khoản của bạn.',
     currentPasswordLabel: 'Mật khẩu hiện tại',
     currentPasswordPlaceholder: '••••••••',
+    currentPasswordWrong: 'Mật khẩu hiện tại không đúng.',
     newPasswordLabel: 'Mật khẩu mới',
     newPasswordPlaceholder: 'Ít nhất 6 ký tự',
     confirmPasswordLabel: 'Xác nhận mật khẩu mới',
