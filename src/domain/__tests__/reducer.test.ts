@@ -827,7 +827,7 @@ describe('withConfig (P09: a newer config pushed by the ConfigSource)', () => {
     const base = initialState(makeSeedConfig(), t(0))
     const worked = { ...base, people: { ...base.people, emp_an: { ...base.people.emp_an!, activity: 'working' as const } } }
     const cfg = makeSeedConfig()
-    const hire = { ...cfg.employees.find((e) => e.id === 'emp_an')!, id: 'emp_moi', name: 'Mới' }
+    const hire = { ...cfg.employees.find((e) => e.id === 'emp_an')!, id: 'emp_moi' as const, name: 'Mới' }
     const next = {
       ...cfg,
       employees: [
