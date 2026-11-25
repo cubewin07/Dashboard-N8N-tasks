@@ -2,6 +2,11 @@ import type { common as vi } from '../vi/common'
 
 export const common: typeof vi = {
   app: { name: 'Shop HQ', tagline: 'An AI team running 5 online shops' },
+  backend: {
+    loading: 'Connecting to the server…',
+    errorTitle: 'Could not reach the server',
+    errorBody: 'Check your connection and try again.',
+  },
   nav: {
     office: 'Office',
     org: 'Org chart',

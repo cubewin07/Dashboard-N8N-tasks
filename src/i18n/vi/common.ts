@@ -1,6 +1,11 @@
 // Shared labels used across features. Feature-specific text goes in its own file (vi/<feature>.ts).
 export const common = {
   app: { name: 'Shop HQ', tagline: 'Đội ngũ AI vận hành 5 gian hàng' },
+  backend: {
+    loading: 'Đang kết nối máy chủ…',
+    errorTitle: 'Chưa kết nối được máy chủ',
+    errorBody: 'Kiểm tra mạng rồi thử lại nhé.',
+  },
   nav: {
     office: 'Văn phòng',
     org: 'Sơ đồ',
