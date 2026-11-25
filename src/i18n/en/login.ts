@@ -12,6 +12,8 @@ export const login: typeof viLogin = {
   signInButton: 'Sign in',
   signingIn: 'Signing in…',
   invalidCredentials: 'Invalid email or password',
+  notAllowed: 'This account has not been given access. Please contact the boss.',
+  networkError: 'Could not reach the server. Check your connection and try again.',
   forgotPasswordLink: 'Forgot password?',
   demoHint: 'Demo mode: use one of the two demo accounts below with a password of 6+ characters.',
   roleBoss: 'Boss (full access)',
@@ -23,6 +25,7 @@ export const login: typeof viLogin = {
   resetSuccess: 'If an account exists for this email, we have sent a password reset link.',
   backToLogin: 'Back to sign in',
   resetPage: {
+    failed: 'Could not change the password. The link may have expired; request a new one.',
     title: 'Set new password',
     subtitle: 'Enter a new password for your account',
     newPasswordLabel: 'New password',

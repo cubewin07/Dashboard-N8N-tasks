@@ -48,7 +48,7 @@ import {
 
 export function SettingsPage() {
   const { t, lang, setLang } = useI18n()
-  const { session, signOut } = useAuth()
+  const { session, signOut, updatePassword } = useAuth()
   const full = can(session?.role, 'settings.full')
   const { tier, override: tierOverride, setOverride: setTierOverride } = useDeviceTierPreference()
   const drive = useDrive()
@@ -89,12 +89,15 @@ export function SettingsPage() {
 
     setPasswordSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 700))
+      if (updatePassword) await updatePassword(newPassword)
+      else await new Promise((resolve) => setTimeout(resolve, 700))
       setPasswordDialogOpen(false)
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       toast.success(t.settings.account.successToast)
+    } catch {
+      setPasswordError(t.login.resetPage.failed)
     } finally {
       setPasswordSaving(false)
     }

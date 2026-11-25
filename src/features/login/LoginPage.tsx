@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuth } from '@/app/auth'
+import { AuthError } from '@/ports/AuthPort'
 import { authPort, DEMO_ACCOUNT_EMAILS } from '@/app/authRegistry'
 import { canAccessRoute, landingFor } from '@/app/roles'
 import { useI18n } from '@/i18n'
@@ -44,8 +45,15 @@ export function LoginPage() {
           ? requestedFrom
           : landingFor(role ?? 'boss')
       navigate(target, { replace: true })
-    } catch {
-      setError(t.login.invalidCredentials)
+    } catch (err) {
+      const code = err instanceof AuthError ? err.code : 'invalid_credentials'
+      setError(
+        code === 'not_allowed'
+          ? t.login.notAllowed
+          : code === 'network'
+            ? t.login.networkError
+            : t.login.invalidCredentials,
+      )
     } finally {
       setLoading(false)
     }
@@ -229,6 +237,8 @@ export function LoginPage() {
           </CardContent>
         </Card>
 
+        {DEMO_ACCOUNT_EMAILS.length > 0 && (
+          <>
         <p className="mt-4 text-center text-xs text-muted-foreground">
           {t.login.demoHint}
         </p>
@@ -246,6 +256,8 @@ export function LoginPage() {
             </li>
           ))}
         </ul>
+          </>
+        )}
       </div>
     </div>
   )
