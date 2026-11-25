@@ -9,7 +9,11 @@ import type { ConnectionState } from '@/ports/OfficeFeed'
 /** Public values only (R10). Read once; Vite inlines them at build time. */
 export function supabaseEnv(): { url: string; anonKey: string } | null {
   const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() ?? ''
-  const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim() ?? ''
+  // VITE_SUPABASE_PUBLISHABLE_KEY is the name Supabase's own "Connect" dialog suggests; accept both (D10).
+  const anonKey =
+    (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim() ||
+    (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined)?.trim() ||
+    ''
   return url && anonKey ? { url, anonKey } : null
 }
 
