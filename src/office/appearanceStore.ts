@@ -55,15 +55,21 @@ export function setAppearanceStore(store: AppearanceStore): void {
   activeStore = store
   useAppearanceCache.setState({ docs: {}, versions: {} })
   if (store instanceof LocalAppearanceStore) applyEntries(store.readEntries())
-  void store.getEntries().then((entries) => {
-    if (activeStore === store) applyEntries(entries)
-  })
+  void store
+    .getEntries()
+    .then((entries) => {
+      if (activeStore === store) applyEntries(entries)
+    })
+    .catch((err: unknown) => console.warn('Loading saved looks failed:', err))
   unsubscribe = store.subscribe((id, doc) => {
     // Show the new look at once, then pick up the stored version.
     useAppearanceCache.setState((s) => ({ docs: { ...s.docs, [id]: sameIdentity(s.docs[id], doc) } }))
-    void store.getEntries().then((entries) => {
-      if (activeStore === store) applyEntries(entries)
-    })
+    void store
+      .getEntries()
+      .then((entries) => {
+        if (activeStore === store) applyEntries(entries)
+      })
+      .catch((err: unknown) => console.warn('Reloading saved looks failed:', err))
   })
 }
 
