@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '@/app/auth'
+import { CONTRACT_VERSION } from '@/domain/contract'
 import { can } from '@/app/roles'
 import { useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTier'
 import { useDrive } from '@/app/drive'
@@ -535,7 +536,7 @@ export function SettingsPage() {
               <div className="flex items-center justify-between p-3.5">
                 <span className="text-muted-foreground">{t.settings.system.contractVersion}</span>
                 <span className="rounded-md bg-primary-soft px-2 py-0.5 font-mono text-xs font-semibold text-primary">
-                  {t.settings.system.contractVersionValue}
+                  v{CONTRACT_VERSION}
                 </span>
               </div>
             </div>

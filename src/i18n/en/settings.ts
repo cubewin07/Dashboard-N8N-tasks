@@ -88,7 +88,6 @@ export const settings: typeof viSettings = {
     n8nVersion: 'n8n version',
     defaultN8nVersion: '1.74.2',
     contractVersion: 'Contract version',
-    contractVersionValue: 'v0.2',
   },
   importLooks: {
     title: 'Import looks from this browser',

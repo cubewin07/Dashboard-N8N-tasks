@@ -87,7 +87,6 @@ export const settings = {
     n8nVersion: 'Phiên bản n8n',
     defaultN8nVersion: '1.74.2',
     contractVersion: 'Phiên bản hợp đồng',
-    contractVersionValue: 'v0.2',
   },
   importLooks: {
     title: 'Nhập diện mạo từ trình duyệt này',
