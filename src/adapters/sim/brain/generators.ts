@@ -1,10 +1,16 @@
-import { BOSS_MESSAGES_VI } from '../content/vi'
+import type { DepartmentId } from '@/domain/primitives'
+import {
+  BOSS_MESSAGES_VI,
+  GENERIC_TASK_TEMPLATES_VI,
+  genericTaskType,
+} from '../content/vi'
 import { chance, intRange, pick, simId } from '../rng'
 import {
   createTaskInBrain,
   emitSimEvent,
   getManagerEmployeeId,
   getPrimaryOwnerEmployeeId,
+  roleCaps,
   type SimBrainContext,
 } from './context'
 import { SIM_ODDS } from './odds'
@@ -23,6 +29,74 @@ function nextIntervalFromHourlyRange(
   const minMs = Math.max(30_000, Math.floor(baseIntervalMs * 0.85))
   const maxMs = Math.max(minMs + 1_000, Math.floor(baseIntervalMs * 1.15))
   return intRange(ctx.rng, minMs, maxMs)
+}
+
+function isDepartmentActive(ctx: SimBrainContext, key: string): boolean {
+  return ctx.state.config.departments.some((d) => d.key === key && d.active)
+}
+
+/**
+ * Departments with no task types of their own (a floor the boss added) and at least one
+ * person to do the work: they get the generic routine set so the floor is alive at once.
+ */
+export function genericDepartments(ctx: SimBrainContext) {
+  const { departments, taskTypes, employees } = ctx.state.config
+  const withTypes = new Set(
+    taskTypes.filter((t) => !t.key.startsWith('sys.')).map((t) => t.departmentKey),
+  )
+  return departments
+    .filter((d) => d.active && !withTypes.has(d.key))
+    .filter((d) =>
+      employees.some(
+        (e) =>
+          e.state === 'active' &&
+          e.departmentId === d.id &&
+          roleCaps(ctx, e.roleKey)?.doWork === true &&
+          Boolean(ctx.state.people[e.id]),
+      ),
+    )
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+}
+
+function runGenericGenerators(ctx: SimBrainContext, isLunch: boolean): void {
+  const nowMs = ctx.clock.nowMs()
+  const policy = ctx.state.config.policy
+  const eligible = genericDepartments(ctx)
+  const eligibleIds = new Set<DepartmentId>(eligible.map((d) => d.id))
+  for (const id of ctx.genericGenerators.keys()) {
+    if (!eligibleIds.has(id)) ctx.genericGenerators.delete(id)
+  }
+
+  for (const dept of eligible) {
+    let slot = ctx.genericGenerators.get(dept.id)
+    if (!slot) {
+      slot = { nextFireSimMs: nowMs + intRange(ctx.rng, 60_000, 180_000) }
+      ctx.genericGenerators.set(dept.id, slot)
+    }
+    const open =
+      dept.hours === '24_7' || (ctx.clock.isWorkHours(dept, policy) && !isLunch)
+    if (!open) {
+      if (slot.nextFireSimMs <= nowMs) {
+        slot.nextFireSimMs = nowMs + intRange(ctx.rng, 120_000, 300_000)
+      }
+      continue
+    }
+    while (nowMs >= slot.nextFireSimMs) {
+      const template = pick(ctx.rng, GENERIC_TASK_TEMPLATES_VI)
+      createTaskInBrain(ctx, template.key, {
+        taskType: genericTaskType(template, dept.key),
+        departmentId: dept.id,
+        requestedByKind: 'schedule',
+        channel: 'schedule',
+        titleCtx: { department: dept.label.vi },
+      })
+      slot.nextFireSimMs += nextIntervalFromHourlyRange(
+        ctx,
+        SIM_ODDS.hourlyTaskRates.generic,
+        ctx.crowdedActive ? 2 : 1,
+      )
+    }
+  }
 }
 
 export function initGeneratorSchedule(ctx: SimBrainContext): void {
@@ -55,7 +129,7 @@ export function runGenerators(ctx: SimBrainContext): void {
     const csTypes = ctx.state.config.taskTypes.filter(
       (t) => t.departmentKey === 'cs' && !t.key.startsWith('sys.'),
     )
-    if (csTypes.length > 0) {
+    if (csTypes.length > 0 && isDepartmentActive(ctx, 'cs')) {
       const chosen = pick(ctx.rng, csTypes)
       createTaskInBrain(ctx, chosen.key, {
         requestedByKind: 'customer',
@@ -71,6 +145,9 @@ export function runGenerators(ctx: SimBrainContext): void {
       ctx.crowdedActive ? 2 : 1,
     )
   }
+
+  // 1b. Departments without task types of their own (P10-T13)
+  runGenericGenerators(ctx, isLunch)
 
   // Office-hours generators: if outside office hours or at lunch, advance nextFireSimMs
   if (!isOfficeOpen) {
@@ -93,7 +170,7 @@ export function runGenerators(ctx: SimBrainContext): void {
     const mktTypes = ctx.state.config.taskTypes.filter(
       (t) => t.departmentKey === 'marketing' && !t.key.startsWith('sys.'),
     )
-    if (mktTypes.length > 0) {
+    if (mktTypes.length > 0 && isDepartmentActive(ctx, 'marketing')) {
       const chosen = pick(ctx.rng, mktTypes)
       const isSchedule = chance(ctx.rng, 0.5)
       createTaskInBrain(ctx, chosen.key, {
@@ -113,7 +190,7 @@ export function runGenerators(ctx: SimBrainContext): void {
     const designTypes = ctx.state.config.taskTypes.filter(
       (t) => t.departmentKey === 'design',
     )
-    if (designTypes.length > 0) {
+    if (designTypes.length > 0 && isDepartmentActive(ctx, 'design')) {
       const chosen = pick(ctx.rng, designTypes)
       createTaskInBrain(ctx, chosen.key, {
         requestedByKind: 'schedule',
@@ -137,7 +214,7 @@ export function runGenerators(ctx: SimBrainContext): void {
         t.departmentKey === 'accounting' &&
         (atQuarterEnd || !SIM_ODDS.quarterlyTypeKeys.includes(t.key)),
     )
-    if (accTypes.length > 0) {
+    if (accTypes.length > 0 && isDepartmentActive(ctx, 'accounting')) {
       const chosen = pick(ctx.rng, accTypes)
       createTaskInBrain(ctx, chosen.key, {
         requestedByKind: 'schedule',
@@ -157,31 +234,38 @@ export function runGenerators(ctx: SimBrainContext): void {
   // 5. Boss intake generator
   while (nowMs >= ctx.generators.bossIntake.nextFireSimMs) {
     const msg = pick(ctx.rng, BOSS_MESSAGES_VI)
-    const managerId = getManagerEmployeeId(ctx)
-    const ownerId = getPrimaryOwnerEmployeeId(ctx)
-    const messageId = simId('msg', ctx.rng, nowMs)
-    emitSimEvent(
-      ctx,
-      'intake.received',
-      {
-        messageId,
-        channel: chance(ctx.rng, 0.7) ? 'telegram' : 'app',
-        modality: chance(ctx.rng, 0.35) ? 'voice' : 'text',
-        fromUserId: ownerId,
-        text: msg.text,
-      },
-      { actor: ownerId },
-    )
-    createTaskInBrain(ctx, msg.typeKey, {
-      requestedByKind: 'boss',
-      requestedById: ownerId,
-      channel: 'telegram',
-      priority: msg.priority,
-      departmentId: msg.departmentId,
-      platformKey: msg.platformKey,
-      actor: managerId,
-      causedBy: messageId,
-    })
+    // A message about a department the boss switched off would only pile up unassigned.
+    if (
+      ctx.state.config.departments.some(
+        (d) => d.id === msg.departmentId && d.active,
+      )
+    ) {
+      const managerId = getManagerEmployeeId(ctx)
+      const ownerId = getPrimaryOwnerEmployeeId(ctx)
+      const messageId = simId('msg', ctx.rng, nowMs)
+      emitSimEvent(
+        ctx,
+        'intake.received',
+        {
+          messageId,
+          channel: chance(ctx.rng, 0.7) ? 'telegram' : 'app',
+          modality: chance(ctx.rng, 0.35) ? 'voice' : 'text',
+          fromUserId: ownerId,
+          text: msg.text,
+        },
+        { actor: ownerId },
+      )
+      createTaskInBrain(ctx, msg.typeKey, {
+        requestedByKind: 'boss',
+        requestedById: ownerId,
+        channel: 'telegram',
+        priority: msg.priority,
+        departmentId: msg.departmentId,
+        platformKey: msg.platformKey,
+        actor: managerId,
+        causedBy: messageId,
+      })
+    }
     ctx.generators.bossIntake.nextFireSimMs += nextIntervalFromHourlyRange(
       ctx,
       SIM_ODDS.hourlyTaskRates.bossIntake,

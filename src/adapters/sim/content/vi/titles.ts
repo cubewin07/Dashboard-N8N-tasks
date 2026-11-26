@@ -1,5 +1,6 @@
 import { intRange, pick, type RandomFn } from '../../rng'
 import { CUSTOMERS_VI } from './customers'
+import { GENERIC_TASK_TITLE_TEMPLATES_VI } from './generic'
 import { PRODUCTS_VI } from './products'
 import {
   ALL_SHOPS_VI,
@@ -205,6 +206,9 @@ export const TASK_TITLE_TEMPLATES_VI: Record<string, readonly string[]> = {
     'Kết nối và phân quyền tài khoản gian hàng {shop} mới trên {platform}',
     'Thiết lập tích hợp đồng bộ dữ liệu kênh {platform} cho {department}',
   ],
+
+  // Generic set for departments without task types (P10-T13)
+  ...GENERIC_TASK_TITLE_TEMPLATES_VI,
 }
 
 export interface TitleRenderContext {

@@ -60,6 +60,8 @@ export const SIM_ODDS = {
     accounting: [2, 2] as const,
     accountingMonthEndMultiplier: 3,
     bossIntake: [1, 2] as const,
+    /** Per department that has no task types of its own (P10-T13). */
+    generic: [4, 6] as const,
   },
 } as const
 
