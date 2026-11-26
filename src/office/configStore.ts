@@ -31,6 +31,32 @@ let clock: () => Iso = () => new Date().toISOString()
 let activeSource: ConfigSource = new LocalConfigSource({ getActor: () => actorGetter() })
 let unsubscribeSource: (() => void) | null = null
 
+/**
+ * Writes still waiting for the source. A remote push that lands meanwhile may be an echo from
+ * before the write (Supabase reloads on a debounce), so it would wipe the optimistic edit and
+ * make the sim send people away and back. Such pushes wait; when the last write settles the
+ * source is reloaded once instead.
+ */
+let inFlight = 0
+let remoteDeferred = false
+
+function applyRemote(config: OrgConfig): void {
+  useConfigStore.setState({ config, status: 'ready', error: null, lastChange: null, origin: 'remote' })
+}
+
+function settleWrite(): void {
+  inFlight -= 1
+  if (inFlight > 0 || !remoteDeferred) return
+  remoteDeferred = false
+  void activeSource
+    .load()
+    .then((cfg) => {
+      if (inFlight === 0) applyRemote(cfg)
+      else remoteDeferred = true
+    })
+    .catch((err: unknown) => console.warn('Config reload after a deferred push failed:', err))
+}
+
 export const useConfigStore = create<ConfigStoreState>(() => ({
   config: null,
   status: 'loading',
@@ -55,6 +81,8 @@ export function setConfigSource(source: ConfigSource): void {
     unsubscribeSource = null
   }
   activeSource = source
+  inFlight = 0
+  remoteDeferred = false
 }
 
 export async function loadConfig(): Promise<OrgConfig> {
@@ -72,13 +100,8 @@ export async function loadConfig(): Promise<OrgConfig> {
       unsubscribeSource()
     }
     unsubscribeSource = activeSource.subscribe((nextConfig) => {
-      useConfigStore.setState({
-        config: nextConfig,
-        status: 'ready',
-        error: null,
-        lastChange: null,
-        origin: 'remote',
-      })
+      if (inFlight > 0) remoteDeferred = true
+      else applyRemote(nextConfig)
     })
     return config
   } catch (err) {
@@ -113,9 +136,15 @@ export async function applyConfigEdit(
   const issues = validateConfig(next)
   if (hasErrors(issues)) throw new ConfigError('invalid', undefined, issues)
 
+  // A replace is stored as its normalized result, so every adapter keeps what the file left out
+  // as archived / switched off (D5) instead of reading the file its own way.
+  const stored: ConfigChange =
+    change.kind === 'config.replace' ? { kind: 'config.replace', config: next } : change
+
   useConfigStore.setState({ config: next, lastChange: change, origin })
+  inFlight += 1
   try {
-    await activeSource.apply(change)
+    await activeSource.apply(stored)
   } catch (err) {
     if (useConfigStore.getState().config === next) {
       useConfigStore.setState({ config: prev, lastChange: null, origin: 'rollback' })
@@ -129,6 +158,8 @@ export async function applyConfigEdit(
         .catch((reloadErr: unknown) => console.warn('Config reload after rollback failed:', reloadErr))
     }
     throw toConfigError(err)
+  } finally {
+    settleWrite()
   }
 }
 

@@ -6,8 +6,11 @@ export interface ConfigSource {
   load(): Promise<OrgConfig>
   subscribe(cb: (cfg: OrgConfig) => void): () => void
   /**
-   * Role-checked (boss only) and validated with `validateConfig` on the whole resulting config
-   * (R10). Throws `ConfigError`. Resolves once the change is stored.
+   * Role-checked (boss only; the Supabase RPCs check again). Throws `ConfigError`. Resolves once
+   * the change is stored. Call it only through `applyConfigEdit` (src/office/configStore.ts),
+   * which runs `validateConfig` on the whole resulting config first (R10) and sends a
+   * `config.replace` as its normalized result. LocalConfigSource validates again because it has
+   * the config at hand; the Supabase adapter relies on the store plus the database checks (D2).
    */
   apply(change: ConfigChange): Promise<void>
   /** v1.3: newest first, at most `limit` (default 200) rows of "Nhật ký thay đổi" (R13). */

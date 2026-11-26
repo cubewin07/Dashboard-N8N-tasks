@@ -161,6 +161,43 @@ describe('applyConfigEdit (P10 R10, R11, R15, D4)', () => {
   })
 })
 
+describe('review fixes', () => {
+  it('a replace stores the normalized config, so omitted people are archived in every adapter', async () => {
+    const gone = source.config.employees.find((e) => e.state === 'active' && e.roleKey === 'worker')!
+    const incoming = { ...source.config, employees: source.config.employees.filter((e) => e.id !== gone.id) }
+    await applyConfigEdit({ kind: 'config.replace', config: incoming })
+    const sent = source.applied[0]
+    expect(sent?.kind).toBe('config.replace')
+    const stored = sent?.kind === 'config.replace' ? sent.config.employees.find((e) => e.id === gone.id) : null
+    expect(stored?.state).toBe('archived')
+  })
+
+  it('a remote push that lands while a write is in flight waits, then the source is reloaded once', async () => {
+    let release: () => void = () => {}
+    source.applyImpl = () => new Promise<void>((r) => (release = r))
+    const change = renameFirstDepartment(source.config, 'Kho vận')
+    const pending = applyConfigEdit(change)
+    const loads = vi.spyOn(source, 'load')
+
+    // A stale echo from an earlier write: it must not wipe the optimistic edit.
+    source.push(makeSeedConfig())
+    expect(useConfigStore.getState().config?.departments[0]?.label.vi).toBe('Kho vận')
+
+    source.config = { ...source.config, departments: [change.kind === 'department.upsert' ? change.department : source.config.departments[0]!, ...source.config.departments.slice(1)] }
+    release()
+    await pending
+    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(1))
+    await vi.waitFor(() => expect(useConfigStore.getState().origin).toBe('remote'))
+    expect(useConfigStore.getState().config?.departments[0]?.label.vi).toBe('Kho vận')
+  })
+
+  it('a remote push with no write in flight applies at once', () => {
+    const remote = { ...source.config, departments: source.config.departments.slice() }
+    source.push(remote)
+    expect(useConfigStore.getState().config).toBe(remote)
+  })
+})
+
 describe('config → feed forwarding (P10 §3.2)', () => {
   it('passes a boss edit with its change, and a remote push without one', async () => {
     const feed = new FakeFeed()
