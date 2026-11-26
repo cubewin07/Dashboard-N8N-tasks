@@ -1,5 +1,6 @@
 import type { ApprovalRule, Policy } from './config'
 import { LEVEL_RANK, type ApprovalLevel, type DepartmentId } from './primitives'
+import { chainFor } from './reviews'
 import type { Task } from './work'
 
 export interface RuleEvalTask {
@@ -121,5 +122,43 @@ export function requiredLevel(
   return {
     level: highest,
     matchedRuleIds: matched.map((r) => r.id),
+  }
+}
+
+export interface LevelExplanation {
+  /** What `requiredLevel` returns (strictest matching rule, or the policy default). */
+  level: ApprovalLevel
+  /** Every enabled rule that matched, in rule order. */
+  matchedRules: ApprovalRule[]
+  /** The first matched rule whose level is the result: the "because" of the explanation. */
+  decidedBy: ApprovalRule | null
+  /** True when no rule matched and `policy.approvals.defaultLevel` applied. */
+  defaulted: boolean
+  /** Levels that approve in turn, lowest first (`policy.approvals.chain`). */
+  chain: ApprovalLevel[]
+}
+
+/**
+ * `requiredLevel` plus everything needed to explain it (rule tester, P10-T11). Same decision as
+ * the engine because it calls `requiredLevel`; nothing is recomputed here.
+ */
+export function explainLevel(
+  task: RuleEvalTask | Task,
+  rules: readonly ApprovalRule[],
+  policy: Policy,
+  ctx: RuleEvalContext = {},
+): LevelExplanation {
+  const { level, matchedRuleIds } = requiredLevel(task, rules, policy, ctx)
+  const byId = new Map(rules.map((r) => [r.id, r]))
+  const matchedRules = matchedRuleIds.flatMap((id) => {
+    const rule = byId.get(id)
+    return rule ? [rule] : []
+  })
+  return {
+    level,
+    matchedRules,
+    decidedBy: matchedRules.find((r) => r.level === level) ?? null,
+    defaulted: matchedRules.length === 0,
+    chain: chainFor(level, policy, { taskTags: task.tags }),
   }
 }
