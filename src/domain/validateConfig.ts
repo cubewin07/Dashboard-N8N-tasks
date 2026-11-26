@@ -29,6 +29,7 @@ export type ConfigIssueCode =
   // Inv. 5 (warnings): references to switched-off things
   | 'refInactiveDepartment'
   | 'refInactivePlatform'
+  // R2 (error): a department with active staff cannot be switched off
   | 'employeeInInactiveDepartment'
   // Inv. 6: approval levels
   | 'approverMissingReviewer'
@@ -293,7 +294,7 @@ function invariants(cfg: OrgConfig): ConfigIssue[] {
     const d = deptById.get(e.departmentId)
     if (d && !d.active) {
       out.push(
-        issue('warning', 'employeeInInactiveDepartment', ['employees', idx, 'departmentId'], {
+        issue('error', 'employeeInInactiveDepartment', ['employees', idx, 'departmentId'], {
           employee: e.name,
           department: deptLabel(d),
         }),

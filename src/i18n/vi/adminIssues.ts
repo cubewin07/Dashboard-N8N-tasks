@@ -31,7 +31,7 @@ export const adminIssues = {
     refInactiveDepartment: '{owner} đang nhắc tới phòng {name}, nhưng phòng này đã tắt.',
     refInactivePlatform: '{owner} đang nhắc tới nền tảng {name}, nhưng nền tảng này đã tắt.',
     employeeInInactiveDepartment:
-      '{employee} đang làm việc ở phòng {department} nhưng phòng này đã tắt.',
+      'Chưa thể tắt phòng {department}: {employee} vẫn đang làm việc ở đó. Hãy chuyển phòng hoặc cho người này nghỉ trước.',
     approverMissingReviewer:
       'Chính sách hoặc quy tắc đang yêu cầu duyệt ở cấp Kiểm duyệt, nhưng chưa có vai trò nào duyệt được cấp này.',
     approverMissingDeptManager:

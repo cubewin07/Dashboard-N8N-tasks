@@ -31,7 +31,7 @@ export const adminIssues: typeof vi = {
     refInactiveDepartment: '{owner} mentions the department {name}, which is switched off.',
     refInactivePlatform: '{owner} mentions the platform {name}, which is switched off.',
     employeeInInactiveDepartment:
-      '{employee} works in department {department}, which is switched off.',
+      '{department} cannot be switched off yet: {employee} still works there. Move or dismiss them first.',
     approverMissingReviewer:
       'The policy or a rule asks for Reviewer-level approval, but no role can approve at that level.',
     approverMissingDeptManager:

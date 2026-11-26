@@ -369,7 +369,8 @@ describe('invariant 5: references resolve', () => {
     cfg.taskTypes[0]!.platformKeys = [platform.key]
     cfg.taskTypes[0]!.departmentKey = dept.key
     dept.active = false
-    const issues = validateConfig(cfg)
+    // The department's own staff are an error (R2); references to it are only warnings.
+    const issues = validateConfig(cfg).filter((i) => i.code !== 'employeeInInactiveDepartment')
     expect(hasErrors(issues)).toBe(false)
     const warnings = codes(issues, 'warning')
     expect(warnings).toEqual(
@@ -382,13 +383,13 @@ describe('invariant 5: references resolve', () => {
     expect(platformPaths).toEqual(expect.arrayContaining(['shops', 'taskTypes', 'approvalRules']))
   })
 
-  it('warns about an active employee in an inactive department', () => {
+  it('refuses an inactive department that still has active staff (R2)', () => {
     const cfg = seed()
     const dept = cfg.departments[0]!
     dept.active = false
     const issues = validateConfig(cfg)
-    expect(hasErrors(issues)).toBe(false)
-    expect(codes(issues)).toContain('employeeInInactiveDepartment')
+    expect(hasErrors(issues)).toBe(true)
+    expect(issues.find((i) => i.code === 'employeeInInactiveDepartment')?.level).toBe('error')
   })
 })
 
