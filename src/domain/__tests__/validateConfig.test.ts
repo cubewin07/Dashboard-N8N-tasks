@@ -570,6 +570,8 @@ describe('messages', () => {
     policyAgingCap: true,
     policyQuestionSeat: true,
     bossInStack: true,
+    builtInRoleMissing: true,
+    builtInRoleChanged: true,
   }
 
   it('every code has a Vietnamese and an English message, with the same placeholders', () => {
@@ -604,5 +606,32 @@ describe('messages', () => {
     expect(fmt(vi.codes.roleOverLimit, over.params)).toBe(
       `Phòng ${cfg.departments[0]!.label.vi} đang có 2 người giữ vai Trưởng phòng (tối đa 1).`,
     )
+  })
+})
+
+describe('built-in roles (R3, review fix)', () => {
+  it('the seed has every built-in role intact', () => {
+    expect(codes(validateConfig(seed()))).not.toContain('builtInRoleMissing')
+    expect(codes(validateConfig(seed()))).not.toContain('builtInRoleChanged')
+  })
+
+  it('a config without a built-in role is refused (e.g. an import)', () => {
+    const cfg = seed()
+    cfg.roles = cfg.roles.filter((r) => r.key !== 'lead')
+    const found = validateConfig(cfg).find((i) => i.code === 'builtInRoleMissing')
+    expect(found).toMatchObject({ level: 'error', params: { role: 'lead' } })
+  })
+
+  it('a built-in role whose scope or humanOwner changed is refused', () => {
+    const cfg = seed()
+    cfg.roles = cfg.roles.map((r) =>
+      r.key === 'worker' ? { ...r, caps: { ...r.caps, humanOwner: true } } : r,
+    )
+    expect(codes(validateConfig(cfg), 'error')).toContain('builtInRoleChanged')
+    const cfg2 = seed()
+    cfg2.roles = cfg2.roles.map((r) =>
+      r.key === 'reviewer' ? { ...r, scope: 'building' as const } : r,
+    )
+    expect(codes(validateConfig(cfg2), 'error')).toContain('builtInRoleChanged')
   })
 })
