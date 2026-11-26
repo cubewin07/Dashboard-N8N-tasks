@@ -1,3 +1,8 @@
+import { admin } from './vi/admin'
+import { adminIssues } from './vi/adminIssues'
+import { adminOrg } from './vi/adminOrg'
+import { adminPeople } from './vi/adminPeople'
+import { adminRules } from './vi/adminRules'
 import { activity } from './vi/activity'
 import { common } from './vi/common'
 import { credits } from './vi/credits'
@@ -36,6 +41,11 @@ export const vi = {
   sim,
   wardrobe,
   wardrobeEditor,
+  admin,
+  adminIssues,
+  adminOrg,
+  adminPeople,
+  adminRules,
 }
 
 export type Messages = typeof vi

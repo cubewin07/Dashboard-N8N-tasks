@@ -1,3 +1,8 @@
+import { admin } from './en/admin'
+import { adminIssues } from './en/adminIssues'
+import { adminOrg } from './en/adminOrg'
+import { adminPeople } from './en/adminPeople'
+import { adminRules } from './en/adminRules'
 import { activity } from './en/activity'
 import { common } from './en/common'
 import { credits } from './en/credits'
@@ -37,4 +42,9 @@ export const en: Messages = {
   sim,
   wardrobe,
   wardrobeEditor,
+  admin,
+  adminIssues,
+  adminOrg,
+  adminPeople,
+  adminRules,
 }

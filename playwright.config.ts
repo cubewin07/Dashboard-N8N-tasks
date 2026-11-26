@@ -6,6 +6,9 @@ const CHROMIUM_ARGS = [
   '--ignore-gpu-blocklist',
 ]
 
+// E2E_PORT lets parallel checkouts (worktrees) each run their own preview server.
+const PORT = Number(process.env.E2E_PORT ?? 4173)
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
@@ -19,7 +22,7 @@ export default defineConfig({
     ? [['./e2e/support/progress-reporter.ts'], ['github'], ['html', { open: 'never' }]]
     : [['./e2e/support/progress-reporter.ts']],
   use: {
-    baseURL: 'http://localhost:4173/Dashboard-N8N-tasks/',
+    baseURL: `http://localhost:${PORT}/Dashboard-N8N-tasks/`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     launchOptions: {
@@ -43,8 +46,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
-    url: 'http://localhost:4173/Dashboard-N8N-tasks/',
+    command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}/Dashboard-N8N-tasks/`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {

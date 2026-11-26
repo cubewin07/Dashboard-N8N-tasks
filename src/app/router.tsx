@@ -63,6 +63,15 @@ export const router = createHashRouter([
         }),
       },
       {
+        // Quản trị (P10, R1): boss only. Checked before the chunk loads, like the office.
+        path: '/admin',
+        lazy: async () => {
+          if (!can(authPort.session()?.role, 'admin')) return { Component: UnknownRoute }
+          return { Component: (await import('@/features/admin/AdminPage')).AdminPage }
+        },
+        errorElement: <RouteError />,
+      },
+      {
         path: '/settings',
         lazy: async () => ({
           Component: (await import('@/features/settings/SettingsPage')).SettingsPage,

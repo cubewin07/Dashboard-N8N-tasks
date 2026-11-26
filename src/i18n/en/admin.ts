@@ -1,0 +1,56 @@
+import type { admin as vi } from '../vi/admin'
+
+export const admin: typeof vi = {
+  title: 'Admin',
+  description: 'Edit the company as data: departments, people, roles, policy and approval rules.',
+  tabsAriaLabel: 'Admin sections',
+  tabs: {
+    departments: 'Departments',
+    people: 'People',
+    roles: 'Roles',
+    specialties: 'Specialties',
+    policy: 'Policy',
+    rules: 'Approval rules',
+    platforms: 'Platforms',
+    history: 'Change history',
+    backup: 'Backup',
+  },
+  save: {
+    save: 'Save',
+    saving: 'Saving…',
+    saved: 'Saved',
+    failed: 'Could not save',
+    cancel: 'Cancel',
+    reset: 'Default',
+    discardTitle: 'Discard unsaved changes?',
+  },
+  errors: {
+    forbidden: 'Only the boss can edit this.',
+    invalid: 'The change is not valid yet; nothing was saved.',
+    not_found: 'The item was not found (someone may have just removed it).',
+    network: 'Connection lost; the change was undone. Try again later.',
+    unknown: 'Saving failed; the change was undone.',
+  },
+  issues: {
+    errorsTitle: 'Fix before saving',
+    warningsTitle: 'Note',
+  },
+  label: {
+    vi: 'Name (Vietnamese)',
+    en: 'Name (English, optional)',
+  },
+  key: {
+    label: 'Key',
+    hint: 'Lowercase letters, digits and _; cannot change after creation.',
+  },
+  builtIn: 'Built-in',
+  locked: 'Locked',
+  active: 'Active',
+  inactive: 'Inactive',
+  add: 'Add',
+  edit: 'Edit',
+  delete: 'Delete',
+  moveUp: 'Move up',
+  moveDown: 'Move down',
+  empty: 'Nothing here yet.',
+}
