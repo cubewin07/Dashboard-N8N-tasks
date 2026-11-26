@@ -15,7 +15,9 @@ export default defineConfig({
   // Each desktop page renders WebGL in software and decodes ~70 models; more
   // than 3 at once starves the CPU and times out unrelated specs.
   workers: process.env.CI ? 1 : 3,
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  reporter: process.env.CI
+    ? [['./e2e/support/progress-reporter.ts'], ['github'], ['html', { open: 'never' }]]
+    : [['./e2e/support/progress-reporter.ts']],
   use: {
     baseURL: 'http://localhost:4173/Dashboard-N8N-tasks/',
     trace: 'on-first-retry',
@@ -48,6 +50,11 @@ export default defineConfig({
     env: {
       VITE_E2E: '1',
       VITE_DEBUG: '1',
+      // E2E runs against the demo accounts. Blank values override a developer's .env.local,
+      // which would otherwise build the app in Supabase mode.
+      VITE_SUPABASE_URL: '',
+      VITE_SUPABASE_ANON_KEY: '',
+      VITE_SUPABASE_PUBLISHABLE_KEY: '',
     },
   },
 })
