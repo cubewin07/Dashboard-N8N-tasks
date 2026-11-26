@@ -6,6 +6,7 @@ import { EVENT_TYPES, type EventType, type OfficeEvent } from './events'
 import { isIdOf } from './ids'
 import type { EmployeeId, Iso, MessageId, ReviewId, TaskId } from './primitives'
 import { crossedHour, pruneFinished } from './retention'
+import { pickApprover } from './reviews'
 import type { IntakeMessage, OfficeState, PersonRuntime, ReviewItem, Task } from './work'
 
 const MAX_LOG_SIZE = 500
@@ -1357,7 +1358,7 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
         }
       }
 
-      return {
+      const archived: OfficeState = {
         ...state,
         now: event.at,
         seq: event.seq,
@@ -1367,6 +1368,23 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
         questions: nextQuestions,
         log: appendLog(state.log, event),
       }
+
+      // Open review items the person still held go to the next approver at the same level
+      // (same pick, incl. fallbacks, as a new review), so no task waits on someone gone.
+      let nextReviews = archived.reviews
+      for (const review of Object.values(state.reviews)) {
+        if (review.assigneeId !== p.employeeId) continue
+        if (review.status !== 'pending' && review.status !== 'in_review') continue
+        const task = state.tasks[review.taskId]
+        if (!task) continue
+        const to = pickApprover(review.level, task, { ...archived, reviews: nextReviews })
+        if (!to) continue
+        nextReviews = {
+          ...nextReviews,
+          [review.id]: { ...review, assigneeId: to, status: 'pending' },
+        }
+      }
+      return nextReviews === archived.reviews ? archived : { ...archived, reviews: nextReviews }
     }
 
     case 'config.changed': {

@@ -843,3 +843,56 @@ describe('withConfig (P09: a newer config pushed by the ConfigSource)', () => {
     expect(s.log).toBe(worked.log)
   })
 })
+
+describe('staff.archived hands open reviews to another approver (P10-T13)', () => {
+  it('moves a pending or in-review item off the person who left', () => {
+    const cfg = makeSeedConfig()
+    const roleOf = new Map(cfg.roles.map((r) => [r.key, r]))
+    const reviewer = cfg.employees.find(
+      (e) => e.state === 'active' && roleOf.get(e.roleKey)?.caps.approveLevel === 'reviewer',
+    )!
+    const task = makeSampleTask({
+      id: 'task_01JTEST0000000000000000RV',
+      departmentId: reviewer.departmentId!,
+      assigneeId: null,
+      status: 'in_review',
+    })
+    const base = {
+      taskId: task.id,
+      level: 'reviewer' as const,
+      assigneeId: reviewer.id,
+      priority: 'normal' as const,
+      createdAt: t(1),
+      decidedAt: null,
+      decidedBy: null,
+      note: null,
+    }
+    const pending = { ...base, id: 'rev_01JTEST0000000000000000P1' as const, status: 'pending' as const }
+    const reading = { ...base, id: 'rev_01JTEST0000000000000000P2' as const, status: 'in_review' as const }
+    const done = {
+      ...base,
+      id: 'rev_01JTEST0000000000000000P3' as const,
+      status: 'approved' as const,
+      decidedAt: t(2),
+      decidedBy: reviewer.id,
+    }
+    const b = initialState(cfg, t(0))
+    const s0 = {
+      ...b,
+      tasks: { ...b.tasks, [task.id]: task },
+      reviews: { ...b.reviews, [pending.id]: pending, [reading.id]: reading, [done.id]: done },
+    }
+    const s1 = apply(
+      s0,
+      makeEvent('staff.archived', { employeeId: reviewer.id, reason: 'dismissed' }, { seq: 1, at: t(3) }),
+    )
+    for (const id of [pending.id, reading.id]) {
+      const r = s1.reviews[id]!
+      expect(r.assigneeId).not.toBe(reviewer.id)
+      expect(s1.people[r.assigneeId]).toBeDefined()
+      expect(r.status).toBe('pending')
+    }
+    // A decided item keeps who decided it.
+    expect(s1.reviews[done.id]).toEqual(done)
+  })
+})
