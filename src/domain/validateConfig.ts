@@ -1,6 +1,7 @@
 // P10-T02 · validateConfig: zod shape first, then the invariants of phase-10 §3.3.
 // Pure. Messages come from i18n (`t.adminIssues.codes[code]`); `params` fill the placeholders.
 import { OrgConfigSchema, type ApprovalRule, type OrgConfig, type RoleDef } from './config'
+import { BUILT_IN_ROLES, BUILT_IN_ROLE_KEYS } from './configChange'
 import { LEVEL_RANK, type ApprovalLevel } from './primitives'
 
 export type ConfigIssueCode =
@@ -44,6 +45,9 @@ export type ConfigIssueCode =
   | 'policyQuestionSeat'
   // Inv. 8
   | 'bossInStack'
+  // R3: built-in roles stay, with their scope and human-owner flag
+  | 'builtInRoleMissing'
+  | 'builtInRoleChanged'
 
 export interface ConfigIssue {
   level: 'error' | 'warning'
@@ -442,6 +446,22 @@ function invariants(cfg: OrgConfig): ConfigIssue[] {
         max: 10,
       }),
     )
+  }
+
+  // R3: built-in roles can't be removed, nor their scope / human-owner flag changed (an import
+  // could otherwise do what the role editor forbids).
+  for (const key of BUILT_IN_ROLE_KEYS) {
+    const role = roleByKey.get(key)
+    const want = BUILT_IN_ROLES[key]
+    if (!role) {
+      out.push(issue('error', 'builtInRoleMissing', ['roles'], { role: key }))
+    } else if (role.scope !== want.scope || role.caps.humanOwner !== want.humanOwner) {
+      out.push(
+        issue('error', 'builtInRoleChanged', ['roles', cfg.roles.indexOf(role)], {
+          role: label(role.label, role.key),
+        }),
+      )
+    }
   }
 
   // Inv. 8: the boss floor is appended by the layout and never part of the stack.

@@ -49,5 +49,7 @@ export const adminIssues: typeof vi = {
       'The question seating threshold must be between {min} and {max} (now {value}).',
     bossInStack:
       'The boss floor is always added automatically on top and must not be part of the building stack.',
+    builtInRoleMissing: 'The built-in role “{role}” is missing. Built-in roles cannot be removed.',
+    builtInRoleChanged: 'The built-in role {role} cannot change its scope or owner flag.',
   },
 }

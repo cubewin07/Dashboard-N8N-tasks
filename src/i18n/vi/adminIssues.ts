@@ -48,5 +48,7 @@ export const adminIssues = {
     policyQuestionSeat: 'Ngưỡng xếp chỗ chờ cho câu hỏi phải từ {min} đến {max} (đang là {value}).',
     bossInStack:
       'Tầng của Sếp luôn được thêm tự động ở trên cùng, không được đưa vào danh sách tầng của tòa nhà.',
+    builtInRoleMissing: 'Thiếu vai trò có sẵn “{role}”. Vai trò có sẵn không xoá được.',
+    builtInRoleChanged: 'Vai trò có sẵn {role} không được đổi phạm vi hay quyền chủ sở hữu.',
   } satisfies Record<ConfigIssueCode, string> as Record<ConfigIssueCode, string>,
 }
