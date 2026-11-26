@@ -54,8 +54,13 @@ export function DepartmentEditor({
   )
   const { issues: draftIssues, blocking } = useDraftIssues(change)
   const baseline = useMemo(() => validateConfig(config), [config])
+  // The validator's "inactive department still has staff" error says what our own refusal
+  // message already says next to the switch: show ours only.
   const shown = useMemo(
-    () => (saveIssues.length > 0 ? saveIssues : newIssues(draftIssues, baseline)),
+    () =>
+      (saveIssues.length > 0 ? saveIssues : newIssues(draftIssues, baseline)).filter(
+        (i) => (i.code as string) !== 'employeeInInactiveDepartment',
+      ),
     [saveIssues, draftIssues, baseline],
   )
 
