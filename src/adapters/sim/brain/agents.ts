@@ -12,9 +12,11 @@ import {
   pickLeadForDepartment,
 } from '@/domain/reviews'
 import { pileFor } from '@/domain/selectors'
-import { planHire } from '@/domain/staffing'
+import { longestIdleTemp, planHire } from '@/domain/staffing'
 import type { HelpRequest, Question, ReviewItem } from '@/domain/work'
 import {
+  GENERIC_TASK_SPECIALTY,
+  isGenericTaskKey,
   QUESTIONS_VI,
   REVIEW_NOTES_APPROVE_VI,
   REVIEW_NOTES_CHANGES_VI,
@@ -30,6 +32,7 @@ import {
   getManagerEmployeeId,
   getPrimaryOwnerEmployeeId,
   isOwnerRole,
+  newEmployeeId,
   roleCaps,
   type SimBrainContext,
 } from './context'
@@ -74,6 +77,25 @@ const TEMP_FIRST_NAMES_VI = [
   'Xuân',
 ] as const
 
+/**
+ * A department with no task types (one the boss added) has no specialty vocabulary of its own:
+ * a temp takes what the department's people already hold, else the specialty homed there.
+ */
+function fallbackSpecialty(
+  ctx: SimBrainContext,
+  departmentId: DepartmentId,
+  departmentKey: string | undefined,
+): string {
+  const { employees, specialties } = ctx.state.config
+  const held = employees
+    .filter((e) => e.state === 'active' && e.departmentId === departmentId)
+    .flatMap((e) => e.specialties)
+    .sort()
+  if (held[0]) return held[0]
+  const home = specialties.find((s) => s.homeDepartmentKey === departmentKey)
+  return home?.key ?? 'customer_chat'
+}
+
 export function hireTempEmployee(
   ctx: SimBrainContext,
   departmentId: DepartmentId,
@@ -97,13 +119,13 @@ export function hireTempEmployee(
       ? [...specialtiesOverride]
       : uniqueSpecs.length > 0
         ? [pick(ctx.rng, uniqueSpecs)]
-        : ['customer_chat']
+        : [fallbackSpecialty(ctx, departmentId, dept?.key)]
 
   const tempIndex =
     ctx.state.config.employees.filter((e) => e.kind === 'temp').length + 1
   const baseName = pick(ctx.rng, TEMP_FIRST_NAMES_VI)
   const emp: Employee = {
-    id: simId('emp', ctx.rng, ctx.clock.nowMs()),
+    id: newEmployeeId(ctx),
     name: nameOverride ?? `${baseName} (Tạm ${tempIndex})`,
     departmentId,
     roleKey,
@@ -327,6 +349,30 @@ export function stepPersonShifts(ctx: SimBrainContext): void {
   }
 }
 
+/**
+ * Generic tasks need no specialty: anyone in the department who does the work may take one.
+ * Same choice as `pickWorker` (idle, not busy, dedicated workers first), by giving the
+ * department's people a stand-in specialty on a throwaway copy of the state.
+ */
+function pickGenericWorker(
+  departmentId: DepartmentId,
+  ctx: SimBrainContext,
+): EmployeeId | null {
+  const config = ctx.state.config
+  const view = {
+    ...ctx.state,
+    config: {
+      ...config,
+      employees: config.employees.map((e) =>
+        e.departmentId === departmentId
+          ? { ...e, specialties: [...e.specialties, GENERIC_TASK_SPECIALTY] }
+          : e,
+      ),
+    },
+  }
+  return pickWorker({ specialty: GENERIC_TASK_SPECIALTY }, departmentId, view)
+}
+
 export function stepAssignments(ctx: SimBrainContext): void {
   const policy = ctx.state.config.policy
   const nowIso = ctx.clock.now()
@@ -357,7 +403,9 @@ export function stepAssignments(ctx: SimBrainContext): void {
 
     for (const task of sorted) {
       if (task.typeKey.startsWith('sys.')) continue
-      const workerId = pickWorker(task.typeKey, dept.id, ctx.state)
+      const workerId = isGenericTaskKey(task.typeKey)
+        ? pickGenericWorker(dept.id, ctx)
+        : pickWorker(task.typeKey, dept.id, ctx.state)
       if (!workerId) continue
 
       const assignerId =
@@ -971,7 +1019,33 @@ export function decideReviewInBrain(
   }
 }
 
+/**
+ * The boss lowered `staffing.tempCap` (P10 §3.2): idle temps leave, longest idle first, as they
+ * become eligible; busy temps finish their task first. Stops once the count fits the cap.
+ */
+function enforceTempCap(ctx: SimBrainContext): void {
+  if (!ctx.enforceTempCap) return
+  const cap = ctx.state.config.policy.staffing.tempCap
+  const managerId = getManagerEmployeeId(ctx)
+  const activeTemps = () =>
+    ctx.state.config.employees.filter(
+      (e) => e.state === 'active' && e.kind === 'temp',
+    ).length
+  while (activeTemps() > cap) {
+    const leaver = longestIdleTemp(ctx.state, ctx.clock.now())
+    if (leaver === null) return
+    emitSimEvent(
+      ctx,
+      'staff.archived',
+      { employeeId: leaver, reason: 'cap' },
+      { actor: managerId },
+    )
+  }
+  ctx.enforceTempCap = false
+}
+
 export function stepStaffing(ctx: SimBrainContext): void {
+  enforceTempCap(ctx)
   const nowMs = ctx.clock.nowMs()
   const nowIso = ctx.clock.now()
   const managerId = getManagerEmployeeId(ctx)

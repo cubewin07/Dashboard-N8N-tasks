@@ -1,5 +1,5 @@
 import type { Command, CommandAck } from '@/domain/commands'
-import type { OrgConfig } from '@/domain/config'
+import type { ConfigChange, OrgConfig } from '@/domain/config'
 import type { OfficeEvent } from '@/domain/events'
 import type { Iso } from '@/domain/primitives'
 import type { OfficeState } from '@/domain/work'
@@ -13,6 +13,7 @@ import {
   handleSimCommand,
 } from './brain/commands'
 import { emitSimEvent, type SimBrainContext } from './brain/context'
+import { reconfigureBrain } from './brain/reconfigure'
 import {
   createBrainContext,
   flushBrainPendingEvents,
@@ -138,6 +139,13 @@ export class SimFeed implements OfficeFeed, SimControllerDriver {
     }
   }
 
+  reconfigure(config: OrgConfig, change: ConfigChange | null): void {
+    this.config = config
+    if (!this.ctx) return
+    reconfigureBrain(this.ctx, config, change)
+    this.flushAndNotify()
+  }
+
   stop(): void {
     this.stopTimer()
     if (this.bindGlobalControls) {
@@ -200,9 +208,13 @@ export class SimFeed implements OfficeFeed, SimControllerDriver {
 
   setSeed(seed: string | number): void {
     this.seed = String(seed).trim() || DEFAULT_SIM_SEED
-    if (this.config) {
+    // A reset starts from the company as it is now (edited, with the temps the sim hired),
+    // not from the config the sim booted with.
+    const current = this.ctx?.state.config ?? this.config
+    if (current) {
+      this.config = current
       this.simAccumMs = 0
-      this.ctx = createBrainContext(this.config, this.seed, this.speed)
+      this.ctx = createBrainContext(current, this.seed, this.speed)
       for (const cb of this.resetListeners) {
         cb(this.ctx.state)
       }
