@@ -14,18 +14,12 @@ import roles from '@/content/roles.json'
 import specialties from '@/content/specialties.json'
 import taskTypes from '@/content/task-types.json'
 import { parseOrgConfig, type ConfigChange, type OrgConfig } from '@/domain/config'
-import type { ConfigSource } from '@/ports/ConfigSource'
+import type { ConfigAuditEntry } from '@/domain/configChange'
+import { ConfigError, type ConfigActor, type ConfigSource } from '@/ports/ConfigSource'
+
+export { ConfigError }
 
 export const CONFIG_OVERRIDES_KEY = 'office.config.overrides'
-
-export class ConfigError extends Error {
-  readonly code: string
-  constructor(code: string, message?: string) {
-    super(message ?? code)
-    this.name = 'ConfigError'
-    this.code = code
-  }
-}
 
 const OverrideEnvelopeSchema = z.object({
   v: z.literal(1),
@@ -75,8 +69,18 @@ export function getBundledRawConfig(): Record<string, unknown> {
   }
 }
 
+export interface LocalConfigSourceOptions {
+  /** The signed-in user, for the role check (R15) and history rows. */
+  getActor?: () => ConfigActor | null
+}
+
 export class LocalConfigSource implements ConfigSource {
   private readonly listeners = new Set<(cfg: OrgConfig) => void>()
+  private readonly getActor: () => ConfigActor | null
+
+  constructor(options: LocalConfigSourceOptions = {}) {
+    this.getActor = options.getActor ?? (() => null)
+  }
 
   async load(): Promise<OrgConfig> {
     const bundledRaw = getBundledRawConfig()
@@ -115,6 +119,12 @@ export class LocalConfigSource implements ConfigSource {
 
   async apply(_change: ConfigChange): Promise<void> {
     void _change
-    throw new ConfigError('not_implemented', 'Config writes are implemented in P10')
+    void this.getActor
+    throw new ConfigError('unknown', 'TODO(P10-T03)')
+  }
+
+  async history(_limit = 200): Promise<ConfigAuditEntry[]> {
+    void _limit
+    return [] // TODO(P10-T03): local ring buffer
   }
 }

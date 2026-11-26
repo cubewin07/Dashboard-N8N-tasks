@@ -67,7 +67,7 @@ describe('SupabaseConfigSource', () => {
     const { db } = mockDb(full)
     await expect(
       new SupabaseConfigSource(db, new RealtimeHub()).apply({ kind: 'config.replace' } as never),
-    ).rejects.toMatchObject({ code: 'not_supported' })
+    ).rejects.toMatchObject({ code: 'unknown' })
   })
 
   describe('subscribe', () => {

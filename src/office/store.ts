@@ -1,10 +1,12 @@
 import { create } from 'zustand'
 import type { Command, CommandAck } from '@/domain/commands'
+import type { ConfigChange } from '@/domain/config'
 import type { OfficeEvent } from '@/domain/events'
 import { applyAll, withConfig } from '@/domain/reducer'
 import type { OfficeState } from '@/domain/work'
+import { ConfigError } from '@/ports/ConfigSource'
 import type { ConnectionState, OfficeFeed } from '@/ports/OfficeFeed'
-import { loadConfig, useConfigStore } from './configStore'
+import { applyConfigEdit, loadConfig, setConfigClock, useConfigStore } from './configStore'
 import { officeExtensions } from './extensions'
 import { createFeed } from './feedRegistry'
 import { getCommandsAllowed } from './sessionRole'
@@ -55,6 +57,39 @@ function cancelScheduledFlush(): void {
     clearTimeout(rafHandle as ReturnType<typeof setTimeout>)
   }
   rafHandle = null
+}
+
+/**
+ * P10 §3.2 path 2: a hire or leave the simulator made itself (its manager, a `staff.hire`
+ * command, the temp cap) is stored through the ConfigSource like a Quản trị edit. Events that
+ * came from a config edit are already in the config store and are skipped (dedupe by id).
+ */
+function persistStaffEvents(batch: readonly OfficeEvent[]): void {
+  for (const evt of batch) {
+    const config = useConfigStore.getState().config
+    if (!config) return
+    let change: ConfigChange | null = null
+    if (evt.type === 'staff.hired') {
+      const { employee } = (evt as OfficeEvent<'staff.hired'>).payload
+      const known = config.employees.find((e) => e.id === employee.id)
+      if (known?.state !== 'active') {
+        change = {
+          kind: 'employee.upsert',
+          employee: { ...employee, state: 'active', archivedAt: null },
+        }
+      }
+    } else if (evt.type === 'staff.archived') {
+      const { employeeId, reason } = (evt as OfficeEvent<'staff.archived'>).payload
+      const known = config.employees.find((e) => e.id === employeeId)
+      if (known?.state === 'active') change = { kind: 'employee.archive', id: employeeId, reason }
+    }
+    if (!change) continue
+    applyConfigEdit(change, { origin: 'feed' }).catch((err: unknown) => {
+      // Not a boss session (nothing to persist), or the sim's change breaks an invariant.
+      if (err instanceof ConfigError && err.code === 'forbidden') return
+      console.warn('[office] Could not store a staff change from the feed:', err)
+    })
+  }
 }
 
 export function flushOfficeEvents(): void {
@@ -289,22 +324,31 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
       })
     }
 
+    setConfigClock(() => feed.now())
+
     unsubscribeEvents = feed.subscribe((batch) => {
       if (batch.length === 0) return
       pendingEvents.push(...batch)
       scheduleFlush()
+      if (feed.kind === 'sim') persistStaffEvents(batch)
     })
 
     unsubscribeConn = feed.onConnection((c) => {
       useOffice.setState({ connection: c })
     })
 
-    // A newer config from the ConfigSource (Supabase realtime: a change made in another
-    // browser or in the SQL editor) replaces the office snapshot at once. The per-browser
-    // simulator does not emit `config.changed` for changes it did not make (R12).
+    // A newer config from the ConfigSource: a boss edit (optimistic), a rollback, or a realtime
+    // edit from elsewhere. A feed that owns the state (the sim) adopts it and emits the events
+    // (arrivals, leavers, config.changed; P10 §3.4). Otherwise the snapshot is swapped at once.
+    // Hires/leaves the feed itself made (`origin: 'feed'`) are already in its state.
     unsubscribeConfig = useConfigStore.subscribe((next, prev) => {
       if (!next.config || next.config === prev.config) return
+      if (next.origin === 'feed') return
       flushOfficeEvents()
+      if (feed.reconfigure) {
+        feed.reconfigure(next.config, next.origin === 'ui' ? next.lastChange : null)
+        return
+      }
       const current = useOffice.getState().state
       if (!current || current.config === next.config) return
       useOffice.setState({ state: withConfig(current, next.config, current.now) })

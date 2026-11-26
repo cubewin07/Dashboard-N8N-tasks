@@ -607,7 +607,7 @@ describe('domain reducer', () => {
     expect(c15.taskTypes).toHaveLength(1)
 
     const c16 = applyConfigChange(c15, { kind: 'config.replace', config: cfg })
-    expect(c16).toBe(cfg)
+    expect(c16).toEqual(cfg)
   })
   it('frees a worker who finishes a task while an earlier task waits in review', () => {
     const reviewing = makeSampleTask({

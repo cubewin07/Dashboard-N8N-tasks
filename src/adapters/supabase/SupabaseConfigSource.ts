@@ -1,7 +1,8 @@
 // ConfigSource over the config tables (P09-T10). Read-only here; writes arrive in P10 (D4).
-import { ConfigError, getBundledRawConfig } from '@/adapters/local/LocalConfigSource'
+import { getBundledRawConfig } from '@/adapters/local/LocalConfigSource'
 import { parseOrgConfig, type ConfigChange, type OrgConfig } from '@/domain/config'
-import type { ConfigSource } from '@/ports/ConfigSource'
+import type { ConfigAuditEntry } from '@/domain/configChange'
+import { ConfigError, type ConfigSource } from '@/ports/ConfigSource'
 import type { Db } from './client'
 import { CONFIG_TABLES, mapRows, type ConfigRows, type MappedConfig } from './configRows'
 import type { RealtimeHub } from './realtime'
@@ -67,7 +68,12 @@ export class SupabaseConfigSource implements ConfigSource {
 
   async apply(_change: ConfigChange): Promise<void> {
     void _change
-    throw new ConfigError('not_supported', 'Config writes are wired in P10')
+    throw new ConfigError('unknown', 'TODO(P10-T04)')
+  }
+
+  async history(_limit = 200): Promise<ConfigAuditEntry[]> {
+    void _limit
+    return [] // TODO(P10-T04): config_audit
   }
 
   private open(): void {

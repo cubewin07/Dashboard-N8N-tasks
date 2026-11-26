@@ -1,5 +1,5 @@
 import type { Command, CommandAck } from '@/domain/commands'
-import type { OrgConfig } from '@/domain/config'
+import type { ConfigChange, OrgConfig } from '@/domain/config'
 import type { OfficeEvent } from '@/domain/events'
 import type { Iso } from '@/domain/primitives'
 import type { OfficeState } from '@/domain/work'
@@ -29,5 +29,13 @@ export interface OfficeFeed {
    * calls back with the fresh state so the store replaces, not appends.
    */
   onReset?(cb: (state: OfficeState) => void): () => void
+  /**
+   * v1.3, optional: the ConfigSource now holds `config` (a boss edit, `change` set; or a realtime
+   * edit from elsewhere, `change` null). A feed that owns the office state (the sim) adopts it and
+   * emits the resulting events: `staff.hired` / `staff.archived` for people who start or stop
+   * being active (one per employee id), `config.changed` for the rest; nothing when nothing
+   * differs. A feed without it gets the config swapped into the snapshot by the store.
+   */
+  reconfigure?(config: OrgConfig, change: ConfigChange | null): void
   stop(): void
 }
