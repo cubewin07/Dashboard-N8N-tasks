@@ -9,8 +9,8 @@ const rootDir = path.resolve(import.meta.dirname, '../../..')
 const fixturesDir = path.resolve(import.meta.dirname, '../__fixtures__')
 
 describe('CONTRACT_VERSION', () => {
-  it('equals 1.2 and matches docs/plan/contracts.md', () => {
-    expect(CONTRACT_VERSION).toBe('1.2')
+  it('equals 1.3 and matches docs/plan/contracts.md', () => {
+    expect(CONTRACT_VERSION).toBe('1.3')
     const contractsDoc = fs.readFileSync(
       path.join(rootDir, 'docs/plan/contracts.md'),
       'utf8',

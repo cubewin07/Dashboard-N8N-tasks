@@ -245,6 +245,12 @@ isOneToOne: false
 "delete_approval_rule":
 { Args: { "p_id": string }; Returns: undefined
                            },
+"delete_role":
+{ Args: { "p_key": string }; Returns: undefined
+                           },
+"delete_specialty":
+{ Args: { "p_key": string }; Returns: undefined
+                           },
 "is_boss":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
@@ -253,6 +259,12 @@ isOneToOne: false
                            },
 "reorder_approval_rules":
 { Args: { "p_ids": (string)[] }; Returns: undefined
+                           },
+"reorder_departments":
+{ Args: { "p_ids": (string)[] }; Returns: undefined
+                           },
+"replace_config":
+{ Args: { "p": Json }; Returns: undefined
                            },
 "restore_employee":
 { Args: { "p_id": string }; Returns: undefined
