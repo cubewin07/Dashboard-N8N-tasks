@@ -39,6 +39,7 @@ import { Building } from '@/scene/render/Building'
 import { Environment } from '@/scene/render/Environment'
 import { Lights } from '@/scene/render/Lights'
 import { OfficeLife } from '@/scene/render/OfficeLife'
+import { useRouterBusy } from '@/lib/useRouterBusy'
 import { People } from '@/scene/render/People'
 import { activeFloorIndexOf } from '@/scene/render/place'
 import {
@@ -281,6 +282,8 @@ export function OfficeCanvas() {
 
   const location = useLocation()
   const [, setSearchParams] = useSearchParams()
+  // Never write the URL while another route is loading: that would cancel the navigation.
+  const routerBusy = useRouterBusy()
   const lastWrittenSearchRef = useRef<string | null>(null)
   const initializedUrlRef = useRef(false)
 
@@ -336,11 +339,11 @@ export function OfficeCanvas() {
       )
       lastWrittenSearchRef.current = canonical
       initializedUrlRef.current = true
-      if (location.search !== canonical) {
+      if (location.search !== canonical && !routerBusy) {
         setSearchParams(canonical.slice(1), { replace: true })
       }
     }
-  }, [location.search, floorKeys, setSearchParams])
+  }, [location.search, floorKeys, setSearchParams, routerBusy])
 
   // 2. R11: If the focused floor disappears after a config change, fall back to overview
   useEffect(() => {
@@ -350,7 +353,7 @@ export function OfficeCanvas() {
 
   // 3. Sync viewStore -> URL when mode or focusedFloorKey changes
   useEffect(() => {
-    if (!initializedUrlRef.current) return
+    if (!initializedUrlRef.current || routerBusy) return
     const latest = useViewStore.getState()
     if (mode !== latest.mode || focusedFloorKey !== latest.focusedFloorKey) {
       return
@@ -364,7 +367,7 @@ export function OfficeCanvas() {
       lastWrittenSearchRef.current = nextSearch
       setSearchParams(nextSearch.slice(1), { replace: true })
     }
-  }, [mode, focusedFloorKey, location.search, setSearchParams])
+  }, [mode, focusedFloorKey, location.search, setSearchParams, routerBusy])
 
   if (!config || !layout) {
     return null

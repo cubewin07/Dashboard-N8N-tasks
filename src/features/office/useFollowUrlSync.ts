@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import type { EmployeeId } from '@/domain/primitives'
+import { useRouterBusy } from '@/lib/useRouterBusy'
 import { usePeopleUi } from '@/office/uiStore'
 import { usePeopleDirectory } from './usePeopleDirectory'
 
@@ -43,6 +44,7 @@ export function useFollowUrlSync(): void {
   const urlFollow = searchParams.get(FOLLOW_PARAM)
   const followedId = usePeopleUi((s) => s.followedId)
   const directory = usePeopleDirectory()
+  const routerBusy = useRouterBusy()
 
   const activeIds = useMemo(
     () =>
@@ -90,6 +92,8 @@ export function useFollowUrlSync(): void {
       next = null // unknown id: strip it
     }
 
+    // Leaving the page (a lazy route is loading): a URL write now would cancel that navigation.
+    if (routerBusy) return
     const timer = window.setTimeout(() => {
       const params = currentSearch(location.pathname, location.search)
       if ((params.get(FOLLOW_PARAM) ?? null) === next) return
@@ -105,5 +109,6 @@ export function useFollowUrlSync(): void {
     location.pathname,
     location.search,
     setSearchParams,
+    routerBusy,
   ])
 }
