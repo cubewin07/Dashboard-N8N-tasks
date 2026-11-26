@@ -96,23 +96,42 @@ All forms: draft state local to the sheet, "Lưu" disabled until valid and dirty
 | D7 | Local-mode audit | none · ring buffer | **Ring buffer (200)** | The History tab works in the no-backend demo | – |
 | D8 | Floor templates and wardrobe catalogue | editable here · developer data | **Not editable here** | They are tied to art assets; out of "starting simple" | Boss wants to rearrange furniture → a layout editor is its own phase |
 
+Decisions made while building (2026-11-26):
+
+| # | Topic | Choice | Reason | Cost if wrong |
+|---|---|---|---|---|
+| D9 | Branch split | `stack/p10a-config-core` (T01–T05, T13) and `stack/p10b-admin-screens` (T06–T12, T14–T16) | The phase is ~13 800 lines, far past the §7 threshold | One extra PR |
+| D10 | Contract version | **v1.3**, not v1.2 as first planned | P09 already shipped v1.2 | A version-number edit |
+| D11 | How config reaches the sim | Optional port method `OfficeFeed.reconfigure?(config, change \| null)`. The sim diffs employees into `staff.hired` / `staff.archived`, otherwise emits `config.changed`. Hires the sim makes itself are stored once with origin `feed` and never echoed back | One path for local edits and realtime edits; dedupe by employee id falls out of the diff | Rename a port method |
+| D12 | What `config.replace` replaces | Only the editable parts (departments, roles, specialties, employees, shops, platforms, rules, policy, task types); building, floor templates and palette stay | D8 and invariant 8 | Import can't change floor templates (not wanted) |
+| D13 | Supabase reset | `replace_config` (migration 0006) drops unused custom roles, specialties, shops, task types and rules that are not in the payload; never deletes departments, platforms or employees | Reset must drop boss-added extras without losing history | Remove the trailing deletes in 0006 |
+| D14 | Switching off a staffed department | An **error**, not a warning: "move or dismiss them first" | R2 asks for a refusal | Boss must move people first |
+| D15 | Dismissing an approver | Their open reviews go to the next approver at the same level (reducer `staff.archived`) | Otherwise reviews wait for nobody | – |
+| D16 | Lowering the temp cap | The sim archives idle temps only after a lowering, not on every reload | Boss-approved over-cap hires shouldn't vanish | After reload above a lowered cap, nothing auto-archives until it is lowered again |
+| D17 | New departments' work | Sim-only generic task set (`generic.*`), not added to `config.taskTypes` (D6). A department with no active worker gets no tasks | Any new department has visible work at once | UI lookups by typeKey fall back to the generic label |
+| D18 | Seed `boss_sensitive` rule | **Not** widened to `refund`. The P03 boss-queue design narrowed it on purpose; a refund reaches Sếp when it is also `irreversible` | Keeps the boss queue small | The demo refund sample needs that tag, or a rule edit |
+| D19 | Rules UI | Rules store department keys; no drag-and-drop, up/down buttons only (keyboard reachable); a rule with no conditions saves with a warning | Simple and accessible | Add drag-and-drop later |
+| D20 | Backup file | Envelope `{format, version: 1, exportedAt, config}`; import also accepts a bare config | Room to evolve the format | – |
+| D21 | Router URL sync | The office camera skips URL writes while the data router is navigating (`useRouterBusy`) | It cancelled lazy navigations away from `#/` (a pre-existing bug the admin e2e surfaced) | The URL may lag the camera by one navigation |
+| D22 | Keyboard tabs | Radix roving focus moves focus in a `setTimeout`, so presses sent in the same tick move one tab. Real key-repeat is fine; left as is | Library behaviour | A very fast keyboard user may need one extra press |
+
 ## 5. Tasks
-- [ ] **P10-T01** `ConfigChange` union + `applyConfigChange` + tests. *Files:* `src/domain/configChange.ts`, `src/domain/configChange.test.ts`, `contracts.md`. *Acceptance:* one test per kind; applying a change never mutates the input; contract bumped to v1.2.
-- [ ] **P10-T02** `validateConfig` + invariants + i18n codes. *Files:* `src/domain/validateConfig.ts`, tests, `src/i18n/{vi,en}/admin.ts`. *Acceptance:* each invariant in §3.3 has a failing-case and passing-case test; the seed config yields zero errors.
-- [ ] **P10-T03** `LocalConfigSource.apply` + local audit buffer. *Files:* `src/adapters/local/LocalConfigSource.ts`, tests. *Acceptance:* role check (stylist → `ConfigError('forbidden')`), validate-then-save, subscribers notified, survives reload, reset clears overrides.
-- [ ] **P10-T04** ∥ `SupabaseConfigSource.apply` + migration `0006_replace_config.sql` (`replace_config`, `delete_role`) + pgTAP additions. *Files:* `src/adapters/supabase/SupabaseConfigSource.ts`, `supabase/migrations/0006_*.sql`, `supabase/tests/08_replace_config.sql` (07 is the P09 catalog test). *Acceptance:* mapping test (each kind → expected RPC + args with a mocked client); optimistic rollback test; stylist rejected.
-- [ ] **P10-T05** Admin shell + guard + nav. *Files:* `src/features/admin/AdminPage.tsx`, `src/app/router.tsx`, `src/app/AppLayout.tsx`, i18n. *Acceptance:* R1, R15; E2E: stylist session visiting `#/admin` is redirected.
-- [ ] **P10-T06** ∥ Departments tab. *Acceptance:* R2; E2E adds a department and asserts a new floor label appears in the org list and (desktop) the floor count in the scene debug hook `window.__office_debug.floors()` increases; deactivation with staff shows the refusal message.
-- [ ] **P10-T07** ∥ People tab (hire, edit, move, dismiss, restore, archive list). *Acceptance:* R5; restoring an archived temp brings back the same appearance doc; moving a person changes their desk on the new floor without reload.
-- [ ] **P10-T08** ∥ Roles + specialties tabs. *Acceptance:* R3, R4; built-in role delete button absent; a custom role with `approveLevel: 'reviewer'` starts receiving reviews in the sim.
-- [ ] **P10-T09** ∥ Policy tab. *Acceptance:* R6; changing `tempCap` to a lower value makes the sim archive idle temps (unit test on staffing with edited policy + manual check).
-- [ ] **P10-T10** ∥ Rules tab + condition builder. *Acceptance:* R7; reorder persists; disabled rule is ignored by the engine (unit test already in P03, UI test here).
-- [ ] **P10-T11** Rule tester. *Files:* `src/features/admin/RuleTester.tsx`, `src/domain/rules.ts` (export `explainLevel`). *Acceptance:* R8; fixtures: refund task → boss via `boss_sensitive`; FAQ reply → reviewer; untagged → default `dept_manager`; results update as the draft rule changes before saving.
-- [ ] **P10-T12** ∥ Platforms + shops tab. *Acceptance:* R9; deactivating `lazada` removes its badge from new sim tasks within one sim hour.
-- [ ] **P10-T13** Simulator reaction to config changes + generic task set + hire/dismiss dedupe. *Files:* `src/adapters/sim/brain/*`, `src/adapters/sim/content/vi/generic.ts`, tests. *Acceptance:* R12; seeded test: add department + 3 staff → within 2 sim hours at least one task is created, reviewed and completed there; archived assignee's task is reassigned; one hire → exactly one `staff.hired`.
-- [ ] **P10-T14** History tab. *Acceptance:* R13 in both modes; entries show actor display name, entity, action and a readable diff.
-- [ ] **P10-T15** Backup tab: export / import / reset. *Acceptance:* R14; export → reset → import round-trips to a deep-equal config; importing an invalid file shows issues and applies nothing.
-- [ ] **P10-T16** Phone pass + a11y + copy. *Acceptance:* all tabs usable at 375 px (cards instead of tables, sheets full-screen); keyboard-only run through "add department → hire → edit rule"; Playwright 375 px screenshots attached.
+- [x] **P10-T01** `ConfigChange` union + `applyConfigChange` + tests. *Files:* `src/domain/configChange.ts`, `src/domain/configChange.test.ts`, `contracts.md`. *Acceptance:* one test per kind; applying a change never mutates the input; contract bumped to v1.3 (D10).
+- [x] **P10-T02** `validateConfig` + invariants + i18n codes. *Files:* `src/domain/validateConfig.ts`, tests, `src/i18n/{vi,en}/admin.ts`. *Acceptance:* each invariant in §3.3 has a failing-case and passing-case test; the seed config yields zero errors.
+- [x] **P10-T03** `LocalConfigSource.apply` + local audit buffer. *Files:* `src/adapters/local/LocalConfigSource.ts`, tests. *Acceptance:* role check (stylist → `ConfigError('forbidden')`), validate-then-save, subscribers notified, survives reload, reset clears overrides.
+- [x] **P10-T04** ∥ `SupabaseConfigSource.apply` + migration `0006_replace_config.sql` (`replace_config`, `delete_role`) + pgTAP additions. *Files:* `src/adapters/supabase/SupabaseConfigSource.ts`, `supabase/migrations/0006_*.sql`, `supabase/tests/08_replace_config.sql` (07 is the P09 catalog test). *Acceptance:* mapping test (each kind → expected RPC + args with a mocked client); optimistic rollback test; stylist rejected.
+- [x] **P10-T05** Admin shell + guard + nav. *Files:* `src/features/admin/AdminPage.tsx`, `src/app/router.tsx`, `src/app/AppLayout.tsx`, i18n. *Acceptance:* R1, R15; E2E: stylist session visiting `#/admin` is redirected.
+- [x] **P10-T06** ∥ Departments tab. *Acceptance:* R2; E2E adds a department and asserts a new floor label appears in the org list and (desktop) the floor count in the scene debug hook `window.__office_debug.floors()` increases; deactivation with staff shows the refusal message.
+- [x] **P10-T07** ∥ People tab (hire, edit, move, dismiss, restore, archive list). *Acceptance:* R5; restoring an archived temp brings back the same appearance doc; moving a person changes their desk on the new floor without reload.
+- [x] **P10-T08** ∥ Roles + specialties tabs. *Acceptance:* R3, R4; built-in role delete button absent; a custom role with `approveLevel: 'reviewer'` starts receiving reviews in the sim.
+- [x] **P10-T09** ∥ Policy tab. *Acceptance:* R6; changing `tempCap` to a lower value makes the sim archive idle temps (unit test on staffing with edited policy + manual check).
+- [x] **P10-T10** ∥ Rules tab + condition builder. *Acceptance:* R7; reorder persists; disabled rule is ignored by the engine (unit test already in P03, UI test here).
+- [x] **P10-T11** Rule tester. *Files:* `src/features/admin/RuleTester.tsx`, `src/domain/rules.ts` (export `explainLevel`). *Acceptance:* R8; fixtures: refund task → boss via `boss_sensitive`; FAQ reply → reviewer; untagged → default `dept_manager`; results update as the draft rule changes before saving.
+- [x] **P10-T12** ∥ Platforms + shops tab. *Acceptance:* R9; deactivating `lazada` removes its badge from new sim tasks within one sim hour.
+- [x] **P10-T13** Simulator reaction to config changes + generic task set + hire/dismiss dedupe. *Files:* `src/adapters/sim/brain/*`, `src/adapters/sim/content/vi/generic.ts`, tests. *Acceptance:* R12; seeded test: add department + 3 staff → within 2 sim hours at least one task is created, reviewed and completed there; archived assignee's task is reassigned; one hire → exactly one `staff.hired`.
+- [x] **P10-T14** History tab. *Acceptance:* R13 in both modes; entries show actor display name, entity, action and a readable diff.
+- [x] **P10-T15** Backup tab: export / import / reset. *Acceptance:* R14; export → reset → import round-trips to a deep-equal config; importing an invalid file shows issues and applies nothing.
+- [x] **P10-T16** Phone pass + a11y + copy. *Acceptance:* all tabs usable at 375 px (cards instead of tables, sheets full-screen); keyboard-only run through "add department → hire → edit rule"; Playwright 375 px screenshots attached.
 
 ## 6. Dependencies
 - **Needs:** P01 (`ConfigSource`, config schema), P02 (layout rebuild from config), P03 (rules/staffing/priority engine, `SimFeed`, `staff.*` and `config.changed` events), P04 (arrival/leave trips), P08b (roles in `AuthPort`), P09 (RPCs, `config_audit`).
@@ -131,7 +150,7 @@ Edits apply live to 2D, 3D and the simulator. Works in Local and Supabase modes.
 1. Add department "Kho vận" → new floor. 2. Hire 3 people → they arrive. 3. Lower temp cap → idle temps leave.
 4. Thử quy tắc with a refund task → Sếp duyệt. 5. Export, reset, import.
 ## Contract
-office-contract v1.2 (ConfigChange union, replace_config/delete_role RPCs)
+office-contract v1.3 (ConfigChange union, replace_config/delete_role RPCs)
 ## Screens
 <desktop + 375px screenshots>
 ```
