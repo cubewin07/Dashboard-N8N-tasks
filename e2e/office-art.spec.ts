@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
+import { waitForOfficeAssets } from './support/office'
 
 const SCREENSHOT_DIR = path.resolve(import.meta.dirname, '../docs/screenshots/p06')
 const P06_SHOTS = process.env.P06_SHOTS === '1'
@@ -57,7 +58,7 @@ test.describe('P06b environment art', () => {
     const canvas = page.locator('[data-office-canvas]')
     await expect(canvas).toBeVisible()
     await expect(canvas).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
-    await expect(canvas).toHaveAttribute('data-assets', 'ready', { timeout: 60_000 })
+    await waitForOfficeAssets(canvas)
     await expect(page.locator('[data-load-progress]')).toHaveCount(0)
 
     // Verify 8 floors present in top-to-bottom order in FloorPicker
@@ -177,7 +178,7 @@ test.describe('P06b environment art', () => {
     await expect(progressNote).toBeVisible({ timeout: 10_000 })
 
     // Progress note gone at the end when data-assets reaches "ready"
-    await expect(canvas).toHaveAttribute('data-assets', 'ready', { timeout: 60_000 })
+    await waitForOfficeAssets(canvas)
     await expect(progressNote).toHaveCount(0)
   })
 

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitForOfficeAssets } from './support/office'
 
 interface CharactersDebugState {
   assembled: number
@@ -31,7 +32,7 @@ async function openOffice(page: Page) {
   const canvas = page.locator('[data-office-canvas]')
   await expect(canvas).toBeVisible()
   await expect(canvas).toHaveAttribute('data-ready', 'true', { timeout: 25_000 })
-  await expect(canvas).toHaveAttribute('data-assets', 'ready', { timeout: 45_000 })
+  await waitForOfficeAssets(canvas)
 }
 
 test.describe('P07b assembled 3D characters', () => {
