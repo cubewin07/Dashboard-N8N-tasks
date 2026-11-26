@@ -44,6 +44,7 @@ export function PersonEditor({
     person ? draftFromEmployee(person) : config ? blankDraft(config) : ({} as PersonDraft),
   )
   const [draft, setDraft] = useState<PersonDraft>(initial)
+  const [nameTouched, setNameTouched] = useState(false)
   const [now] = useState(() => new Date().toISOString())
 
   const set = <K extends keyof PersonDraft>(key: K, value: PersonDraft[K]) =>
@@ -130,8 +131,12 @@ export function PersonEditor({
           value={draft.name}
           required
           autoComplete="off"
-          aria-invalid={draft.name.trim() === '' ? true : undefined}
-          onChange={(e) => set('name', e.target.value)}
+          aria-invalid={nameTouched && draft.name.trim() === '' ? true : undefined}
+          onBlur={() => setNameTouched(true)}
+          onChange={(e) => {
+            setNameTouched(true)
+            set('name', e.target.value)
+          }}
         />
       </Field>
 

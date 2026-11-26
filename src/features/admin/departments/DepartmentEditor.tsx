@@ -130,8 +130,8 @@ export function DepartmentEditor({
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
-          aria-invalid={keyError ? true : undefined}
-          aria-describedby={keyError ? `${id}-key-error` : undefined}
+          aria-invalid={keyError && errorText(keyError) ? true : undefined}
+          aria-describedby={keyError && errorText(keyError) ? `${id}-key-error` : undefined}
           onChange={(e) => update({ key: e.target.value.trim(), keyTouched: true })}
         />
         {keyError && errorText(keyError) && (

@@ -55,3 +55,24 @@ describe('DepartmentEditor', () => {
     expect(saveButton().disabled).toBe(false)
   })
 })
+
+describe('a new, empty form is not shown as an error', () => {
+  it('name and code are not invalid until the boss has been in them', () => {
+    renderEditor(null)
+    const name = screen.getByLabelText('Tên (tiếng Việt)')
+    const key = screen.getByLabelText('Mã')
+    expect(name.getAttribute('aria-invalid')).toBeNull()
+    expect(key.getAttribute('aria-invalid')).toBeNull()
+
+    fireEvent.change(name, { target: { value: 'Kho' } })
+    fireEvent.change(name, { target: { value: '' } })
+    expect(name.getAttribute('aria-invalid')).toBe('true')
+  })
+
+  it('leaving the name empty marks it', () => {
+    renderEditor(null)
+    const name = screen.getByLabelText('Tên (tiếng Việt)')
+    fireEvent.blur(name)
+    expect(name.getAttribute('aria-invalid')).toBe('true')
+  })
+})
