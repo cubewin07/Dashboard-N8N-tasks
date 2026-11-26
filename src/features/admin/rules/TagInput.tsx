@@ -45,7 +45,7 @@ export function TagInput({
     <div className="space-y-1.5" data-testid={testId}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       {value.length > 0 && (
-        <ul className="flex flex-wrap gap-1.5" aria-label={label}>
+        <ul className="flex flex-wrap gap-1.5">
           {value.map((tag) => (
             <li
               key={tag}
