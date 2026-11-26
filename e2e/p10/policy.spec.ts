@@ -20,7 +20,7 @@ test.describe('P10-T09 Policy tab (R6)', () => {
   test('tempCap 10 → 4 persists after reload; "Mặc định" restores 10', async ({ page }) => {
     await loginAsBoss(page)
     await openAdmin(page, 'Chính sách')
-    const tempCap = page.getByLabel('Số nhân viên tạm tối đa')
+    const tempCap = page.getByRole('spinbutton', { name: 'Số nhân viên tạm tối đa' })
     const save = page.getByRole('button', { name: 'Lưu' })
     await expect(tempCap).toHaveValue('10')
     await expect(save).toBeDisabled()
@@ -31,20 +31,20 @@ test.describe('P10-T09 Policy tab (R6)', () => {
     await expect(page.getByRole('status').filter({ hasText: 'Đã lưu' })).toBeVisible()
 
     await page.reload()
-    await expect(page.getByLabel('Số nhân viên tạm tối đa')).toHaveValue('4')
+    await expect(page.getByRole('spinbutton', { name: 'Số nhân viên tạm tối đa' })).toHaveValue('4')
 
     await page.getByRole('button', { name: 'Đặt lại về mặc định: Số nhân viên tạm tối đa' }).click()
-    await expect(page.getByLabel('Số nhân viên tạm tối đa')).toHaveValue('10')
+    await expect(page.getByRole('spinbutton', { name: 'Số nhân viên tạm tối đa' })).toHaveValue('10')
     await page.getByRole('button', { name: 'Lưu' }).click()
     await expect(page.getByRole('status').filter({ hasText: 'Đã lưu' })).toBeVisible()
     await page.reload()
-    await expect(page.getByLabel('Số nhân viên tạm tối đa')).toHaveValue('10')
+    await expect(page.getByRole('spinbutton', { name: 'Số nhân viên tạm tối đa' })).toHaveValue('10')
   })
 
   test('an out-of-range value keeps Lưu disabled', async ({ page }) => {
     await loginAsBoss(page)
     await openAdmin(page, 'Chính sách')
-    await page.getByLabel('Số nhân viên tạm tối đa').fill('99')
+    await page.getByRole('spinbutton', { name: 'Số nhân viên tạm tối đa' }).fill('99')
     await expect(page.getByRole('button', { name: 'Lưu' })).toBeDisabled()
   })
 })

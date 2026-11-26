@@ -58,7 +58,7 @@ function PolicyField({
   const p = t.adminOrg.policy
   const notes = [hint, range].filter(Boolean).join(' ')
   return (
-    <div className="space-y-1.5" data-policy-field={id}>
+    <div className="min-w-0 space-y-1.5" data-policy-field={id}>
       <div className="flex items-center justify-between gap-2">
         <FieldLabel htmlFor={id}>{label}</FieldLabel>
         <Button
