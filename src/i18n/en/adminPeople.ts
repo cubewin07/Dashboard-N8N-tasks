@@ -157,6 +157,7 @@ export const adminPeople: typeof vi = {
     keyTaken: 'This key already exists, pick another.',
     keyInvalid: 'Use lowercase letters without accents, digits and _, starting with a letter.',
     saved: 'Role {name} saved.',
+    removed: 'Role {name} deleted.',
   },
   specialties: {
     title: 'Specialties',
@@ -188,5 +189,6 @@ export const adminPeople: typeof vi = {
     keyTaken: 'This key already exists, pick another.',
     keyInvalid: 'Use lowercase letters without accents, digits and _, starting with a letter.',
     saved: 'Specialty {name} saved.',
+    removed: 'Specialty {name} deleted.',
   },
 }

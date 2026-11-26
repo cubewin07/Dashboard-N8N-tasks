@@ -156,6 +156,7 @@ export const adminPeople = {
     keyTaken: 'Mã này đã có, chọn mã khác.',
     keyInvalid: 'Mã gồm chữ thường không dấu, số và dấu _, bắt đầu bằng chữ.',
     saved: 'Đã lưu vai trò {name}.',
+    removed: 'Đã xoá vai trò {name}.',
   },
   specialties: {
     title: 'Chuyên môn',
@@ -187,5 +188,6 @@ export const adminPeople = {
     keyTaken: 'Mã này đã có, chọn mã khác.',
     keyInvalid: 'Mã gồm chữ thường không dấu, số và dấu _, bắt đầu bằng chữ.',
     saved: 'Đã lưu chuyên môn {name}.',
+    removed: 'Đã xoá chuyên môn {name}.',
   },
 }
