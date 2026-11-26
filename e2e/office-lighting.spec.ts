@@ -4,7 +4,7 @@ import sharp from 'sharp'
 import { deltaE } from '../src/scene/render/colorDelta'
 import { waitForOfficeAssets } from './support/office'
 
-const OUT_DIR = '/Users/letanthang/.claude/jobs/932208d3/tmp/light'
+const OUT_DIR = path.resolve(import.meta.dirname, '../test-results/p06-lighting')
 
 interface DebugInfo {
   drawCalls: number
