@@ -34,6 +34,19 @@ export const BUILT_IN_ROLE_KEYS = [
   'worker',
 ] as const
 
+/** What may never change on a built-in role (R3). Matches src/content/roles.json. */
+export const BUILT_IN_ROLES: Record<
+  (typeof BUILT_IN_ROLE_KEYS)[number],
+  { scope: 'building' | 'department'; humanOwner: boolean }
+> = {
+  owner: { scope: 'building', humanOwner: true },
+  manager: { scope: 'building', humanOwner: false },
+  dept_manager: { scope: 'department', humanOwner: false },
+  lead: { scope: 'department', humanOwner: false },
+  reviewer: { scope: 'department', humanOwner: false },
+  worker: { scope: 'department', humanOwner: false },
+}
+
 export function isBuiltInRole(key: string): boolean {
   return (BUILT_IN_ROLE_KEYS as readonly string[]).includes(key)
 }
@@ -136,7 +149,37 @@ export function applyConfigChange(config: OrgConfig, change: ConfigChange, now?:
         taskTypes: upsertBy(config.taskTypes, change.taskType, (t) => t.key === change.taskType.key),
       }
     case 'config.replace':
-      return { ...config, ...pickEditable(change.config) }
+      return replaceEditable(config, change.config, now)
+  }
+}
+
+/**
+ * Import / reset (D5): the editable parts come from `incoming`, but nothing history or looks
+ * refer to disappears. People missing from it are archived; departments and platforms missing
+ * from it are switched off. Roles, specialties, rules, shops and task types are replaced as is
+ * (`validateConfig` refuses a result that drops a role or specialty still in use).
+ */
+function replaceEditable(current: OrgConfig, incoming: OrgConfig, now: Iso | undefined): OrgConfig {
+  const next = { ...current, ...pickEditable(incoming) }
+  const empIds = new Set(next.employees.map((e) => e.id as string))
+  const deptIds = new Set(next.departments.map((d) => d.id as string))
+  const platformKeys = new Set(next.platforms.map((p) => p.key as string))
+  const keptEmployees = current.employees
+    .filter((e) => !empIds.has(e.id))
+    .map((e) =>
+      e.state === 'archived' ? e : { ...e, state: 'archived' as const, archivedAt: now ?? e.archivedAt },
+    )
+  const keptDepartments = current.departments
+    .filter((d) => !deptIds.has(d.id))
+    .map((d) => (d.active ? { ...d, active: false } : d))
+  const keptPlatforms = current.platforms
+    .filter((p) => !platformKeys.has(p.key))
+    .map((p) => (p.active ? { ...p, active: false } : p))
+  return {
+    ...next,
+    employees: [...next.employees, ...keptEmployees],
+    departments: [...next.departments, ...keptDepartments],
+    platforms: [...next.platforms, ...keptPlatforms],
   }
 }
 

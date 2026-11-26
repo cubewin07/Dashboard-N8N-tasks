@@ -143,10 +143,44 @@ describe('applyConfigChange (P10-T01)', () => {
       palette: [],
     }
     const next = applyPure(seed, { kind: 'config.replace', config: other })
-    expect(next.departments).toEqual(other.departments)
+    expect(next.departments.slice(0, 2)).toEqual(other.departments)
+    expect(next.departments.slice(2).every((d) => !d.active)).toBe(true)
     expect(next.building).toBe(seed.building)
     expect(next.floorTemplates).toBe(seed.floorTemplates)
     expect(next.palette).toBe(seed.palette)
+  })
+})
+
+describe('config.replace keeps history (D5, review fix)', () => {
+  const seed = frozenSeed()
+  const NOW = '2026-11-26T03:00:00.000Z'
+
+  it('archives omitted people and switches off omitted departments and platforms', () => {
+    const goneEmp = seed.employees.find((e) => e.state === 'active' && e.roleKey === 'worker')!
+    const goneDept = seed.departments.at(-1)!
+    const gonePlatform = seed.platforms.at(-1)!
+    const other: OrgConfig = {
+      ...seed,
+      employees: seed.employees.filter((e) => e.id !== goneEmp.id),
+      departments: seed.departments.filter((d) => d.id !== goneDept.id),
+      platforms: seed.platforms.filter((p) => p.key !== gonePlatform.key),
+    }
+    const next = applyPure(seed, { kind: 'config.replace', config: other }, NOW)
+    expect(next.employees.find((e) => e.id === goneEmp.id)).toMatchObject({
+      state: 'archived',
+      archivedAt: NOW,
+    })
+    expect(next.departments.find((d) => d.id === goneDept.id)?.active).toBe(false)
+    expect(next.platforms.find((p) => p.key === gonePlatform.key)?.active).toBe(false)
+    expect(next.employees).toHaveLength(seed.employees.length)
+  })
+
+  it('an already archived person keeps their archive time', () => {
+    const archived = { ...seed.employees[0]!, state: 'archived' as const, archivedAt: '2026-01-01T00:00:00.000Z' }
+    const base = { ...seed, employees: [archived, ...seed.employees.slice(1)] }
+    const other = { ...base, employees: base.employees.slice(1) }
+    const next = applyPure(base, { kind: 'config.replace', config: other }, NOW)
+    expect(next.employees.find((e) => e.id === archived.id)?.archivedAt).toBe(archived.archivedAt)
   })
 })
 

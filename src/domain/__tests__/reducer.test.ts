@@ -607,7 +607,16 @@ describe('domain reducer', () => {
     expect(c15.taskTypes).toHaveLength(1)
 
     const c16 = applyConfigChange(c15, { kind: 'config.replace', config: cfg })
-    expect(c16).toEqual(cfg)
+    // Everything in the file comes back; what the file lacks is kept but switched off (D5).
+    const { departments, employees, platforms, ...rest } = c16
+    const { departments: d0, employees: e0, platforms: p0, ...rest0 } = cfg
+    expect(rest).toEqual(rest0)
+    expect(departments.slice(0, d0.length)).toEqual(d0)
+    expect(departments.slice(d0.length).every((d) => !d.active)).toBe(true)
+    expect(employees.slice(0, e0.length)).toEqual(e0)
+    expect(employees.slice(e0.length).every((e) => e.state === 'archived')).toBe(true)
+    expect(platforms.slice(0, p0.length)).toEqual(p0)
+    expect(platforms.slice(p0.length).every((p) => !p.active)).toBe(true)
   })
   it('frees a worker who finishes a task while an earlier task waits in review', () => {
     const reviewing = makeSampleTask({
