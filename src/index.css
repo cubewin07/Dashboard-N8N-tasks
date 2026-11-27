@@ -92,6 +92,16 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+  /* P11-T12: no double-tap zoom delay on buttons and links; our own pressed states replace the grey flash. */
+  a,
+  button,
+  [role='button'],
+  input,
+  select,
+  label {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;

@@ -204,6 +204,7 @@ function MobileTabBar() {
             to={to}
             end={to === '/'}
             data-tab={key}
+            aria-current={key === 'office' && orgActive ? 'page' : undefined}
             className={({ isActive }) => tab(key === 'office' ? orgActive : isActive)}
           >
             <div className="relative flex items-center justify-center">
@@ -284,13 +285,30 @@ function MobileTabBar() {
 }
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const { t } = useI18n()
   return (
     <div className="flex min-h-dvh">
+      {/* P11-T12: keyboard users jump past the sidebar and top bar. */}
+      <a
+        href="#main-content"
+        onClick={(e) => {
+          // HashRouter owns the hash: move focus instead of navigating.
+          e.preventDefault()
+          document.getElementById('main-content')?.focus()
+        }}
+        className="sr-only z-50 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        {t.common.nav.skipToMain}
+      </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
         <OfflineBanner />
-        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pb-28 pt-6 sm:px-6 lg:pb-10">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-[1400px] flex-1 px-4 pb-28 pt-6 outline-none sm:px-6 lg:pb-10"
+        >
           {children}
         </main>
       </div>

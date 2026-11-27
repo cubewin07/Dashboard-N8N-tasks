@@ -263,6 +263,8 @@ function BossQueueCard({ item }: { item: BossQueueItem }) {
               id={`answer-${item.id}`}
               data-question-answer-input
               type="text"
+              name="answer"
+              autoComplete="off"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder={t.queue.answerPlaceholder}

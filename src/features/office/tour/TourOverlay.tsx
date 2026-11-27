@@ -1,5 +1,5 @@
 import { Pause, Play, SkipForward, X } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
 import { cn, fmt } from '@/lib/utils'
@@ -11,6 +11,11 @@ function isTyping(target: EventTarget | null): boolean {
   return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
 }
 
+/** Space on a focused button or link is that control's own click, not "pause". */
+function isPressable(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && target.closest('button, a, [role="button"]') !== null
+}
+
 /**
  * Captions for the guided tour: bottom-centre, large enough to read across a room,
  * progress dots, and Space / → / Esc. Leaving the office ends the tour (and restores).
@@ -20,15 +25,34 @@ export function TourOverlay() {
   const label = useLabel()
   const view = useTourStore((s) => s.view)
   const active = view !== null
+  const pauseRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => () => exitTour(), [])
+
+  // The start button disappears when the tour starts and comes back when it ends:
+  // keep keyboard focus with the controls, then hand it back (P11-T12).
+  useEffect(() => {
+    if (!active) return
+    pauseRef.current?.focus({ preventScroll: true })
+    return () => {
+      requestAnimationFrame(() => {
+        const start = document.querySelector<HTMLElement>('[data-tour-start]')
+        if (start && (document.activeElement === document.body || document.activeElement === null)) {
+          start.focus({ preventScroll: true })
+        }
+      })
+    }
+  }, [active])
 
   useEffect(() => {
     if (!active) return
     const onKey = (e: KeyboardEvent) => {
       if (isTyping(e.target) || e.metaKey || e.ctrlKey || e.altKey) return
       let handled = true
-      if (e.key === ' ') toggleTourPause()
+      if (e.key === ' ') {
+        if (isPressable(e.target)) return
+        toggleTourPause()
+      }
       else if (e.key === 'ArrowRight') nextTourStep()
       else if (e.key === 'Escape') exitTour()
       else handled = false
@@ -81,7 +105,7 @@ export function TourOverlay() {
           </div>
           <p className="hidden text-xs text-muted-foreground md:block">{t.office.tour.keys}</p>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={toggleTourPause} data-tour-pause>
+            <Button ref={pauseRef} size="sm" variant="outline" onClick={toggleTourPause} data-tour-pause>
               {paused ? <Play className="size-4" aria-hidden /> : <Pause className="size-4" aria-hidden />}
               <span>{paused ? t.office.tour.resume : t.office.tour.pause}</span>
             </Button>

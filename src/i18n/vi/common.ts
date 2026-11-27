@@ -7,6 +7,7 @@ export const common = {
     errorBody: 'Kiểm tra mạng rồi thử lại nhé.',
   },
   nav: {
+    skipToMain: 'Bỏ qua, đến nội dung chính',
     office: 'Văn phòng',
     org: 'Sơ đồ',
     queue: 'Hàng chờ',

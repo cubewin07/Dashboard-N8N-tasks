@@ -140,10 +140,11 @@ export function OfficePage() {
           <Suspense
             fallback={
               <div
+                role="status"
                 aria-busy="true"
-                aria-label={t.office.loadingCanvas}
                 className="h-[calc(100dvh-11rem)] min-h-[420px] w-full"
               >
+                <span className="sr-only">{t.office.loadingCanvas}</span>
                 <Skeleton className="h-full w-full rounded-[14px]" />
               </div>
             }

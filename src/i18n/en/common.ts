@@ -8,6 +8,7 @@ export const common: typeof vi = {
     errorBody: 'Check your connection and try again.',
   },
   nav: {
+    skipToMain: 'Skip to main content',
     office: 'Office',
     org: 'Org chart',
     queue: 'Queue',
