@@ -819,6 +819,58 @@ describe('domain reducer', () => {
       expect(s1.people.emp_quan?.activity).toBe('idle')
       expect(s1.help[help.id]?.status).toBe('answered')
     })
+
+    it('a failed task closes its questions and help requests like a cancelled one', () => {
+      const task = makeSampleTask({
+        id: 'task_01JTEST00000000000000000H',
+        assigneeId: 'emp_mai',
+        status: 'waiting_help',
+      })
+      const question = {
+        id: 'q_01JTEST00000000000000000H' as const,
+        taskId: task.id,
+        fromId: 'emp_mai' as const,
+        toId: 'emp_an' as const,
+        text: 'Màu nào?',
+        status: 'open' as const,
+        inPerson: false,
+        createdAt: t(1),
+        answeredAt: null,
+      }
+      const help = {
+        id: 'help_01JTEST00000000000000000H' as const,
+        taskId: task.id,
+        fromId: 'emp_mai' as const,
+        specialty: 'image',
+        toId: 'emp_quan' as const,
+        round: 1,
+        status: 'accepted' as const,
+        createdAt: t(1),
+        timeoutAt: t(30),
+      }
+      const b = initialState(makeSeedConfig(), t(0))
+      const s0 = {
+        ...b,
+        tasks: { ...b.tasks, [task.id]: task },
+        questions: { ...b.questions, [question.id]: question },
+        help: { ...b.help, [help.id]: help },
+        people: {
+          ...b.people,
+          emp_mai: { ...b.people.emp_mai!, activity: 'working' as const, taskId: task.id },
+          emp_quan: { ...b.people.emp_quan!, activity: 'helping' as const },
+        },
+      }
+      const s1 = apply(
+        s0,
+        makeEvent('task.failed', { taskId: task.id, reason: 'lỗi đồng bộ' }, { seq: 1, at: t(2) }),
+      )
+      expect(s1.tasks[task.id]?.status).toBe('failed')
+      expect(s1.tasks[task.id]?.detail).toBe('lỗi đồng bộ')
+      expect(s1.questions[question.id]?.status).toBe('expired')
+      expect(s1.help[help.id]?.status).toBe('answered')
+      expect(s1.people.emp_mai?.activity).toBe('idle')
+      expect(s1.people.emp_quan?.activity).toBe('idle')
+    })
   })
 })
 
