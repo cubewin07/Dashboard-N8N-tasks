@@ -103,6 +103,7 @@ export const office: typeof viOffice = {
     ariaLabel: 'Day and night lighting from the sim clock',
   },
   legend: {
+    firstRun: 'First time in the office? This explains how to read the building. It opens by itself only this once; reopen it any time with “Legend”.',
     button: 'Legend',
     title: 'Symbol legend',
     description: 'What the colours, icons and movements in the building mean.',

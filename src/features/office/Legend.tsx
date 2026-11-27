@@ -23,7 +23,8 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
-import { useMemo, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useAuth } from '@/app/auth'
 import {
   Sheet,
   SheetContent,
@@ -45,6 +46,10 @@ import {
   legendStatusRows,
   type LegendStatusRow,
 } from './legendModel'
+import { markLegendSeen, shouldAutoOpenLegend } from './legendSeen'
+import { useTourStore } from './tour/useTour'
+
+const IS_E2E = Boolean(import.meta.env.VITE_E2E)
 
 /** 2D stand-ins for the 3D atlas cells (same meaning, drawn by lucide). */
 const STATUS_ICONS: Record<StatusIconKey, LucideIcon> = {
@@ -76,9 +81,27 @@ const EMOTE_ICONS: Record<EmoteKey, LucideIcon> = {
  */
 export function Legend({ className }: { className?: string }) {
   const { t } = useI18n()
+  const { session } = useAuth()
+  const userId = session?.userId ?? null
+  // P11-T11 (R7): the first visit to the 3D office opens the legend once per user;
+  // the "Chú giải" button reopens it any time. Never in the middle of a tour.
+  const [autoOpened] = useState(
+    () => useTourStore.getState().view === null && shouldAutoOpenLegend(userId, IS_E2E),
+  )
+  const [open, setOpen] = useState(autoOpened)
+  const [firstRun, setFirstRun] = useState(autoOpened)
+
+  useEffect(() => {
+    if (autoOpened && userId) markLegendSeen(userId)
+  }, [autoOpened, userId])
+
+  const onOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (!next) setFirstRun(false)
+  }
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <button
           type="button"
@@ -96,6 +119,11 @@ export function Legend({ className }: { className?: string }) {
         <SheetHeader>
           <SheetTitle>{t.office.legend.title}</SheetTitle>
           <SheetDescription>{t.office.legend.description}</SheetDescription>
+          {firstRun ? (
+            <p data-legend-first-run className="rounded-lg bg-surface-muted px-3 py-2 text-sm text-foreground">
+              {t.office.legend.firstRun}
+            </p>
+          ) : null}
         </SheetHeader>
         <LegendBody />
       </SheetContent>

@@ -102,6 +102,7 @@ export const office = {
     ariaLabel: 'Ánh sáng ngày và đêm theo giờ mô phỏng',
   },
   legend: {
+    firstRun: 'Lần đầu vào văn phòng? Bảng này giải thích cách đọc toà nhà. Bảng chỉ tự mở lần này; mở lại bất cứ lúc nào bằng nút “Chú giải”.',
     button: 'Chú giải',
     title: 'Chú giải ký hiệu',
     description: 'Ý nghĩa của màu sắc, biểu tượng và cách mọi người di chuyển trong toà nhà.',
