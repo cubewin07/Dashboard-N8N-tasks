@@ -3,7 +3,7 @@ import { NullFeed } from '@/adapters/local/NullFeed'
 import { StaticFeed } from '@/adapters/local/StaticFeed'
 import { ReplayFeed } from '@/adapters/replay/ReplayFeed'
 import type { OfficeFeed } from '@/ports/OfficeFeed'
-import { officeExtensions, type SimControlsDebugApi } from './extensions'
+import { officeExtensions, type SimControlsDebugApi, type TourControlsApi } from './extensions'
 
 export type FeedKind = 'static' | 'sim' | 'replay' | 'none'
 
@@ -47,6 +47,7 @@ interface SimModuleExports {
   /** P11-T04: the sim shared by every tab of this browser profile (one leader runs it). */
   LinkedSimFeed?: new (options?: { seed?: string | number }) => OfficeFeed
   simControls?: SimControlsDebugApi
+  tourControls?: TourControlsApi
   SimControlPanel?: ComponentType
 }
 
@@ -63,6 +64,7 @@ export async function createFeed(kind?: FeedKind): Promise<OfficeFeed> {
 
   officeExtensions.controlPanel = null
   officeExtensions.simControls = null
+  officeExtensions.tourControls = null
 
   if (resolved === 'none') {
     return new NullFeed()
@@ -77,6 +79,7 @@ export async function createFeed(kind?: FeedKind): Promise<OfficeFeed> {
     if (typeof mod.SimFeed === 'function') {
       officeExtensions.controlPanel = mod.SimControlPanel ?? null
       officeExtensions.simControls = mod.simControls ?? null
+      officeExtensions.tourControls = mod.tourControls ?? null
       const seed = getUrlParam('seed') ?? undefined
       const Feed = mod.LinkedSimFeed ?? mod.SimFeed
       return new Feed(seed ? { seed } : undefined)

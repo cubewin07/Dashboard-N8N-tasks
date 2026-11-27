@@ -11,3 +11,4 @@ export {
   SimControlPanel,
   type SimControlPanelProps,
 } from './ui/SimControlPanel'
+export { createTourControls, tourControls } from './ui/tourControls'
