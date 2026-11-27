@@ -74,9 +74,14 @@ describe('deviceTier (R13)', () => {
     expect(detectTier()).toBe('fallback')
   })
 
-  it('honours localStorage override over viewport and WebGL2 checks, and updates hook on resize/override', () => {
-    isMobileViewport = true
+  it('never forces 3D without WebGL2, whatever was stored (R8)', () => {
     webgl2Available = false
+    setDeviceTierOverride('full3d')
+    expect(detectTier()).toBe('fallback')
+  })
+
+  it('honours localStorage override over the viewport check, and updates hook on resize/override', () => {
+    isMobileViewport = true
 
     const { result } = renderHook(() => useDeviceTier())
     expect(result.current).toBe('fallback')
@@ -97,8 +102,6 @@ describe('deviceTier (R13)', () => {
     expect(result.current).toBe('fallback')
 
     isMobileViewport = false
-    webgl2Available = true
-    resetWebGL2Probe()
     act(() => {
       window.dispatchEvent(new Event('resize'))
     })
