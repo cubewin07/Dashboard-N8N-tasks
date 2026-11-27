@@ -68,6 +68,117 @@ const rawConfig = {
   palette,
 }
 
+/**
+ * `furniture-map.json`: schema, then every slot key, template key, model and
+ * node name against the floor templates and `public/assets/manifest.json`.
+ * Top-level sections this script does not know are left alone.
+ * Returns the number of distinct models checked.
+ */
+async function validateFurnitureMap(server, cfg) {
+  const FILE = 'src/content/furniture-map.json'
+  const errors = []
+  const fail = (at, message) => errors.push(`  - [${FILE}] ${at}: ${message}`)
+  const report = () => {
+    if (errors.length === 0) return
+    console.error(`Content validation failed for ${FILE}:`)
+    for (const line of errors) console.error(line)
+    process.exitCode = 1
+  }
+
+  let FurnitureMapSchema
+  try {
+    ;({ FurnitureMapSchema } = await server.ssrLoadModule(
+      '/src/scene/render/assets/furnitureMap.ts',
+    ))
+  } catch (err) {
+    // The module parses the default file on import, so a bad file lands here.
+    if (!Array.isArray(err?.issues)) throw err
+    for (const issue of err.issues) fail(issue.path.join('.'), issue.message)
+    report()
+    return 0
+  }
+  const parsed = FurnitureMapSchema.safeParse(readJson('furniture-map.json'))
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) fail(issue.path.join('.'), issue.message)
+    report()
+    return 0
+  }
+  const map = parsed.data
+
+  const manifestPath = path.join(rootDir, 'public/assets/manifest.json')
+  let files
+  try {
+    files = JSON.parse(fs.readFileSync(manifestPath, 'utf8')).files ?? {}
+  } catch (err) {
+    fail('(manifest)', `cannot read public/assets/manifest.json: ${err.message}`)
+    report()
+    return 0
+  }
+
+  const { SlotTypeSchema } = await server.ssrLoadModule('/src/domain/config.ts')
+  const slotTypes = new Set(SlotTypeSchema.options)
+  // A slot key is a slot type, a slot id, or a slot id without its `_N` suffix.
+  const idsOf = (tpl) => {
+    const ids = new Set()
+    for (const slot of tpl.fixedSlots) {
+      ids.add(slot.id)
+      ids.add(slot.id.replace(/_\d+$/, ''))
+    }
+    return ids
+  }
+  const idsByTemplate = new Map(cfg.floorTemplates.map((tpl) => [tpl.key, idsOf(tpl)]))
+  const allIds = new Set([...idsByTemplate.values()].flatMap((ids) => [...ids]))
+
+  const seen = new Set()
+  const checkModel = (at, model, node) => {
+    seen.add(model)
+    const entry = files[model]
+    if (!entry) {
+      fail(at, `unknown model "${model}" (not in public/assets/manifest.json)`)
+      return
+    }
+    if (node !== undefined && !(entry.nodes ?? []).includes(node)) {
+      const known = (entry.nodes ?? []).join(', ') || 'none'
+      fail(at, `model "${model}" has no node "${node}" (nodes: ${known})`)
+    }
+  }
+  const checkSlots = (at, slots, ids, where) => {
+    for (const [key, art] of Object.entries(slots ?? {})) {
+      if (!slotTypes.has(key) && !ids.has(key)) {
+        fail(`${at}.${key}`, `"${key}" is neither a slot type nor a slot id ${where}`)
+      }
+      art.models.forEach((ref, i) =>
+        checkModel(`${at}.${key}.models.${i}`, ref.model, ref.node),
+      )
+      art.companions?.forEach((ref, i) =>
+        checkModel(`${at}.${key}.companions.${i}`, ref.model, ref.node),
+      )
+    }
+  }
+
+  checkSlots('slots', map.slots, allIds, 'in any floor template')
+  for (const [key, tpl] of Object.entries(map.templates ?? {})) {
+    const ids = idsByTemplate.get(key)
+    if (!ids) {
+      const known = [...idsByTemplate.keys()].join(', ')
+      fail(`templates.${key}`, `unknown floor template "${key}" (templates: ${known})`)
+    }
+    checkSlots(`templates.${key}.slots`, tpl.slots, ids ?? new Set(), `of template "${key}"`)
+    tpl.extras?.forEach((extra, i) =>
+      checkModel(`templates.${key}.extras.${i}`, extra.model, extra.node),
+    )
+  }
+  for (const [key, value] of Object.entries(map.kit)) {
+    if (Array.isArray(value)) value.forEach((model, i) => checkModel(`kit.${key}.${i}`, model))
+    else checkModel(`kit.${key}`, value)
+  }
+  map.exterior?.props.forEach((prop, i) => checkModel(`exterior.props.${i}`, prop.model))
+  if (map.exterior?.sign) checkModel('exterior.sign', map.exterior.sign.model)
+
+  report()
+  return seen.size
+}
+
 const server = await createServer({
   root: rootDir,
   configFile: false,
@@ -183,9 +294,12 @@ try {
       }
     }
 
+    // P06b: which model stands on which slot (not part of OrgConfig).
+    const furnitureModels = await validateFurnitureMap(server, cfg)
+
     if (!process.exitCode) {
       console.log(
-        `OK: Validated content (${cfg.departments.length} departments, ${cfg.employees.length} employees, ${cfg.roles.length} roles, ${cfg.specialties.length} specialties, ${cfg.platforms.length} platforms, ${cfg.shops.length} shops, ${cfg.approvalRules.length} rules, ${cfg.taskTypes.length} task types, ${cfg.floorTemplates.length} floor templates).`,
+        `OK: Validated content (${cfg.departments.length} departments, ${cfg.employees.length} employees, ${cfg.roles.length} roles, ${cfg.specialties.length} specialties, ${cfg.platforms.length} platforms, ${cfg.shops.length} shops, ${cfg.approvalRules.length} rules, ${cfg.taskTypes.length} task types, ${cfg.floorTemplates.length} floor templates, ${furnitureModels} furniture-map models).`,
       )
     }
   }
