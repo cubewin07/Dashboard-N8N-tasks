@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
-import { useId, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label as FieldLabel } from '@/components/ui/label'
@@ -47,6 +47,8 @@ export function LabelFields({
 }) {
   const { t } = useI18n()
   const id = useId()
+  // Red only once the person has been in the field: an empty new form is not an error yet.
+  const [touched, setTouched] = useState(false)
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <Field label={t.admin.label.vi} htmlFor={`${id}-vi`}>
@@ -54,9 +56,13 @@ export function LabelFields({
           id={`${id}-vi`}
           value={value.vi}
           required
-          aria-invalid={value.vi.trim() === '' ? true : undefined}
+          aria-invalid={touched && value.vi.trim() === '' ? true : undefined}
           disabled={disabled}
-          onChange={(e) => onChange({ ...value, vi: e.target.value })}
+          onBlur={() => setTouched(true)}
+          onChange={(e) => {
+            setTouched(true)
+            onChange({ ...value, vi: e.target.value })
+          }}
         />
       </Field>
       <Field label={t.admin.label.en} htmlFor={`${id}-en`}>
