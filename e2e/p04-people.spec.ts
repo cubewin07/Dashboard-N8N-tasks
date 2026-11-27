@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitForOfficeAssets } from './support/office'
 
 interface PersonRow {
   id: string
@@ -39,6 +40,9 @@ async function openOffice(page: Page) {
   await expect(page).toHaveURL(/#\/(\?.*)?$/)
   const canvas = page.locator('[data-office-canvas]')
   await expect(canvas).toHaveAttribute('data-ready', 'true', { timeout: 20_000 })
+  // Model loading takes minutes under software WebGL on CI; the helper adds that time to
+  // the test budget so the timed steps below run on a loaded scene.
+  await waitForOfficeAssets(canvas)
 }
 
 /** Distance on the floor plane between the camera target and a person. */

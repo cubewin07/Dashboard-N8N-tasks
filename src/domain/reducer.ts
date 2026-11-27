@@ -494,15 +494,18 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
       }
     }
 
-    case 'task.cancelled': {
-      const p = event.payload as OfficeEvent<'task.cancelled'>['payload']
+    case 'task.cancelled':
+    case 'task.failed': {
+      // A cancelled or failed task ends the same way: its open reviews, questions and
+      // help requests close, and everyone working on it is freed.
+      const p = event.payload as OfficeEvent<'task.cancelled' | 'task.failed'>['payload']
       const task = state.tasks[p.taskId]
       if (!task) {
         return skipWarn(state, event, `unknown taskId "${p.taskId}"`)
       }
       const updatedTask: Task = {
         ...task,
-        status: 'cancelled',
+        status: event.type === 'task.failed' ? 'failed' : 'cancelled',
         detail: p.reason,
         finishedAt: event.at,
       }
@@ -602,40 +605,6 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
         reviews: nextReviews,
         questions: nextQuestions,
         help: nextHelp,
-        people: nextPeople,
-        log: appendLog(state.log, event),
-      }
-    }
-
-    case 'task.failed': {
-      const p = event.payload as OfficeEvent<'task.failed'>['payload']
-      const task = state.tasks[p.taskId]
-      if (!task) {
-        return skipWarn(state, event, `unknown taskId "${p.taskId}"`)
-      }
-      const updatedTask: Task = {
-        ...task,
-        status: 'failed',
-        detail: p.reason,
-        finishedAt: event.at,
-      }
-      const nextTasks = {
-        ...state.tasks,
-        [task.id]: updatedTask,
-      }
-      const nextPeople = releasePersonFromTask(
-        state.people,
-        nextTasks,
-        state.config,
-        task.assigneeId,
-        task.id,
-        event.at,
-      )
-      return {
-        ...state,
-        now: event.at,
-        seq: event.seq,
-        tasks: nextTasks,
         people: nextPeople,
         log: appendLog(state.log, event),
       }
