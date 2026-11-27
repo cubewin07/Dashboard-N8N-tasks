@@ -65,7 +65,15 @@ async function waitForServer(url) {
 
 async function startServer() {
   if (givenUrl) return givenUrl
-  const env = { ...process.env, VITE_DEBUG: '1' }
+  // Demo accounts, like the E2E build: blank values override a developer's .env.local,
+  // which would otherwise build the app in Supabase mode and the demo login would fail.
+  const env = {
+    ...process.env,
+    VITE_DEBUG: '1',
+    VITE_SUPABASE_URL: '',
+    VITE_SUPABASE_ANON_KEY: '',
+    VITE_SUPABASE_PUBLISHABLE_KEY: '',
+  }
   delete env.VITE_E2E
   const build = spawnSync(npx, ['vite', 'build'], { cwd: rootDir, env, stdio: 'inherit' })
   if (build.status !== 0) throw new Error('Build failed')
@@ -202,6 +210,14 @@ try {
   await page.locator('button[type="submit"]').click()
   await page.waitForSelector('[data-office-canvas][data-ready="true"]', { timeout: 120_000 })
   await page.waitForSelector('[data-office-canvas][data-assets="ready"]', { timeout: 120_000 })
+
+  // This build is not an E2E build, so the first 3D visit opens the legend (P11-T11).
+  // Close it the way a user would; it would otherwise cover the simulator controls.
+  const legend = page.locator('[data-legend="true"][data-state="open"]')
+  if (await legend.waitFor({ state: 'visible', timeout: 5_000 }).then(() => true, () => false)) {
+    await page.keyboard.press('Escape')
+    await legend.waitFor({ state: 'hidden', timeout: 5_000 })
+  }
 
   await page.locator('[data-sim-speed="30"]').first().click()
   await triggerCrowdedScenario(page)
