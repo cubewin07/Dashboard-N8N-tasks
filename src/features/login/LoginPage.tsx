@@ -5,6 +5,7 @@ import { useAuth } from '@/app/auth'
 import { AuthError } from '@/ports/AuthPort'
 import { authPort, DEMO_ACCOUNT_EMAILS } from '@/app/authRegistry'
 import { canAccessRoute, landingFor } from '@/app/roles'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useI18n } from '@/i18n'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -14,6 +15,7 @@ import { Button } from '@/components/ui/button'
 export function LoginPage() {
   const { session, signIn, sendPasswordReset } = useAuth()
   const { t } = useI18n()
+  useDocumentTitle(t.login.title)
   const location = useLocation()
   const navigate = useNavigate()
 
