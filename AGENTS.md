@@ -8,7 +8,7 @@ Guidance for any coding agent (Claude Code, Codex, Cursor…) working in this re
 
 **AI Office**: a 3D low-poly company building in the browser where AI employees are characters (walking, working, queueing, chatting, sleeping, playing), plus a 2D fallback for phones (org list, approval queue, activity feed, wardrobe).
 
-- A **simulator** drives the building now. A dedicated worker service with real AI will drive it later through the same contract (`docs/plan/contracts.md`). The 3D code must never know which one is behind it.
+- All phases P00–P11 are built. A **simulator** drives the building now. A dedicated worker service with real AI will drive it later through the same contract (`docs/plan/contracts.md`). The 3D code must never know which one is behind it.
 - This repo = React app + config data + (from P09) Supabase schema. No AI calls, no platform APIs, no Telegram here.
 - Live URL: https://cubewin07.github.io/Dashboard-N8N-tasks/ (repo `cubewin07/Dashboard-N8N-tasks`).
 - **UI language: Vietnamese by default** (English as a secondary switch).
@@ -32,8 +32,13 @@ npm run test             # vitest unit tests
 npm run test:coverage    # vitest with coverage thresholds (src/domain >= 90%)
 npm run test:e2e         # playwright desktop + phone E2E tests
 npm run content:validate # validate src/content/*.json against OrgConfigSchema
-# added by the phases that introduce them (see docs/plan/testing.md, assets.md):
-# npm run catalog:validate · art:build · assets:optimize · assets:check · perf:check
+npm run catalog:validate # wardrobe catalogue schema + cross-references (--files: GLBs exist)
+npm run check:sim-removable # build without the simulator; none of it may reach the bundle
+npm run size:budget      # initial JS / 3D chunk sizes vs docs/plan/performance.md
+npm run perf:check       # scripted perf run (the full one is e2e/perf.spec.ts, local Mac)
+npm run golden:update    # re-record the golden event logs after an intended sim change
+# assets (Blender headless, docs/plan/assets.md): art:build · assets:optimize · assets:manifest · assets:credits · assets:check · assets:all
+# Supabase (docs/plan/runbook-supabase.md): db:start · db:reset · db:test · db:types · seed:sql
 ```
 
 ## Repo layout
@@ -41,16 +46,21 @@ npm run content:validate # validate src/content/*.json against OrgConfigSchema
 Target layout: `docs/plan/00-overview.md` §2.4. Short form:
 
 ```
+src/app/        shell: routes, AppLayout (sidebar, phone tab bar), auth gate, roles.ts, device tier, legacy redirects
 src/domain/     PURE business rules, events, commands (no React, no three, no Date.now)
 src/ports/      interfaces: OfficeFeed, ConfigSource, AppearanceStore, AuthPort
-src/adapters/   sim/ (removable simulator) · local/ · replay/ · supabase/ (P09)
-src/office/     zustand store + feed registry: the ONLY thing UI and 3D read
-src/scene/      3D: layout/ nav/ director/ (pure TS) · render/ characters/ camera/ (r3f)
-src/features/   2D screens (office overlays, org, queue, activity, wardrobe, admin)
-src/content/    config as data (org seed, roles, rules, platforms, floor templates, catalogue)
-public/assets/  GLBs, palette, animation library, thumbnails, fonts
+src/adapters/   sim/ (removable simulator) · _nosim/ (NullFeed stand-in) · local/ · replay/ · supabase/
+src/office/     zustand store + feed registry + extensions: the ONLY thing UI and 3D read
+src/scene/      3D: layout/ nav/ director/ (pure TS) · render/ characters/ camera/ (r3f) · debug/ dev/
+src/features/   2D screens: office (overlays, tour, legend) · org · queue · activity · wardrobe · admin · settings · credits · login · library (frozen, unrouted)
+src/components/ shared UI (ui/ = shadcn), LiveBadge, PageHeader, ListSkeleton, LoadErrorState…
+src/content/    config as data (org seed, roles, rules, platforms, floor templates, catalog/)
+src/i18n/       vi/ (default) and en/ dictionaries with identical keys; terms test in __tests__/
+src/lib/ · src/hooks/   time (vi-VN, Asia/Ho_Chi_Minh), status mappings, small helpers
+public/assets/  GLBs, palette, animation library, thumbnails, fonts, credits.json
 art/            Blender generator scripts, style guide, licence ledger
-docs/plan/      the plan (current) · docs/archive/ (history)
+supabase/       migrations (RLS on every table), tests
+docs/plan/      the plan (current; start at 00-overview.md, demo in demo-script.md) · docs/archive/ (history)
 ```
 
 ## Hard rules

@@ -1,8 +1,8 @@
 # AI Office: plan overview
 
-> **`docs/plan/` is the only current plan.** Older docs (`docs/PLAN.md`, `docs/CONTRACT.md`, `docs/EMPLOYEES.md`, `docs/LAYOUT.md`, `docs/MVP-NOTES.md`, `docs/OPEN-QUESTIONS.md`) are under audit (`00-audit.md`). Once that is approved they move to `docs/archive/`. Where they disagree with this folder, this folder wins.
+> **`docs/plan/` is the only current plan.** The older docs (`PLAN.md`, `CONTRACT.md`, `EMPLOYEES.md`, `LAYOUT.md`, `MVP-NOTES.md`, `OPEN-QUESTIONS.md`) were audited (`00-audit.md`) and moved to `docs/archive/`. Where they disagree with this folder, this folder wins.
 
-Status: **draft v1 (2026-11-10)**. Nothing in this plan is built yet.
+Status: **built (P00–P11, 2026-11-28)**. Every phase below is implemented; what was built differently from the plan, and what comes next, is in `after-this-phase.md`. To show it, follow `demo-script.md`.
 
 ## 1. What we are building
 
@@ -177,7 +177,7 @@ Each phase ends with a runnable app and a demo. Full detail is in each `phase-NN
 | **P08b** Wardrobe & roles | `stack/p08b-wardrobe` | Fashion-game editor (desktop and phone), per-employee appearance saved locally, demo `stylist` account limited to the wardrobe | P08a |
 | **P09** Supabase backend | `stack/p09-supabase` | Real logins (boss ×2, stylist), config and appearance stored in Supabase with RLS; simulator still drives activity | P08b |
 | **P10** Boss controls | `stack/p10-boss-controls` | Boss edits departments (a new floor appears), roles, specialties, employees (hire/dismiss/archive), caps, approval rules | P09 |
-| **P11** Polish, performance & handover | `stack/p11-polish` | Smooth on Mac Studio with 60+ people, complete phone fallback, a11y/i18n pass, legacy screens retired, demo script for dad, simulator-removal proof, `after-this-phase.md` updated | P10 |
+| **P11** Polish, performance & handover | `stack/p11a-cleanup-perf`, `stack/p11b-demo-polish` | Smooth on Mac Studio with 60+ people, complete phone fallback, a11y/i18n pass, legacy screens retired, demo script for dad, simulator-removal proof, `after-this-phase.md` updated | P10 |
 
 ### Dependency graph
 
@@ -242,9 +242,9 @@ Phase files were written in parallel. **Where a phase file names one of these th
 | Body base | `AppearanceV1.base: 'female' \| 'male'` (decided by the boss 2026-11-10: **separate bases**). Two meshes `body_female.glb` / `body_male.glb`, one shared skeleton, same shape-key names. Every garment is fitted **per base** by the pipeline (`<item>_f.glb`, `<item>_m.glb`); an item may support one base only (`bases` field) | data-model §2.10–2.11 | P07a/b, P08a/b |
 | Roles table | `src/app/roles.ts` (`can()`, `routeAccess`) is the only place role access is decided | P08b | P09, P10 |
 | Config writes | `ConfigChange` type declared in P01; `ConfigSource.apply`, `applyConfigChange`, `validateConfig` implemented in **P10**; P09 ships read + realtime + `save_appearance` | P01, P09, P10 | – |
-| Contract versions | v1.0 through P08b, v1.1 in P09 (SQL + RPCs), v1.2 in P10 (`ConfigChange`) | – | – |
+| Contract versions | v1.0 through P08a, v1.1 in P08b (appearance versions), v1.2 in P09 (auth errors, write RPCs), v1.3 in P10 (`ConfigChange`, `reconfigure`), v1.4 in P11 (`onIssue`, NullFeed). `contracts.md` changelog is authoritative | – | – |
 | Perf reference scene | Sim scenario **"Đông người"** (seed `perf-1`, pads to 80 people) provided by P03; measured by `npm run perf:check` from P04 | P03, P04 | performance.md |
-| Final routes | `/` (office), `/org`, `/queue`, `/activity`, `/wardrobe`, `/admin`, `/settings`, `/credits`; legacy screens under `/legacy/*` until P11-T07 | P01 → P11 | – |
+| Final routes | `/` (office; the 2D Sơ đồ on phones until "Xem 3D"), `/org`, `/queue`, `/activity`, `/wardrobe`, `/admin`, `/settings`, `/credits`, `/login`. Legacy screens were deleted in P11-T07; their old hash URLs redirect | P01 → P11 | – |
 
 ## 8. Supporting documents
 
@@ -257,7 +257,11 @@ Phase files were written in parallel. **Where a phase file names one of these th
 | `performance.md` | Budgets, techniques, how to measure |
 | `testing.md` | Test layers, tooling, fixtures, what each phase must test |
 | `stacked-prs.md` | Branching, rebasing, reviewing and merging the stack |
-| `after-this-phase.md` | What is left after P11, and what built now is expensive to change |
+| `after-this-phase.md` | What was built, deviations from the plan, what is left after P11, and what is expensive to change |
+| `demo-script.md` | Ten-minute demo for dad: what to say and click, recovery tips |
+| `release-checklist.md` | Final review results and the human test checklist |
+| `removing-the-simulator.md` | How to delete the simulator (proved by the `no-sim` CI job) |
+| `runbook-supabase.md` | Supabase setup, users, migrations, recovery |
 | `questions-and-assumptions.md` | Open questions ranked by impact, all assumptions |
 | `phase-NN-*.md` | One per phase/PR |
 

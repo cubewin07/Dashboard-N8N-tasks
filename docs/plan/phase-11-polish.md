@@ -145,7 +145,7 @@ Forced in `e2e/p11-states.spec.ts` (desktop and 375 px; screenshots `p11-state-<
 - [x] **P11-T11** ∥ Legend / onboarding. *Files:* `src/features/office/Legend.tsx`. *Acceptance:* R7; shown once per user (localStorage flag), reopenable; each legend row matches the actual 3D visuals (reviewer checks against `phase-05` §3).
 - [x] **P11-T12** Accessibility audit and fixes. *Steps:* run the `web-design-guidelines` skill on all features; keyboard walk-through script; contrast check on overlays over the 3D scene. *Acceptance:* R10; findings table with status in the PR.
 - [x] **P11-T13** Vietnamese copy pass + `en` completion. *Acceptance:* R11; terms table respected (`grep` for banned variants listed in the task); a native-reader check by the human is on the test checklist.
-- [ ] **P11-T14** Docs: `demo-script.md` (what to say and click, 10 minutes, including recovery tips), README, AGENTS.md refresh, overview status, `after-this-phase.md` update. *Acceptance:* R14; links resolve; `AGENTS.md` repo layout matches `tree -L 2 src`.
+- [x] **P11-T14** Docs: `demo-script.md` (what to say and click, 10 minutes, including recovery tips), README, AGENTS.md refresh, overview status, `after-this-phase.md` update. *Acceptance:* R14; links resolve; `AGENTS.md` repo layout matches `tree -L 2 src`.
 - [ ] **P11-T15** Final whole-stack review + release checklist + human test checklist. *Steps:* `git diff main...stack/p11-polish` review per `stacked-prs.md` §6.2; contract/version consistency; duplicated helpers; boundary rules; licence ledger; size budgets. *Acceptance:* R15; review comment posted on the PR; checklist file `docs/plan/release-checklist.md` ticked.
 
 ### Human test checklist (goes into the PR and `release-checklist.md`)

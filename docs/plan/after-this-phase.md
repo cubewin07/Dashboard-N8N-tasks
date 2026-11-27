@@ -1,8 +1,26 @@
 # After this phase
 
-What is still missing once P11 is merged, what P00–P11 already prepared for it, and what would be expensive to change. Nothing in this file is built by the current plan. P11-T14 updates it with what was actually built.
+What P00–P11 actually built (§0), what is still missing once P11 is merged, what is already prepared for it, and what would be expensive to change. Nothing in §1–§11 is built by the current plan.
 
 After P11 the building is a **complete front end with a fake brain**. Everything below replaces the fake brain with real work, one part at a time, while the 3D and 2D screens stay as they are.
+
+## 0. What was built (P00–P11, 2026-11-28)
+
+The plan was built as written, with these differences. The reasons are in each phase file's "Design choices".
+
+| Area | Planned | Built |
+|---|---|---|
+| Branches | one branch per phase | P06, P07, P08 split into asset (`a`) and code (`b`) branches as planned; **P10 split** into `p10a-config-core` / `p10b-admin-screens` and **P11 split** into `p11a-cleanup-perf` / `p11b-demo-polish` to keep PRs reviewable |
+| Contract | v1.0 → v1.2 | **v1.4**, all additive: appearance versions (v1.1), auth errors and write RPCs (v1.2), `ConfigChange` + `reconfigure` (v1.3), `onIssue` + `NullFeed` (v1.4). `contracts.md` has the changelog |
+| Simulator scope | one sim per browser tab | **One company per browser profile** (`LinkedSimFeed`, P11 D19): one tab runs the sim, others follow. Still not shared between devices; that remains the real feed's job |
+| Builds without a simulator | procedure only | `VITE_FEED=none` swaps in `_nosim` (a `NullFeed`); `npm run check:sim-removable` and the `no-sim` CI job prove nothing of the sim ships (P11 D3) |
+| Legacy screens | keep or delete | **Deleted** with hash redirects (P11 D1); Library + Drive code **frozen and unrouted** behind a flag (P11 D2) |
+| Phone | 2D fallback | 2D by default with a bottom tab bar (Sơ đồ · Duyệt · Hoạt động · Tủ đồ · Thêm); **3D opt-in with a warning** (P11 D5, D18) |
+| Performance | measured on the Mac Studio | Baseline and budgets measured on an M4 Pro (`performance.md` §4); quality tiers `high/medium/low/off` by device capability with a Settings override (P11 D14, D17). Real Mac Studio numbers are on the human checklist |
+| Loading | – | English dictionary and TanStack Query load on demand; the phone route never downloads three.js (P11 D10, D11) |
+| Demo | tour JSON per language | `defaultTour.json` with bilingual captions, started from a button, never automatically (P11 D25, D26) |
+| Copy | §3.6 terms | Applied everywhere and guarded by `src/i18n/__tests__/terms.test.ts` (P11 D29) |
+| Not built (by decision) | – | PWA / offline (P11 D7), dark theme (tokens exist, nothing toggles them) |
 
 ## 1. The swap in one picture
 
@@ -163,9 +181,9 @@ Files touched outside `src/adapters/**`: `src/office/feedRegistry.ts` (one line)
 | 6 | **Capability-based roles** | Engine, simulator and admin all read `caps`; renaming a capability touches all three | Small fixed capability list, documented; custom roles are data |
 | 7 | **Feed time vs wall time** (domain never reads the clock) | If violated, the real feed shows wrong ages, aging and idle times, and the bug is spread thin | Lint rule + tests from P01; `now` only via the feed |
 | 8 | **Scale, units, floor height, template grid** (metres, 4.0 m, 0.5 m cells) | All layouts, nav grids, furniture sizes and camera presets assume them | Fixed in `00-overview.md` §5.5 before any asset exists; templates are data |
-| 9 | **Single-browser simulator (no shared sim state)** | If "everyone sees the same fake day" becomes a requirement, the sim must move server-side | `ReplayFeed` gives shared playback cheaply; the real feed makes it moot |
+| 9 | **Browser-side simulator (shared only between tabs of one browser, P11 `LinkedSimFeed`)** | If "everyone on every device sees the same fake day" becomes a requirement, the sim must move server-side | `ReplayFeed` gives shared playback cheaply; the real feed makes it moot |
 | 10 | **React 19 + R3F 9 + drei 10** | Major upgrades of the 3D stack touch every scene component | Pinned versions; scene logic (layout, nav, director) is pure TS with no three imports; only `render/` and `camera/` would change |
-| 11 | **HashRouter URLs** (`#/office`, `#/queue`…) | Bookmarks, Telegram deep links later | Routes finalised in P11 with redirects from old hashes; moving off GitHub Pages later allows path routing with a redirect map |
+| 11 | **HashRouter URLs** (`#/`, `#/queue`, `#/activity`…) | Bookmarks, Telegram deep links later | Routes finalised in P11 with redirects from old hashes; moving off GitHub Pages later allows path routing with a redirect map |
 | 12 | **Config table shapes** (columns vs `def jsonb`) | Workers will query them | Mixed model with promotion path (P09 D1); seed generated from JSON |
 
 ## 11. Suggested order for what comes next
