@@ -1,14 +1,16 @@
-import { Box, List } from 'lucide-react'
+import { List } from 'lucide-react'
 import { Component, Fragment, lazy, Suspense, type ErrorInfo, type ReactNode } from 'react'
 import { hasWebGL2Support, useDeviceTierPreference } from '@/app/deviceTier'
 import { PageHeader } from '@/components'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { OrgList } from '@/features/org/OrgList'
+import { OrgTabs } from '@/features/org/OrgTabs'
 import { useI18n } from '@/i18n'
 import { useOffice } from '@/office'
 import { officeExtensions } from '@/office/extensions'
 import { useDiagnostics } from '@/office/diagnostics'
+import { View3dOptIn } from './View3dOptIn'
 
 const LazyOfficeCanvas = lazy(() => import('@/scene/OfficeCanvas'))
 
@@ -67,12 +69,7 @@ export function OfficePage() {
           title={t.office.title}
           description={t.office.subtitle}
           actions={
-            webgl ? (
-              <Button variant="outline" size="sm" onClick={() => setOverride('full3d')}>
-                <Box className="size-4" aria-hidden />
-                <span>{t.office.view3dButton}</span>
-              </Button>
-            ) : null
+            webgl ? <View3dOptIn /> : null
           }
         />
         {webgl ? null : (
@@ -85,7 +82,7 @@ export function OfficePage() {
           </p>
         )}
         {ControlPanel ? <ControlPanel /> : null}
-        <OrgList compact />
+        <OrgTabs compact />
       </div>
     )
   }

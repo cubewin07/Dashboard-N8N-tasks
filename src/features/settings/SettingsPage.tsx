@@ -11,10 +11,11 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/app/auth'
 import { can } from '@/app/roles'
-import { useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTier'
+import { isSmallScreen, useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTier'
 import { useI18n, type Lang } from '@/i18n'
 import { isBackendConfigured } from '@/office/appearanceStore'
 import { useOfficePrefs } from '@/office/prefs'
+import { Confirm3dDialog } from '@/features/office/View3dOptIn'
 import { AboutCard } from './AboutCard'
 import { ImportLocalLooks } from './ImportLocalLooks'
 import { QualitySetting } from './QualitySetting'
@@ -40,6 +41,7 @@ export function SettingsPage() {
   const { session, signIn, signOut, updatePassword } = useAuth()
   const full = can(session?.role, 'settings.full')
   const { tier, override: tierOverride, setOverride: setTierOverride } = useDeviceTierPreference()
+  const [confirm3d, setConfirm3d] = useState(false)
   const reducedMotionChoice = useOfficePrefs((s) => s.reducedMotionChoice)
   const systemReducedMotion = useOfficePrefs((s) => s.systemReducedMotion)
   const setReducedMotion = useOfficePrefs((s) => s.setReducedMotion)
@@ -184,7 +186,11 @@ export function SettingsPage() {
           <CardContent className="space-y-3">
             <RadioGroup
               value={tierOverride}
-              onValueChange={(val) => setTierOverride(val as DeviceTierOverride)}
+              onValueChange={(val) => {
+                // R3: on a phone, "Luôn 3D" goes through the battery and data warning.
+                if (val === 'full3d' && isSmallScreen()) setConfirm3d(true)
+                else setTierOverride(val as DeviceTierOverride)
+              }}
               className="grid grid-cols-1 gap-3 sm:grid-cols-3"
               aria-label={t.settings.deviceTier.title}
             >
@@ -229,6 +235,11 @@ export function SettingsPage() {
                 </label>
               ))}
             </RadioGroup>
+            <Confirm3dDialog
+              open={confirm3d}
+              onOpenChange={setConfirm3d}
+              onConfirm={() => setTierOverride('full3d')}
+            />
             <p className="text-xs text-muted-foreground">
               {fmt(t.settings.deviceTier.activeLabel, {
                 mode: t.settings.deviceTier.activeModes[tier],

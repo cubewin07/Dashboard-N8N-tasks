@@ -12,6 +12,13 @@ export const office: typeof viOffice = {
   fallbackBanner: 'Compact 2D list view. You can switch to the 3D scene at any time.',
   view3dButton: 'View in 3D',
   view2dButton: 'View 2D list',
+  view3dPhoneButton: 'View 3D (experimental)',
+  view3dWarning: {
+    title: 'Turn on the 3D office on this phone?',
+    body: 'The 3D office downloads a few MB the first time and uses more battery than the 2D list. The choice is remembered on this device; turn it off with “View 2D list” or in Settings.',
+    confirm: 'Turn on 3D',
+    cancel: 'Not now',
+  },
   floorPickerAriaLabel: 'Building floors list',
   floorPickerTitle: 'Floors',
   floorNumberPrefix: 'F',

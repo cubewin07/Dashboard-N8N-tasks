@@ -11,6 +11,13 @@ export const office = {
     'Chế độ danh sách 2D gọn nhẹ. Bạn có thể chuyển sang không gian 3D bất cứ lúc nào.',
   view3dButton: 'Xem 3D',
   view2dButton: 'Xem danh sách 2D',
+  view3dPhoneButton: 'Xem 3D (thử nghiệm)',
+  view3dWarning: {
+    title: 'Bật không gian 3D trên điện thoại?',
+    body: 'Văn phòng 3D tải vài MB dữ liệu lần đầu và dùng nhiều pin hơn danh sách 2D. Lựa chọn được nhớ trên thiết bị này; bạn có thể tắt bằng nút “Xem danh sách 2D” hoặc trong Cài đặt.',
+    confirm: 'Bật 3D',
+    cancel: 'Để sau',
+  },
   floorPickerAriaLabel: 'Danh sách các tầng trong toà nhà',
   floorPickerTitle: 'Các tầng',
   floorNumberPrefix: 'T',
