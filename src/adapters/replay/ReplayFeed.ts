@@ -6,6 +6,7 @@ import { applyAll, initialState } from '@/domain/reducer'
 import type { OfficeState } from '@/domain/work'
 import type {
   ConnectionState,
+  FeedIssue,
   OfficeFeed,
   OfficeSnapshot,
 } from '@/ports/OfficeFeed'
@@ -84,6 +85,7 @@ export class ReplayFeed implements OfficeFeed {
   private intervalId: ReturnType<typeof setInterval> | null = null
   private listeners = new Set<(batch: OfficeEvent[]) => void>()
   private connectionListeners = new Set<(c: ConnectionState) => void>()
+  private issueListeners = new Set<(issue: FeedIssue) => void>()
 
   constructor(options: ReplayFeedOptions = {}) {
     this.events = options.events ? [...options.events] : []
@@ -117,7 +119,11 @@ export class ReplayFeed implements OfficeFeed {
       const validated: OfficeEvent[] = []
       for (const raw of rawEvents) {
         const res = parseEvent(raw)
-        if (res.ok) validated.push(res.event)
+        if (res.ok) {
+          validated.push(res.event)
+        } else {
+          this.reportIssue(raw, res.reason)
+        }
       }
       this.events = validated
     }
@@ -162,6 +168,25 @@ export class ReplayFeed implements OfficeFeed {
 
   connection(): ConnectionState {
     return 'live'
+  }
+
+  onIssue(cb: (issue: FeedIssue) => void): () => void {
+    this.issueListeners.add(cb)
+    return () => {
+      this.issueListeners.delete(cb)
+    }
+  }
+
+  private reportIssue(raw: unknown, reason: string): void {
+    const obj = typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : {}
+    const issue: FeedIssue = {
+      kind: 'invalid_event',
+      reason,
+      eventId: typeof obj.id === 'string' ? obj.id : null,
+      type: typeof obj.type === 'string' ? obj.type : null,
+    }
+    console.warn(`[replay] Skipping invalid event ${issue.eventId ?? '(no id)'}: ${reason}`)
+    for (const cb of this.issueListeners) cb(issue)
   }
 
   onConnection(cb: (c: ConnectionState) => void): () => void {

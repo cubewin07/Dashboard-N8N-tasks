@@ -8,6 +8,7 @@ import { ConfigError } from '@/ports/ConfigSource'
 import type { ConnectionState, OfficeFeed } from '@/ports/OfficeFeed'
 import { applyConfigEdit, loadConfig, setConfigClock, useConfigStore } from './configStore'
 import { officeExtensions } from './extensions'
+import { useDiagnostics } from './diagnostics'
 import { createFeed } from './feedRegistry'
 import { getCommandsAllowed } from './sessionRole'
 
@@ -38,6 +39,7 @@ let unsubscribeEvents: (() => void) | null = null
 let unsubscribeConn: (() => void) | null = null
 let unsubscribeReset: (() => void) | null = null
 let unsubscribeConfig: (() => void) | null = null
+let unsubscribeIssues: (() => void) | null = null
 let bootPromise: Promise<OfficeState> | null = null
 
 let pendingEvents: OfficeEvent[] = []
@@ -278,6 +280,10 @@ export function stopOffice(): void {
     unsubscribeConfig()
     unsubscribeConfig = null
   }
+  if (unsubscribeIssues) {
+    unsubscribeIssues()
+    unsubscribeIssues = null
+  }
   if (activeFeed) {
     activeFeed.stop()
     activeFeed = null
@@ -298,6 +304,11 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
       customFeed ? Promise.resolve(customFeed) : createFeed(),
     ])
     activeFeed = feed
+
+    // Before start: a replay log reports its invalid events while it loads.
+    if (feed.onIssue) {
+      unsubscribeIssues = feed.onIssue((issue) => useDiagnostics.getState().recordFeedIssue(issue))
+    }
 
     const snapshot = await feed.start(config)
     useOffice.setState({

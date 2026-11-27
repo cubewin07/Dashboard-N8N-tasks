@@ -11,6 +11,16 @@ export interface OfficeSnapshot {
   seq: number
 }
 
+/** v1.4: something the feed dropped instead of throwing (shown in Settings → Chẩn đoán). */
+export interface FeedIssue {
+  kind: 'invalid_event'
+  /** Why it was dropped (zod path + message, or `unknown_event_type: …`). */
+  reason: string
+  /** The event id / type when the envelope had them. */
+  eventId?: string | null
+  type?: string | null
+}
+
 export interface OfficeFeed {
   readonly kind: 'sim' | 'supabase' | 'replay'
   /** Load the current state. The sim builds it from config; the real feed reads projections. */
@@ -37,5 +47,10 @@ export interface OfficeFeed {
    * differs. A feed without it gets the config swapped into the snapshot by the store.
    */
   reconfigure?(config: OrgConfig, change: ConfigChange | null): void
+  /**
+   * v1.4, optional: events the feed dropped because they failed validation. Never thrown to
+   * the UI; the store counts them for the diagnostics list. Subscribed before `start`.
+   */
+  onIssue?(cb: (issue: FeedIssue) => void): () => void
   stop(): void
 }
