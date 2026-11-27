@@ -52,17 +52,10 @@ jobs:
           VITE_E2E: '1'
           VITE_DEBUG: '1'
 
-      - name: Bundle size report & main-chunk check
+      - name: Bundle budgets (performance.md §2)
         run: |
-          echo "### Dist JS bundle sizes" >> "$GITHUB_STEP_SUMMARY"
-          echo "| File | Raw (KB) | Gzip (KB) |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| --- | ---: | ---: |" >> "$GITHUB_STEP_SUMMARY"
-          for f in dist/assets/*.js; do
-            raw=$(wc -c < "$f" | awk '{printf "%.1f", $1/1024}')
-            gz=$(gzip -c "$f" | wc -c | awk '{printf "%.1f", $1/1024}')
-            echo "| \`$(basename "$f")\` | $raw | $gz |" >> "$GITHUB_STEP_SUMMARY"
-          done
           node scripts/check-main-bundle.mjs
+          npm run size:budget
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium

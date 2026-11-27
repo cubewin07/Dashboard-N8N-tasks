@@ -81,4 +81,24 @@ test.describe('P01 foundation smoke', () => {
       }
     }
   })
+
+  // P11-T03 / R2: the phone fallback never downloads three.js unless the boss opts in.
+  test('phone routes load no 3D chunk', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'phone', 'phone only')
+    const heavy: string[] = []
+    page.on('request', (r) => {
+      if (/OfficeCanvas|three|CharacterVisual|PreviewCanvas/i.test(r.url())) heavy.push(r.url())
+    })
+    await page.goto('./#/login')
+    await page.locator('#login-email').fill('boss@demo.local')
+    await page.locator('#login-password').fill('123456')
+    await page.locator('button[type="submit"]').click()
+    await expect(page.locator('[data-org-list]')).toBeVisible()
+    for (const route of ['org', 'queue', 'activity', 'settings']) {
+      await page.goto(`./#/${route}`)
+      await expect(page.locator('main')).toBeVisible()
+      await page.waitForLoadState('networkidle')
+    }
+    expect(heavy).toEqual([])
+  })
 })
