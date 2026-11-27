@@ -19,11 +19,12 @@
 
   --status-working: #2563eb;
   --status-working-soft: #e8effd;
-  --status-waiting: #d97706;
+  /* P11-T12: one step darker so small status text passes WCAG AA (≥ 4.5:1) on white and muted surfaces. */
+  --status-waiting: #a84b05;
   --status-waiting-soft: #fdf3e3;
-  --status-blocked: #dc2626;
+  --status-blocked: #b91c1c;
   --status-blocked-soft: #fdeaea;
-  --status-done: #16a34a;
+  --status-done: #147a3a;
   --status-done-soft: #e7f6ec;
   --status-idle: #8a867f;
   --status-idle-soft: #f0eeea;
