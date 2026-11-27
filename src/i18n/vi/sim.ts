@@ -21,5 +21,7 @@ export const sim = {
     team_offline: 'Đội offline',
     boss_telegram: 'Sếp nhắn Telegram',
     crowded: 'Đông người',
+    busy_day: 'Ngày bận rộn',
+    lunch: 'Giờ nghỉ trưa',
   },
 }

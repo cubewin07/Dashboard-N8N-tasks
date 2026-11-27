@@ -1,0 +1,38 @@
+{
+  "status": {
+    "working":        { "swatch": "status_working", "icon": "laptop",      "ring": true,  "ringDashed": false, "ringPulse": false },
+    "reviewing":      { "swatch": "status_working", "icon": "magnifier",   "ring": true,  "ringDashed": false, "ringPulse": false },
+    "helping":        { "swatch": "status_working", "icon": "handshake",   "ring": true,  "ringDashed": true,  "ringPulse": false },
+    "delivering":     { "swatch": "status_working", "icon": null,          "ring": false, "ringDashed": false, "ringPulse": false },
+    "asking":         { "swatch": "status_waiting", "icon": "question",    "ring": true,  "ringDashed": false, "ringPulse": false },
+    "waiting_answer": { "swatch": "status_waiting", "icon": "question",    "ring": true,  "ringDashed": false, "ringPulse": false },
+    "blocked":        { "swatch": "status_blocked", "icon": "exclamation", "ring": true,  "ringDashed": false, "ringPulse": true },
+    "in_meeting":     { "swatch": "status_working", "icon": "speech",      "ring": true,  "ringDashed": false, "ringPulse": false }
+  },
+  "idle": { "saturation": 0.55, "ring": false },
+  "ring": { "innerRadius": 0.36, "outerRadius": 0.46, "pulseHz": 0.6, "pulseAmount": 0.12 },
+  "icon": { "size": 0.34, "gap": 0.22 },
+  "badge": { "size": 0.3, "offset": 0.28 },
+  "pile": {
+    "sheetHeight": 0.012,
+    "maxSheets": 30,
+    "sheetSize": [0.3, 0.22],
+    "priorityEdge": { "urgent": "priority_urgent", "high": "priority_high", "normal": "priority_normal", "low": "priority_low" },
+    "paperSwatch": "paper"
+  },
+  "lod": { "nearMax": 18, "midMax": 45, "hysteresis": 0.1, "maxNames": 40 },
+  "emotes": { "max": 12, "ttlSeconds": 2.5, "size": 0.32 },
+  "deskGlow": { "off": "screen_off", "working": "status_working", "blocked": "status_blocked", "done": "status_done" },
+  "progressRing": { "radius": 0.16, "width": 0.035, "swatch": "status_working", "trackSwatch": "screen_off" },
+  "dayNight": { "enabledByDefault": true, "dawn": "06:00", "dusk": "18:30" },
+  "heldItems": {
+    "sizes": {
+      "document": [0.24, 0.035, 0.3],
+      "laptop": [0.3, 0.2, 0.22],
+      "phone": [0.1, 0.14, 0.05],
+      "tablet": [0.2, 0.26, 0.03],
+      "box": [0.3, 0.2, 0.22],
+      "camera": [0.14, 0.1, 0.08]
+    }
+  }
+}

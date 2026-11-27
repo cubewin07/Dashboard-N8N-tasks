@@ -1,7 +1,7 @@
 import type { BuildingConfig, Slot } from '@/domain/config'
 import type { OfficeEvent } from '@/domain/events'
 import type { DepartmentId, EmployeeId } from '@/domain/primitives'
-import type { OfficeState, PersonRuntime } from '@/domain/work'
+import type { OfficeState, PersonRuntime, Question } from '@/domain/work'
 import type { BuildingLayout, FloorLayout } from '@/scene/layout'
 import { ElevatorSystem, type CarState } from '@/scene/nav/elevator'
 import { buildGrid } from '@/scene/nav/grid'
@@ -14,7 +14,19 @@ import {
 } from '@/scene/nav/routeGraph'
 import { stairsTime } from '@/scene/nav/stairs'
 import type { NavGrid, Vec2 } from '@/scene/nav/types'
-import { chooseIdleIntent, chooseRestIntent, type IdleContext } from './idleBrain'
+import { heldItemFor } from './held'
+import type { EmoteKey, IdleBehaviours } from '@/domain/visual'
+import {
+  awayShareIfAway,
+  calendarPhase,
+  chooseIdle,
+  chooseIdleIntent,
+  chooseRestIntent,
+  idleClock,
+  spotIntent,
+  type IdleContext,
+  type IdlePartner,
+} from './idleBrain'
 import {
   deriveIntent,
   employeeIndex,
@@ -25,18 +37,24 @@ import {
   type Intent,
   type PersonMemory,
 } from './intents'
-import { entrancePoint, plan, type PlanContext } from './planner'
+import { entrancePoint, plan, type PlanContext, type WaitingPlace } from './planner'
 import { isSeatedPose, type PoseKey } from './poses'
-import { makeRng, type Rng } from './rng'
+import { hashString, makeRng, type Rng } from './rng'
+import { allocateSeats, benchOf, linePoint, nearestFree, type SeatPlace } from './seating'
 import { SlotLedger } from './slots'
 import { deskStationOf, headingTo } from './stations'
 import { TUNING } from './tuning'
-import type { Action, Errand, PersonSim, Station } from './types'
+import type { Action, Errand, PersonSim, Station, WaitingSpot } from './types'
 
 export interface DirectorOptions {
   /** Seeds every person's idle choices. Same seed + same input → same movement. */
   seed?: string
   warn?: (message: string) => void
+  /**
+   * P05 idle brain config (`idle-behaviours.json`), passed in by the caller so
+   * the director never imports content. Missing → the P04 idle brain.
+   */
+  idle?: IdleBehaviours
 }
 
 export interface DirectorStats {
@@ -62,6 +80,8 @@ export interface PersonDebug {
   z: number
   pose: PoseKey
   visible: boolean
+  /** Index of the running action in the plan. */
+  step: number
 }
 
 interface Agent {
@@ -97,12 +117,46 @@ interface Agent {
   /** Idle dwell: ends on whichever limit comes first. */
   dwellVisualLeft: number
   dwellSimEndMs: number
+  /** Sim minutes of the current dwell; the deadline starts on arrival (see `armDwell`). */
+  dwellSimMinutes: number
+  dwellArmed: boolean
+  /** Visual seconds still to spend settled before the dwell may end. */
+  minHoldLeft: number
   restFor: PersonRuntime['activity'] | null
   car: number
   gone: boolean
+  /** A courier's paper is in hand (between the plan's `pick` and `drop`). */
+  paper: boolean
+  /** P05 idle brain: option key, its emote, recent keys, pair partner, calendar phase. */
+  idleKey: string | null
+  idleEmote: EmoteKey | null
+  idleHistory: string[]
+  partnerId: EmployeeId | null
+  idlePhase: string | null
+  /** `idleKey` the current plan was made for: a partner invited this tick still has the old plan. */
+  planIdleKey: string | null
 }
 
 const TWO_PI = Math.PI * 2
+
+/**
+ * Whether `me` has the speech bubble now in a chatting pair. The two take
+ * turns every `turnSeconds`; each pair starts at its own phase so a room full
+ * of pairs does not blink in step.
+ */
+export function talkTurn(visualT: number, me: string, other: string, turnSeconds: number): boolean {
+  const lower = me < other ? me : other
+  const higher = me < other ? other : me
+  const offset = ((hashString(`${lower}|${higher}`) % 1000) / 1000) * 2 * turnSeconds
+  const window = Math.floor((visualT + offset) / turnSeconds) % 2
+  return (window === 0) === me < other
+}
+
+interface Waiting {
+  floorIndex: number
+  nearEmployeeId: EmployeeId
+  place: SeatPlace
+}
 
 function turnToward(current: number, target: number, maxStep: number): number {
   let diff = (target - current) % TWO_PI
@@ -135,6 +189,11 @@ export class Director {
   private readonly seed: string
   private readonly warn: (message: string) => void
   private readonly warned = new Set<string>()
+  private readonly idleConfig: IdleBehaviours | null
+  /** Visual seconds since start (alternates the chat bubbles of a pair). */
+  private visualT = 0
+  /** Reduced motion: chat bubbles stay on instead of taking turns. */
+  private reducedMotion = false
 
   private grids = new Map<number, NavGrid>()
   private elevatorSystem: ElevatorSystem
@@ -150,6 +209,8 @@ export class Director {
   private visible: (floorIndex: number) => boolean = () => true
 
   private readonly inTransitByApprover = new Map<EmployeeId, number>()
+  /** P05-T07: who waits face to face, and where (seat or line place). */
+  private waiting = new Map<EmployeeId, Waiting>()
   private readonly deptCounts = new Map<string, { total: number; away: number }>()
   private counters = { delivered: 0, collapsed: 0, teleports: 0, elevatorTrips: 0, stairsTrips: 0 }
 
@@ -158,6 +219,7 @@ export class Director {
     this.building = elevator
     this.seed = options.seed ?? 'office'
     this.warn = options.warn ?? (() => {})
+    this.idleConfig = options.idle ?? null
     this.elevatorSystem = this.makeElevators()
   }
 
@@ -203,6 +265,11 @@ export class Director {
     }
   }
 
+  /** Reduced motion: a chatting pair's bubble stays on instead of taking turns. */
+  setReducedMotion(reduced: boolean): void {
+    this.reducedMotion = reduced
+  }
+
   /** Which floors the camera shows (catch-up rule 3). Default: all. */
   setVisibility(visible: ((floorIndex: number) => boolean) | null): void {
     this.visible = visible ?? (() => true)
@@ -226,6 +293,7 @@ export class Director {
     }
     this.lastSeq = state.seq
     this.reconcile(state, hired, isReset)
+    this.updateSeating(state)
   }
 
   // ───────────────────────────── outputs ─────────────────────────────
@@ -261,6 +329,13 @@ export class Director {
     return this.inTransitByApprover.get(approverId) ?? 0
   }
 
+  /** P05-T07: the waiting seat / line place of a person asking in person, or null. */
+  waitingOf(id: EmployeeId): WaitingSpot | null {
+    const w = this.waiting.get(id)
+    if (!w || !this.agents.has(id)) return null
+    return { nearEmployeeId: w.nearEmployeeId, index: w.place.index, seated: w.place.seated }
+  }
+
   backlogOf(id: EmployeeId): number {
     return this.agents.get(id)?.memory.errands.length ?? 0
   }
@@ -288,7 +363,13 @@ export class Director {
       z: agent.sim.z,
       pose: agent.sim.pose,
       visible: agent.sim.visible,
+      step: agent.step,
     }))
+  }
+
+  /** The person's current plan (tests, debug overlay). */
+  planOf(id: EmployeeId): readonly Action[] {
+    return this.agents.get(id)?.plan ?? []
   }
 
   gridOf(floorIndex: number): NavGrid {
@@ -305,6 +386,7 @@ export class Director {
   /** Advance by `dt` visual seconds (fixed 0.1 s steps from the renderer). */
   tick(dt: number): void {
     if (!this.state || dt <= 0) return
+    this.visualT += dt
     this.elevatorSystem.step(dt)
     this.countDepartments()
 
@@ -317,6 +399,7 @@ export class Director {
     }
     for (const agent of this.order) {
       this.act(agent, dt)
+      this.dress(agent)
       this.fade(agent, dt)
     }
     this.separate(dt)
@@ -350,6 +433,7 @@ export class Director {
     this.ledger.clear()
     this.elevatorSystem = this.makeElevators()
     this.inTransitByApprover.clear()
+    this.waiting = new Map()
     this.counters = { delivered: 0, collapsed: 0, teleports: 0, elevatorTrips: 0, stairsTrips: 0 }
   }
 
@@ -427,6 +511,8 @@ export class Director {
       opacity: 1,
       visible: true,
       inCar: -1,
+      emote: null,
+      idleKey: null,
     }
     const [lo, hi] = TUNING.idle.dwellSimMinutes
     const firstDwell = (lo + rng() * (hi - lo)) * TUNING.idle.firstDwellScale * rng()
@@ -458,9 +544,19 @@ export class Director {
       opacityTarget: 1,
       dwellVisualLeft: firstDwell * TUNING.idle.visualSecondsPerSimMinute,
       dwellSimEndMs: this.simNowMs + firstDwell * 60_000,
+      dwellSimMinutes: firstDwell,
+      dwellArmed: true,
+      minHoldLeft: 0,
       restFor: null,
       car: -1,
       gone: false,
+      paper: false,
+      idleKey: null,
+      idleEmote: null,
+      idleHistory: [],
+      partnerId: null,
+      idlePhase: null,
+      planIdleKey: null,
     }
     if (arriving) {
       const door = entrancePoint(this.layout)
@@ -612,6 +708,75 @@ export class Director {
     }
   }
 
+  // ───────────────────────────── waiting seats (P05-T07) ─────────────────────────────
+
+  /**
+   * Everybody waiting face to face, grouped by the bench on their target's
+   * floor, in order of arrival. The seated keep their seats; anyone whose
+   * place changed re-plans (the line moves up).
+   */
+  private updateSeating(state: OfficeState): void {
+    const latest = new Map<EmployeeId, Question>()
+    for (const q of Object.values(state.questions)) {
+      if (q.status !== 'open') continue
+      const prev = latest.get(q.fromId)
+      if (!prev || q.createdAt > prev.createdAt) latest.set(q.fromId, q)
+    }
+    const groups = new Map<number, Array<{ id: EmployeeId; near: EmployeeId; at: string }>>()
+    for (const [from, q] of latest) {
+      if (!q.inPerson || q.toId === from) continue
+      if (!this.agents.has(from) || state.people[from]?.activity !== 'waiting_answer') continue
+      const target = this.agents.get(q.toId)?.desk ?? deskStationOf(this.layout, q.toId)
+      if (!target) continue
+      let group = groups.get(target.floorIndex)
+      if (!group) {
+        group = []
+        groups.set(target.floorIndex, group)
+      }
+      group.push({ id: from, near: q.toId, at: q.createdAt })
+    }
+
+    const next = new Map<EmployeeId, Waiting>()
+    for (const [floorIndex, group] of groups) {
+      const bench = benchOf(this.layout.floors[floorIndex]!)
+      group.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+      const previous = new Map<string, number>()
+      for (const g of group) {
+        const w = this.waiting.get(g.id)
+        if (w && w.floorIndex === floorIndex && w.place.seated) previous.set(g.id, w.place.seat)
+      }
+      const places = allocateSeats(
+        group.map((g) => g.id),
+        bench?.seats.length ?? 0,
+        previous,
+      )
+      places.forEach((place, i) => {
+        next.set(group[i]!.id, { floorIndex, nearEmployeeId: group[i]!.near, place })
+      })
+    }
+
+    for (const [id, w] of next) {
+      const before = this.waiting.get(id)
+      const agent = this.agents.get(id)
+      if (!before || !agent || agent.intent.kind !== 'WaitInSeat') continue
+      if (before.place.seat !== w.place.seat || before.place.line !== w.place.line) agent.intentKey = ''
+    }
+    this.waiting = next
+  }
+
+  private waitingPlace(id: EmployeeId): WaitingPlace | null {
+    const w = this.waiting.get(id)
+    if (!w) return null
+    const bench = benchOf(this.layout.floors[w.floorIndex]!)
+    if (!bench) return null
+    if (w.place.seated) {
+      const station = bench.seats[w.place.seat]
+      return station ? { kind: 'seat', station } : null
+    }
+    const point = nearestFree(this.gridOf(w.floorIndex), linePoint(bench.origin, bench.dir, w.place.line))
+    return { kind: 'line', floorIndex: w.floorIndex, point, facing: bench.seats[0]!.seat }
+  }
+
   // ───────────────────────────── think: state → intent → plan ─────────────────────────────
 
   private countDepartments(): void {
@@ -628,14 +793,24 @@ export class Director {
     }
   }
 
-  private idleContext(agent: Agent): IdleContext {
+  /**
+   * The department's away share if this person went (or stayed) away. The
+   * chooser already counts in `away` when they are on a leisure floor now,
+   * so they must not be added a second time.
+   */
+  private awayShareIfAway(agent: Agent): number {
     const c = this.deptCounts.get(agent.departmentId ?? '_')
+    if (!c) return 1
+    return awayShareIfAway(c.away, c.total, agent.intent.kind === 'RestOnLeisureFloor')
+  }
+
+  private idleContext(agent: Agent): IdleContext {
     return {
       layout: this.layout,
       ledger: this.ledger,
       rng: agent.rng,
       homeFloorIndex: agent.desk.floorIndex,
-      deptAwayShare: c && c.total > 0 ? (c.away + 1) / c.total : 1,
+      deptAwayShare: this.awayShareIfAway(agent),
     }
   }
 
@@ -656,6 +831,30 @@ export class Director {
 
     this.catchUp(agent)
 
+    if (this.idleConfig) {
+      this.thinkIdleP05(agent, person, this.idleConfig)
+    } else {
+      this.thinkIdleP04(agent, person)
+    }
+
+    const intent = deriveIntent(person, state, this.layout, memory)
+    const key = intentKey(intent)
+    if (key === agent.intentKey) {
+      agent.planIdleKey = agent.idleKey
+      return
+    }
+
+    if (this.isVertical(agent)) {
+      // Mid-ride or in the stairwell: finish the vertical move, then re-plan.
+      this.truncateAfterVertical(agent)
+      return
+    }
+    this.replan(agent, intent, key)
+  }
+
+  private thinkIdleP04(agent: Agent, person: PersonRuntime): void {
+    const state = this.state!
+    const memory = agent.memory
     // Lunch / night: choose a place once per rest period.
     const activity = person.activity
     if (activity === 'resting' || activity === 'off_shift') {
@@ -675,29 +874,159 @@ export class Director {
       if (
         isLeisureIntent(agent.intent) &&
         agent.plan[agent.step]?.k === 'hold' &&
-        (agent.dwellVisualLeft <= 0 || this.simNowMs >= agent.dwellSimEndMs)
+        this.dwellOver(agent)
       ) {
         this.ledger.releaseAll(agent.id)
         const choice = chooseIdleIntent(agent.id, this.idleContext(agent))
         memory.idleChoice = choice.intent
-        agent.dwellVisualLeft = choice.dwellSimMinutes * TUNING.idle.visualSecondsPerSimMinute
-        agent.dwellSimEndMs = this.simNowMs + choice.dwellSimMinutes * 60_000
+        this.startDwell(agent, choice.dwellSimMinutes)
       }
     } else if (memory.idleChoice !== null) {
       // Any other activity interrupts idling; the choice is dropped, never queued (§3.6 rule 5).
       memory.idleChoice = null
     }
+  }
 
-    const intent = deriveIntent(person, state, this.layout, memory)
-    const key = intentKey(intent)
-    if (key === agent.intentKey) return
-
-    if (this.isVertical(agent)) {
-      // Mid-ride or in the stairwell: finish the vertical move, then re-plan.
-      this.truncateAfterVertical(agent)
+  /**
+   * P05-T09/T11 idle brain (§3.3). Idle, resting and off-shift people pick
+   * an option from `idle-behaviours.json` when their dwell ends or the
+   * calendar phase changes (lunch, night). Working people never run it, so
+   * nobody is forced to nap; any work activity drops the choice at once.
+   */
+  private thinkIdleP05(agent: Agent, person: PersonRuntime, config: IdleBehaviours): void {
+    const state = this.state!
+    const memory = agent.memory
+    const activity = person.activity
+    const free = activity === 'idle' || activity === 'resting' || activity === 'off_shift'
+    if (!free) {
+      if (memory.idleChoice !== null || memory.restChoice !== null || agent.idleKey !== null) {
+        this.dropIdle(agent)
+      }
       return
     }
-    this.replan(agent, intent, key)
+    const clock = idleClock(this.simNowMs, state.config.policy.calendar)
+    const phase = `${activity}:${calendarPhase(clock)}`
+    const settled = agent.plan.length === 0 || agent.plan[agent.step]?.k === 'hold' || agent.idleKey === null
+    const dwellOver = this.dwellOver(agent)
+    const phaseChanged = agent.idlePhase !== phase
+    // Invited partners keep their joint choice until it ends for both.
+    if (!phaseChanged && !(settled && dwellOver && isLeisureIntent(agent.intent))) return
+    if (memory.awayOnWork && !memory.atDesk) return
+
+    if (agent.partnerId) this.unpair(agent)
+    this.ledger.releaseAll(agent.id)
+    const owner = isOwner(state, agent.id)
+    const dept = agent.departmentId
+      ? state.config.departments.find((d) => d.id === agent.departmentId)
+      : undefined
+    const decision = chooseIdle(
+      {
+        id: agent.id,
+        homeFloorIndex: agent.desk.floorIndex,
+        currentFloorIndex: agent.sim.floorIndex,
+        pos: { x: agent.bx, z: agent.bz },
+        history: agent.idleHistory,
+        is247: dept?.hours === '24_7',
+        owner,
+        deptAwayShare: this.awayShareIfAway(agent),
+      },
+      {
+        config,
+        layout: this.layout,
+        ledger: this.ledger,
+        seed: this.seed,
+        clock,
+        partners: owner ? [] : this.idlePartners(agent),
+      },
+    )
+    this.applyIdle(agent, decision.key, decision.emote, decision.intent, decision.dwellSimMinutes, phase)
+    if (decision.partnerId && decision.spot) {
+      const partner = this.agents.get(decision.partnerId)
+      if (partner) {
+        const intent = spotIntent(partner.desk.floorIndex, decision.spot, decision.pose)
+        this.applyIdle(partner, decision.key, decision.emote, intent, decision.dwellSimMinutes, partner.idlePhase ?? phase)
+        partner.partnerId = agent.id
+        agent.partnerId = partner.id
+      }
+    }
+  }
+
+  private applyIdle(
+    agent: Agent,
+    key: string,
+    emote: EmoteKey | null,
+    intent: Intent,
+    dwellSimMinutes: number,
+    phase: string,
+  ): void {
+    // deriveIntent reads idleChoice when idle and restChoice when resting.
+    agent.memory.idleChoice = intent
+    agent.memory.restChoice = intent
+    agent.idleKey = key
+    agent.idleEmote = key === 'stay_at_desk' ? null : emote
+    agent.idlePhase = phase
+    agent.idleHistory.push(key)
+    if (agent.idleHistory.length > 3) agent.idleHistory.shift()
+    this.startDwell(agent, dwellSimMinutes)
+  }
+
+  /**
+   * A new dwell: the sim-time deadline is armed on arrival (`armDwell`), not
+   * now, or at 30x / 120x the walk would eat it and the visit end the moment
+   * the person sits down. Every dwell also holds a minimum of visual seconds.
+   */
+  private startDwell(agent: Agent, dwellSimMinutes: number): void {
+    agent.dwellSimMinutes = dwellSimMinutes
+    agent.dwellVisualLeft = dwellSimMinutes * TUNING.idle.visualSecondsPerSimMinute
+    agent.dwellSimEndMs = Number.POSITIVE_INFINITY
+    agent.dwellArmed = false
+    agent.minHoldLeft = TUNING.idle.minHoldSeconds
+  }
+
+  private armDwell(agent: Agent): void {
+    if (agent.dwellArmed) return
+    agent.dwellArmed = true
+    agent.dwellSimEndMs = this.simNowMs + agent.dwellSimMinutes * 60_000
+  }
+
+  private dwellOver(agent: Agent): boolean {
+    return agent.minHoldLeft <= 0 && (agent.dwellVisualLeft <= 0 || this.simNowMs >= agent.dwellSimEndMs)
+  }
+
+  private dropIdle(agent: Agent): void {
+    if (agent.partnerId) this.unpair(agent)
+    agent.memory.idleChoice = null
+    agent.memory.restChoice = null
+    agent.idleKey = null
+    agent.idleEmote = null
+    agent.idlePhase = null
+  }
+
+  /** A pair ends for both: the partner re-chooses at its next think. */
+  private unpair(agent: Agent): void {
+    const partner = agent.partnerId ? this.agents.get(agent.partnerId) : undefined
+    agent.partnerId = null
+    if (partner && partner.partnerId === agent.id) {
+      partner.partnerId = null
+      partner.dwellVisualLeft = 0
+    }
+  }
+
+  /** Idle people settled on a spot or at their desk, not paired, sorted by id. */
+  private idlePartners(me: Agent): IdlePartner[] {
+    const state = this.state!
+    const out: IdlePartner[] = []
+    for (const other of this.order) {
+      if (other === me || other.partnerId || other.gone) continue
+      if (state.people[other.id]?.activity !== 'idle') continue
+      if (isOwner(state, other.id)) continue
+      if (other.plan[other.step] && other.plan[other.step]!.k !== 'hold') continue
+      // Nobody is pulled out of a visit before its minimum hold is over.
+      if (other.minHoldLeft > 0) continue
+      out.push({ id: other.id, floorIndex: other.sim.floorIndex })
+    }
+    out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    return out
   }
 
   /** §3.6: the state moves faster than legs. */
@@ -764,6 +1093,8 @@ export class Director {
     agent.path = null
     agent.teleporting = false
     agent.intentKey = ''
+    // An interrupted trip puts the paper back (the errand stays queued).
+    agent.paper = false
     if (agent.sim.visible) agent.opacityTarget = 1
   }
 
@@ -781,10 +1112,12 @@ export class Director {
       grid: (floorIndex) => this.gridOf(floorIndex),
       ledger: this.ledger,
       deskOf: (id) => this.agents.get(id)?.desk ?? deskStationOf(this.layout, id),
+      waitingPlace: (id) => this.waitingPlace(id),
       jitterSeconds: leisure ? agent.rng() * TUNING.idle.startJitterSeconds : 0,
     }
     agent.intent = intent
     agent.intentKey = key
+    agent.planIdleKey = agent.idleKey
     agent.plan = plan(
       intent,
       {
@@ -954,10 +1287,12 @@ export class Director {
       }
 
       case 'pick':
+        agent.paper = true
         sim.carrying = action.item
         return agent.fast > 1 || agent.t >= TUNING.pickSeconds
 
       case 'drop': {
+        agent.paper = false
         sim.carrying = null
         if (action.errandId) {
           const errands = agent.memory.errands
@@ -994,7 +1329,11 @@ export class Director {
 
       case 'hold':
         sim.pose = action.pose
-        if (isLeisureIntent(agent.intent)) agent.dwellVisualLeft -= dt
+        if (isLeisureIntent(agent.intent)) {
+          this.armDwell(agent)
+          agent.dwellVisualLeft -= dt
+          agent.minHoldLeft -= dt
+        }
         return false
 
       case 'despawn':
@@ -1009,6 +1348,60 @@ export class Director {
         return exhaustive
       }
     }
+  }
+
+  /** P05-T04/T06: what is in the hand. The courier's paper wins; otherwise the desk work decides. */
+  private dress(agent: Agent): void {
+    agent.sim.idleKey = agent.idleKey
+    agent.sim.emote = this.emoteOf(agent)
+    if (agent.paper) return
+    const runtime = this.state?.people[agent.id]
+    agent.sim.carrying = heldItemFor(
+      runtime?.activity ?? 'idle',
+      runtime?.carrying ?? null,
+      agent.intent.kind,
+    )
+  }
+
+  /**
+   * The bubble shown now. A plan's `emote` step shows its own kind (the
+   * legend explains `stuck` and `wave` because they can be drawn); while
+   * settled on an idle choice it is the option's emote. A chat bubble needs
+   * somebody to chat with, and a chatting pair takes turns (a pair's turns
+   * are offset from other pairs), except under reduced motion, where the
+   * bubble stays on instead of blinking.
+   */
+  private emoteOf(agent: Agent): EmoteKey | null {
+    const step = agent.plan[agent.step]
+    if (step?.k === 'emote') return step.seconds > 0 ? step.kind : null
+    if (!agent.idleEmote || step?.k !== 'hold' || !isLeisureIntent(agent.intent)) return null
+    // Just chosen this tick: the plan to get there is not made yet.
+    if (agent.planIdleKey !== agent.idleKey) return null
+    if (agent.idleEmote !== 'talk') return agent.idleEmote
+    if (!this.hasCompany(agent)) return null
+    const partner = agent.partnerId ? this.agents.get(agent.partnerId) : undefined
+    if (!partner || this.reducedMotion) return 'talk'
+    return talkTurn(this.visualT, agent.id, partner.id, TUNING.idle.talkTurnSeconds) ? 'talk' : null
+  }
+
+  /** Someone settled on the same idle choice, close by: the person to talk to. */
+  private hasCompany(agent: Agent): boolean {
+    const settled = (other: Agent): boolean =>
+      other !== agent &&
+      !other.gone &&
+      other.idleKey === agent.idleKey &&
+      other.planIdleKey === other.idleKey &&
+      other.sim.floorIndex === agent.sim.floorIndex &&
+      other.plan[other.step]?.k === 'hold' &&
+      isLeisureIntent(other.intent)
+    if (agent.partnerId) {
+      const partner = this.agents.get(agent.partnerId)
+      return partner !== undefined && settled(partner)
+    }
+    for (const other of this.order) {
+      if (settled(other) && Math.hypot(other.bx - agent.bx, other.bz - agent.bz) < TUNING.idle.chatReachMetres) return true
+    }
+    return false
   }
 
   private walkPose(agent: Agent): PoseKey {

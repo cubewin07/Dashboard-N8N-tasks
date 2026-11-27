@@ -21,9 +21,10 @@ export type Intent =
   | { kind: 'MeetAt' }
   | { kind: 'Arrive' }
   | { kind: 'Leave' }
-  | { kind: 'IdleAtDesk' }
-  | { kind: 'IdleWander'; floorKey: string; slotId: string }
-  | { kind: 'RestOnLeisureFloor'; floorKey: string; slotId: string }
+  // P05: `pose` is the idle option's settled pose (`idle-behaviours.json` anim).
+  | { kind: 'IdleAtDesk'; pose?: PoseKey }
+  | { kind: 'IdleWander'; floorKey: string; slotId: string; pose?: PoseKey }
+  | { kind: 'RestOnLeisureFloor'; floorKey: string; slotId: string; pose?: PoseKey }
   | { kind: 'NapAtDesk' }
 
 export type IntentKind = Intent['kind']
@@ -96,7 +97,9 @@ export function intentKey(intent: Intent): string {
       return `HelpAt:${intent.helpId}:${intent.helperId}`
     case 'IdleWander':
     case 'RestOnLeisureFloor':
-      return `${intent.kind}:${intent.floorKey}:${intent.slotId}`
+      return `${intent.kind}:${intent.floorKey}:${intent.slotId}${intent.pose ? `:${intent.pose}` : ''}`
+    case 'IdleAtDesk':
+      return intent.pose ? `IdleAtDesk:${intent.pose}` : 'IdleAtDesk'
     default:
       return intent.kind
   }
@@ -222,8 +225,11 @@ export function deriveIntent(
   if (memory.leaving) return { kind: 'Leave' }
   if (memory.arriving) return { kind: 'Arrive' }
 
-  // Owners sit at the boss desk; they do not wander or run errands in P04.
+  // Owners sit at the boss desk; they do not wander or run errands. P05: when
+  // idle they may take a small seated idle at the desk (phone, nap).
   if (isOwner(state, person.employeeId)) {
+    const choice = person.activity === 'idle' || person.activity === 'resting' ? memory.idleChoice : null
+    if (choice && (choice.kind === 'IdleAtDesk' || choice.kind === 'NapAtDesk')) return choice
     return { kind: 'WorkAtDesk', pose: 'sit_work' }
   }
 
