@@ -372,6 +372,11 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
   return bootPromise
 }
 
+/** Which feed drives the office (Settings → Giới thiệu). Null before boot. */
+export function getFeedKind(): OfficeFeed['kind'] | null {
+  return activeFeed?.kind ?? null
+}
+
 export function getOfficeState(): OfficeState | null {
   flushOfficeEvents()
   return useOffice.getState().state

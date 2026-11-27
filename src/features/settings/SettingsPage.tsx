@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   Box,
@@ -16,7 +15,9 @@ import { useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTi
 import { useI18n, type Lang } from '@/i18n'
 import { isBackendConfigured } from '@/office/appearanceStore'
 import { useOfficePrefs } from '@/office/prefs'
+import { AboutCard } from './AboutCard'
 import { ImportLocalLooks } from './ImportLocalLooks'
+import { QualitySetting } from './QualitySetting'
 import { fmt, cn } from '@/lib/utils'
 import { PageHeader } from '@/components'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -233,6 +234,9 @@ export function SettingsPage() {
                 mode: t.settings.deviceTier.activeModes[tier],
               })}
             </p>
+            <div className="border-t border-border pt-4">
+              <QualitySetting />
+            </div>
           </CardContent>
         </Card>
 
@@ -358,6 +362,11 @@ export function SettingsPage() {
                 <p className="text-sm font-semibold text-foreground">
                   {session?.email ?? t.settings.account.defaultEmail}
                 </p>
+                {session?.role ? (
+                  <p className="mt-1 text-xs text-muted-foreground" data-settings-role={session.role}>
+                    {t.settings.account.roleLabel}: {t.settings.account.roles[session.role]}
+                  </p>
+                ) : null}
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -390,20 +399,7 @@ export function SettingsPage() {
 
         {session?.role === 'boss' && isBackendConfigured() && <ImportLocalLooks />}
 
-        {/* Asset credits */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.credits.settingsCard.title}</CardTitle>
-            <CardDescription>{t.credits.settingsCard.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline">
-              <Link to="/credits" data-credits-link>
-                {t.credits.settingsCard.open}
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <AboutCard full={full} />
       </div>
 
       {/* Change Password Dialog */}
