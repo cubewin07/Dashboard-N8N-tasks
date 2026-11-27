@@ -74,7 +74,7 @@ Bundle and assets:
 | P04 people (capsules) | 80 | | | | | | | |
 | P05 office life | 80 | | | | | | | |
 | P06b env art | 28 (seed org) | 110 / 60–95 (2026-11-13, Chromium + Metal, after bake; e2e SwiftShader overview 128) | 212 140 | 60 / 60 / – (MacBook Pro, not the reference Mac Studio) | | | | 1.4 |
-| P07b characters | 80 | | | | | | | |
+| P07b characters | 80 | 195 / 142 (follow 76; 2026-11-15, Chromium + Metal; SwiftShader 191 / 144) | 417 950 | 60.0 / 60.0 / 60.0 (Apple M4 Pro, Metal; 1.11 ms avg assembly) | tick 0.44 ms avg (1.14 ms max); frame 16.7 ms p95 | 125.8 / 415.4 | – | 3.2 |
 | P08b wardrobe | 80 (+ preview) | | | | | | | |
 | P11 polish (final) | 80 | | | | | | | |
 
@@ -87,6 +87,8 @@ The author fills the row for their layer and copies the table (with earlier rows
 | P04 | 2026-11-12 | SwiftShader (CI mode), same view | 38 | ≈ 9 (warning only) | 111 | 394 k | 0.04 ms |
 | P05 | 2026-11-13 | Mac, real GPU, 1440×900, overview, 30× | 38 | 60 | 173 | 70 k | 0.23 ms |
 | P05 | 2026-11-13 | SwiftShader (CI mode), same view | 38 | ≈ 19 (warning only) | 173 | 70 k | 0.07 ms |
+| P07b | 2026-11-15 | Mac (Apple M4 Pro), Metal, 1440×900, overview/floor/follow, 30× (`crowded`) | 80 | 60.0 / 60.0 / 60.0 | 195 / 142 / 76 | 418 k / 193 k / 213 k | 0.44 ms (1.11 ms avg assembly) |
+| P07b | 2026-11-15 | SwiftShader (CI mode), overview/floor/follow, 30× (`crowded`) | 80 | 5.2 / 6.9 / 7.3 (warning only) | 191 / 144 / 117 | 411 k / 191 k / 159 k | 0.24 ms (1.11 ms avg assembly) |
 
 ## 6. Regression policy
 

@@ -1,0 +1,27 @@
+{
+  "regions": [
+    "head",
+    "neck",
+    "chest",
+    "belly",
+    "hips",
+    "upper_arm_l",
+    "upper_arm_r",
+    "elbow_l",
+    "elbow_r",
+    "forearm_l",
+    "forearm_r",
+    "hand_l",
+    "hand_r",
+    "thigh_l",
+    "thigh_r",
+    "knee_l",
+    "knee_r",
+    "shin_l",
+    "shin_r",
+    "ankle_l",
+    "ankle_r",
+    "foot_l",
+    "foot_r"
+  ]
+}

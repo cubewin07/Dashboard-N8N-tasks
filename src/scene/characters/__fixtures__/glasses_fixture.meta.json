@@ -1,0 +1,27 @@
+{
+  "id": "glasses_fixture",
+  "slot": "glasses",
+  "kind": "rigid",
+  "bone": "Head",
+  "merge": true,
+  "bases": {
+    "female": {
+      "file": "glasses_fixture.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    },
+    "male": {
+      "file": "glasses_fixture.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    }
+  }
+}
