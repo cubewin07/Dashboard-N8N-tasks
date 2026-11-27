@@ -11,6 +11,8 @@ export const login = {
   signInButton: 'Đăng nhập',
   signingIn: 'Đang đăng nhập…',
   invalidCredentials: 'Email hoặc mật khẩu không đúng',
+  notAllowed: 'Tài khoản này chưa được cấp quyền vào ứng dụng. Hãy liên hệ sếp.',
+  networkError: 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.',
   forgotPasswordLink: 'Quên mật khẩu?',
   demoHint: 'Bản thử nghiệm: dùng một trong hai tài khoản mẫu dưới đây với mật khẩu từ 6 ký tự.',
   roleBoss: 'Sếp (toàn quyền)',
@@ -22,6 +24,7 @@ export const login = {
   resetSuccess: 'Nếu email tồn tại, chúng tôi đã gửi liên kết đặt lại mật khẩu.',
   backToLogin: 'Quay lại đăng nhập',
   resetPage: {
+    failed: 'Chưa đổi được mật khẩu. Liên kết có thể đã hết hạn, hãy gửi lại.',
     title: 'Đặt lại mật khẩu mới',
     subtitle: 'Nhập mật khẩu mới cho tài khoản của bạn',
     newPasswordLabel: 'Mật khẩu mới',

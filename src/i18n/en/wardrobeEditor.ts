@@ -136,9 +136,10 @@ export const wardrobeEditor: typeof vi = {
     unsaved: 'Unsaved changes',
   },
   conflict: {
-    title: 'Someone just saved this look',
-    description: 'The saved look changed since you opened it. Which one do you want to keep?',
-    keepMine: 'Keep mine',
-    takeTheirs: 'Take the saved one',
+    title: 'Someone else just changed this look',
+    description: 'The saved look changed since you opened it. Reload to take the new one (your edits are dropped), or overwrite it with yours.',
+    reload: 'Reload',
+    overwrite: 'Overwrite',
+    remoteChange: 'There are new changes',
   },
 }

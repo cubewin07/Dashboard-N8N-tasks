@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useAuth } from '@/app/auth'
 import { useI18n } from '@/i18n'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button'
 
 export function ResetPasswordPage() {
   const { t } = useI18n()
+  const { updatePassword } = useAuth()
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -33,9 +35,11 @@ export function ResetPasswordPage() {
 
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      if (updatePassword) await updatePassword(password)
+      else await new Promise((resolve) => setTimeout(resolve, 800)) // demo accounts: nothing to change
       setSuccess(true)
+    } catch {
+      setError(t.login.resetPage.failed)
     } finally {
       setLoading(false)
     }

@@ -28,7 +28,13 @@
     "assets:manifest": "node scripts/assets-manifest.mjs",
     "assets:credits": "node scripts/assets-credits.mjs",
     "assets:check": "node scripts/assets-check.mjs",
-    "assets:all": "npm run art:build && npm run assets:optimize && npm run assets:manifest && npm run assets:credits && npm run assets:check"
+    "assets:all": "npm run art:build && npm run assets:optimize && npm run assets:manifest && npm run assets:credits && npm run assets:check",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript > src/adapters/supabase/database.types.ts",
+    "seed:sql": "node scripts/seed-sql.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.4.1",
@@ -43,6 +49,7 @@
     "@radix-ui/react-tooltip": "^1.4.1",
     "@react-three/drei": "10.7.9",
     "@react-three/fiber": "9.8.2",
+    "@supabase/supabase-js": "^2.119.2",
     "@tanstack/react-query": "^5.107.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

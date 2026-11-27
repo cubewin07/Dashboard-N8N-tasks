@@ -21,6 +21,7 @@ import {
 } from '@/office/appearanceStore'
 import { DEFAULT_CATALOG, type Catalog, type CatalogSlot } from '@/scene/characters/catalog'
 import { applyClamps, applyPreset, randomise, type LockKey } from '../logic'
+import { ConflictDialog } from '../ConflictDialog'
 import { PRESETS } from '../presets'
 import { selectCanRedo, selectCanUndo, useWardrobeEditor } from '../useWardrobeEditor'
 
@@ -273,20 +274,13 @@ export function WardrobeToolbar({ onCompare, catalog = DEFAULT_CATALOG }: Wardro
       </details>
       {dirty ? <p className="text-xs text-muted-foreground">{text.unsaved}</p> : null}
 
-      <Dialog open={conflict !== null} onOpenChange={(o) => (o ? undefined : setConflict(null))}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t.wardrobeEditor.conflict.title}</DialogTitle>
-            <DialogDescription>{t.wardrobeEditor.conflict.description}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={takeTheirs}>
-              {t.wardrobeEditor.conflict.takeTheirs}
-            </Button>
-            <Button onClick={() => void doSave(conflict?.currentVersion)}>{t.wardrobeEditor.conflict.keepMine}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConflictDialog
+        conflict={conflict}
+        saving={saving}
+        onReload={takeTheirs}
+        onOverwrite={(c) => void doSave(c.currentVersion)}
+        onClose={() => setConflict(null)}
+      />
 
       <Dialog open={copyTarget !== null} onOpenChange={(o) => (o ? undefined : setCopyTarget(null))}>
         <DialogContent>

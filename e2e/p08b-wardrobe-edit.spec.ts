@@ -111,9 +111,9 @@ test.describe('P08b wardrobe editing', () => {
     await expect(page.getByTestId('wardrobe-outfit-description')).toContainText(mine)
     await saveIn(page)
 
-    const dialog = page.getByRole('dialog', { name: 'Diện mạo vừa được người khác lưu' })
+    const dialog = page.getByRole('dialog', { name: 'Người khác vừa đổi diện mạo này' })
     await expect(dialog).toBeVisible()
-    await dialog.getByRole('button', { name: 'Giữ bản của tôi' }).click()
+    await dialog.getByRole('button', { name: 'Ghi đè' }).click()
     await expect(page.getByText('Đã lưu diện mạo')).toBeVisible()
 
     // "Keep mine" wins everywhere: the other (now clean) tab follows it.

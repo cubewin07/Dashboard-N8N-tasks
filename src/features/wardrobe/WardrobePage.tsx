@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useI18n } from '@/i18n'
 import { cn, fmt } from '@/lib/utils'
-import { getGeneratedAppearance, initAppearanceStore, useAppearanceCache } from '@/office/appearanceStore'
+import { getGeneratedAppearance, initAppearanceStore, isBackendConfigured, useAppearanceCache } from '@/office/appearanceStore'
+import { RemoteChangeBanner } from './ConflictDialog'
 import { loadConfig, useConfigStore } from '@/office/configStore'
 import { WardrobeEditorPanel } from './editor/WardrobeEditorPanel'
 import { WardrobeToolbar } from './editor/WardrobeToolbar'
@@ -54,6 +55,8 @@ export function WardrobePage() {
   // A save from another tab or device: a clean editor follows it; a dirty one keeps its draft
   // and gets the conflict dialog on save.
   const cachedVersion = useAppearanceCache((s) => (selectedId ? s.versions[selectedId] : undefined))
+  const editorVersion = useWardrobeEditor((s) => s.version)
+  const remoteChanged = dirty && cachedVersion !== undefined && cachedVersion > editorVersion
   useEffect(() => {
     const editor = useWardrobeEditor.getState()
     if (!selectedId || editor.employeeId !== selectedId || editor.dirty) return
@@ -94,9 +97,11 @@ export function WardrobePage() {
       <div className={cn(editing && 'hidden lg:block')}>
         <PageHeader title={t.wardrobe.title} description={t.wardrobe.description} />
       </div>
-      <p role="note" className="text-xs text-muted-foreground" data-testid="wardrobe-device-only">
-        {t.wardrobe.deviceOnly}
-      </p>
+      {!isBackendConfigured() && (
+        <p role="note" className="text-xs text-muted-foreground" data-testid="wardrobe-device-only">
+          {t.wardrobe.deviceOnly}
+        </p>
+      )}
 
       {editing && (
         <div className="flex items-center gap-2 lg:hidden">
@@ -138,6 +143,15 @@ export function WardrobePage() {
             <>
               <div className="flex min-w-0 flex-col gap-3">
                 <h2 className="hidden truncate text-base font-semibold lg:block">{fmt(t.wardrobe.page.editing, { name: person.name })}</h2>
+                {remoteChanged && selectedId ? (
+                  <RemoteChangeBanner
+                    onReload={() => {
+                      const doc = useAppearanceCache.getState().docs[selectedId]
+                      const v = useAppearanceCache.getState().versions[selectedId]
+                      if (doc && v !== undefined) useWardrobeEditor.getState().adoptSaved(doc, v)
+                    }}
+                  />
+                ) : null}
                 <WardrobePreview
                   appearance={draft}
                   name={person.name}

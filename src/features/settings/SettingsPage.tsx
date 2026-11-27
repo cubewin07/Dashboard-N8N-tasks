@@ -15,12 +15,15 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '@/app/auth'
+import { CONTRACT_VERSION } from '@/domain/contract'
 import { can } from '@/app/roles'
 import { useDeviceTierPreference, type DeviceTierOverride } from '@/app/deviceTier'
 import { useDrive } from '@/app/drive'
 import { useI18n, type Lang } from '@/i18n'
 import { useTeamOnline, useSystemStatus } from '@/hooks/queries'
+import { isBackendConfigured } from '@/office/appearanceStore'
 import { useOfficePrefs } from '@/office/prefs'
+import { ImportLocalLooks } from './ImportLocalLooks'
 import { formatDateTime } from '@/lib/time'
 import { fmt, cn } from '@/lib/utils'
 import {
@@ -48,7 +51,7 @@ import {
 
 export function SettingsPage() {
   const { t, lang, setLang } = useI18n()
-  const { session, signOut } = useAuth()
+  const { session, signIn, signOut, updatePassword } = useAuth()
   const full = can(session?.role, 'settings.full')
   const { tier, override: tierOverride, setOverride: setTierOverride } = useDeviceTierPreference()
   const drive = useDrive()
@@ -89,12 +92,23 @@ export function SettingsPage() {
 
     setPasswordSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 700))
+      if (updatePassword && session) {
+        // Re-check the current password first: an open session alone must not be enough.
+        try {
+          await signIn(session.email, currentPassword)
+        } catch {
+          setPasswordError(t.settings.account.currentPasswordWrong)
+          return
+        }
+        await updatePassword(newPassword)
+      } else await new Promise((resolve) => setTimeout(resolve, 700))
       setPasswordDialogOpen(false)
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       toast.success(t.settings.account.successToast)
+    } catch {
+      setPasswordError(t.login.resetPage.failed)
     } finally {
       setPasswordSaving(false)
     }
@@ -522,7 +536,7 @@ export function SettingsPage() {
               <div className="flex items-center justify-between p-3.5">
                 <span className="text-muted-foreground">{t.settings.system.contractVersion}</span>
                 <span className="rounded-md bg-primary-soft px-2 py-0.5 font-mono text-xs font-semibold text-primary">
-                  {t.settings.system.contractVersionValue}
+                  v{CONTRACT_VERSION}
                 </span>
               </div>
             </div>
@@ -628,6 +642,8 @@ export function SettingsPage() {
 
         </>
 )}
+
+        {session?.role === 'boss' && isBackendConfigured() && <ImportLocalLooks />}
 
         {/* Asset credits */}
         <Card>

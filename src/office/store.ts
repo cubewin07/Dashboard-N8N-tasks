@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import type { Command, CommandAck } from '@/domain/commands'
 import type { OfficeEvent } from '@/domain/events'
-import { applyAll } from '@/domain/reducer'
+import { applyAll, withConfig } from '@/domain/reducer'
 import type { OfficeState } from '@/domain/work'
 import type { ConnectionState, OfficeFeed } from '@/ports/OfficeFeed'
-import { loadConfig } from './configStore'
+import { loadConfig, useConfigStore } from './configStore'
 import { officeExtensions } from './extensions'
 import { createFeed } from './feedRegistry'
 import { getCommandsAllowed } from './sessionRole'
@@ -36,6 +36,7 @@ let activeFeed: OfficeFeed | null = null
 let unsubscribeEvents: (() => void) | null = null
 let unsubscribeConn: (() => void) | null = null
 let unsubscribeReset: (() => void) | null = null
+let unsubscribeConfig: (() => void) | null = null
 let bootPromise: Promise<OfficeState> | null = null
 
 let pendingEvents: OfficeEvent[] = []
@@ -246,6 +247,10 @@ export function stopOffice(): void {
     unsubscribeReset()
     unsubscribeReset = null
   }
+  if (unsubscribeConfig) {
+    unsubscribeConfig()
+    unsubscribeConfig = null
+  }
   if (activeFeed) {
     activeFeed.stop()
     activeFeed = null
@@ -292,6 +297,17 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
 
     unsubscribeConn = feed.onConnection((c) => {
       useOffice.setState({ connection: c })
+    })
+
+    // A newer config from the ConfigSource (Supabase realtime: a change made in another
+    // browser or in the SQL editor) replaces the office snapshot at once. The per-browser
+    // simulator does not emit `config.changed` for changes it did not make (R12).
+    unsubscribeConfig = useConfigStore.subscribe((next, prev) => {
+      if (!next.config || next.config === prev.config) return
+      flushOfficeEvents()
+      const current = useOffice.getState().state
+      if (!current || current.config === next.config) return
+      useOffice.setState({ state: withConfig(current, next.config, current.now) })
     })
 
     return snapshot.state

@@ -2,13 +2,15 @@
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import type { AuthPort, Session } from '@/ports/AuthPort'
-import { authPort } from './authRegistry'
+import { authPort, canUpdatePassword } from './authRegistry'
 
 interface AuthValue {
   session: Session | null
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => void
   sendPasswordReset: (email: string) => Promise<void>
+  /** Set a real new password; null when the active backend has no such path (demo accounts). */
+  updatePassword: ((password: string) => Promise<void>) | null
 }
 const AuthContext = createContext<AuthValue | null>(null)
 
@@ -23,6 +25,9 @@ export function AuthProvider({ children, port = authPort }: { children: ReactNod
       signIn: (email, password) => port.signIn(email, password),
       signOut: () => void port.signOut(),
       sendPasswordReset: (email) => port.sendPasswordReset(email),
+      updatePassword: (port === authPort ? canUpdatePassword() : Boolean(port.updatePassword))
+        ? (password) => port.updatePassword!(password)
+        : null,
     }),
     [session, port],
   )

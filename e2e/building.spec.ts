@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { expect, test } from '@playwright/test'
+import { waitForOfficeAssets } from './support/office'
 
 const SCREENSHOT_DIR = path.resolve(import.meta.dirname, '../test-results/p02-screenshots')
 
@@ -32,9 +33,7 @@ test.describe('P02 building blockout and camera modes', () => {
     })
 
     // P06b: wait until every model has loaded and the scenery is baked
-    await expect(canvasWrapper).toHaveAttribute('data-assets', 'ready', {
-      timeout: 30_000,
-    })
+    await waitForOfficeAssets(canvasWrapper)
     await expect(page.locator('[data-load-progress]')).toHaveCount(0)
     await page.waitForTimeout(500)
 

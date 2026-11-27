@@ -17,7 +17,7 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -96,3 +96,29 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase (database, auth, realtime, rest)
+        run: supabase start -x studio,imgproxy,vector,logflare,edge-runtime,storage-api,mailpit,postgres-meta
+
+      - name: pgTAP RLS and RPC tests
+        run: supabase test db
+
+      - name: Seed SQL is in sync with src/content
+        run: node scripts/seed-sql.mjs --check

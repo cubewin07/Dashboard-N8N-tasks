@@ -18,6 +18,7 @@ export default tseslint.config(
       'coverage',
       'playwright-report',
       'test-results',
+      'src/adapters/supabase/database.types.ts',
     ],
   },
   {
@@ -70,6 +71,7 @@ export default tseslint.config(
       'src/office/__tests__/**/*.{ts,tsx}',
       'src/app/providers.tsx',
       'src/app/authRegistry.ts',
+      'src/app/backend.ts',
     ],
     rules: {
       'no-restricted-imports': [
@@ -79,7 +81,7 @@ export default tseslint.config(
             {
               group: ['@/adapters/*', '@/adapters/**', '**/adapters/*'],
               message:
-                'Adapters may only be imported in src/office/feedRegistry.ts, src/office/configStore.ts, src/office/appearanceStore.ts, src/app/providers.tsx, or src/app/authRegistry.ts.',
+                'Adapters may only be imported in src/office/feedRegistry.ts, src/office/configStore.ts, src/office/appearanceStore.ts, src/app/providers.tsx, src/app/authRegistry.ts, or src/app/backend.ts.',
             },
           ],
         },

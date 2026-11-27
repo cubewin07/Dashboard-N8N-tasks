@@ -1,14 +1,15 @@
 import { useConnection } from '@/app/RealtimeProvider'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
-import { useIsLegacyRoute, useOffice } from '@/office'
+import { useBackendConnection, useIsLegacyRoute, useOffice, worstConnection } from '@/office'
 
 export function LiveBadge({ className }: { className?: string }) {
   const { t } = useI18n()
   const isLegacy = useIsLegacyRoute()
   const legacyConn = useConnection()
   const officeConn = useOffice((s) => s.connection)
-  const conn = isLegacy ? legacyConn : officeConn
+  const backendConn = useBackendConnection()
+  const conn = isLegacy ? legacyConn : worstConnection(officeConn, backendConn)
 
   const cfg = {
     live: {

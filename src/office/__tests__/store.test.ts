@@ -89,6 +89,22 @@ describe('office store, feedRegistry, and command tracking (P03-T12)', () => {
     vi.useRealTimers()
   })
 
+  it('a newer config from the ConfigSource replaces the office snapshot (P09 realtime)', async () => {
+    const state = await bootOffice(new StaticFeed())
+    const cfg = useConfigStore.getState().config!
+    const next = {
+      ...cfg,
+      departments: cfg.departments.map((d) => (d.id === 'dep_cs' ? { ...d, label: { vi: 'CSKH', en: 'CS' } } : d)),
+    }
+    useConfigStore.setState({ config: next })
+    const after = getOfficeState()!
+    expect(after.config).toBe(next)
+    expect(after.people).toEqual(state.people)
+    stopOffice()
+    useConfigStore.setState({ config: cfg })
+    expect(getOfficeState()?.config).not.toBe(cfg)
+  })
+
   it('boots office state with StaticFeed (28 idle core staff and no tasks)', async () => {
     const state = await bootOffice(new StaticFeed())
     expect(useConfigStore.getState().status).toBe('ready')

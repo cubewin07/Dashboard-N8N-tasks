@@ -370,4 +370,11 @@ create table config_audit (id bigint generated always as identity primary key, a
 - **Realtime:** publication includes all config tables + `appearances` so two open browsers stay in sync (sister edits → dad sees it live).
 - **Seed:** migration `0003_seed_org.sql` is generated from `src/content/*.json` by `scripts/seed-sql.mjs` (idempotent `on conflict do nothing`), so JSON stays the single source.
 
+**As built in P09 (2026-11-26)**, differences from the sketch above (the migrations are the truth):
+- **Reads are narrower than "staff sees everything":** boss and stylist read `departments`, `roles`, `employees` and `appearances`; only the boss reads `specialties`, `platforms`, `shops`, `task_types`, `approval_rules`, `policy` and `config_audit`. `app_users`: own row, or every row for a boss. The stylist's app fills the tables it cannot read with the bundled defaults (phase 09, D15).
+- **Grants:** Supabase's default grants are revoked from `anon` and `authenticated` on every table; `authenticated` gets `select` back. Helpers `app_role()`, `is_boss()`, `is_staff()` are `security definer` and not executable by `anon`.
+- **More RPCs** than listed above: also `upsert_shop`, `upsert_task_type`, `restore_employee`, `delete_approval_rule`, `reorder_approval_rules`. Full list and error codes: `contracts.md` §5.1.
+- **Check constraints** on ids (`dep_…`, `emp_…`), `"order" >= 0`, `appearances.version >= 1`; `appearances.updated_by` references `auth.users`; `app_users.owner_employee_id` references `employees`.
+- **Realtime:** `appearances` uses `replica identity full` so deletes carry the employee id.
+
 Designed but **not built** in this phase (see `after-this-phase.md`): `office_events`, `commands`, `tasks`, `reviews`, `questions`, `help_requests`, `intake_messages`, `employee_runtime`, `budgets`, `model_routes`, `connected_accounts`, `audit_log`.

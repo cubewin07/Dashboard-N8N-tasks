@@ -11,7 +11,7 @@ import {
   t,
 } from '../__fixtures__/builders'
 import { EVENT_TYPES, parseEvent, type EventType, type OfficeEvent } from '../events'
-import { apply, applyAll, applyConfigChange, initialState } from '../reducer'
+import { apply, applyAll, applyConfigChange, initialState, withConfig } from '../reducer'
 
 const fixturesDir = path.resolve(import.meta.dirname, '../__fixtures__/events')
 
@@ -871,5 +871,27 @@ describe('domain reducer', () => {
       expect(s1.people.emp_mai?.activity).toBe('idle')
       expect(s1.people.emp_quan?.activity).toBe('idle')
     })
+  })
+})
+
+describe('withConfig (P09: a newer config pushed by the ConfigSource)', () => {
+  it('keeps runtime for active staff, adds new hires idle, drops archived staff', () => {
+    const base = initialState(makeSeedConfig(), t(0))
+    const worked = { ...base, people: { ...base.people, emp_an: { ...base.people.emp_an!, activity: 'working' as const } } }
+    const cfg = makeSeedConfig()
+    const hire = { ...cfg.employees.find((e) => e.id === 'emp_an')!, id: 'emp_moi' as const, name: 'Mới' }
+    const next = {
+      ...cfg,
+      employees: [
+        ...cfg.employees.map((e) => (e.id === 'emp_quan' ? { ...e, state: 'archived' as const } : e)),
+        hire,
+      ],
+    }
+    const s = withConfig(worked, next, t(5))
+    expect(s.config).toBe(next)
+    expect(s.people.emp_an?.activity).toBe('working')
+    expect(s.people.emp_moi?.activity).toBe('idle')
+    expect(s.people.emp_quan).toBeUndefined()
+    expect(s.log).toBe(worked.log)
   })
 })

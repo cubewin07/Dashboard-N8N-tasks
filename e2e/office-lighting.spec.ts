@@ -2,8 +2,9 @@ import path from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import sharp from 'sharp'
 import { deltaE } from '../src/scene/render/colorDelta'
+import { waitForOfficeAssets } from './support/office'
 
-const OUT_DIR = '/Users/letanthang/.claude/jobs/932208d3/tmp/light'
+const OUT_DIR = path.resolve(import.meta.dirname, '../test-results/p06-lighting')
 
 interface DebugInfo {
   drawCalls: number
@@ -27,7 +28,7 @@ async function openOffice(page: Page) {
   await expect(page).toHaveURL(/#\/(\?.*)?$/)
   const canvas = page.locator('[data-office-canvas]')
   await expect(canvas).toHaveAttribute('data-ready', 'true', { timeout: 25_000 })
-  await expect(canvas).toHaveAttribute('data-assets', 'ready', { timeout: 35_000 })
+  await waitForOfficeAssets(canvas)
   await expect(page.locator('[data-load-progress]')).toHaveCount(0)
   await page.waitForTimeout(500)
 }

@@ -49,3 +49,34 @@ describe('office appearance store', () => {
     })
   })
 })
+
+describe('importLocalLooks (R14)', () => {
+  it('imports each local look with expected version 0 and never overwrites an existing one', async () => {
+    const a = generateAppearance('emp_a')
+    const b = generateAppearance('emp_b')
+    const c = generateAppearance('emp_c')
+    const { importLocalLooks } = await import('../appearanceStore')
+    // The active (server-like) store already holds emp_b.
+    const server = new LocalAppearanceStore({ storage: new MemoryStorage(), eventTarget: new EventTarget() })
+    await server.save('emp_b', c, 0)
+    const realSave = server.save.bind(server)
+    server.save = (id, doc, v) => (id === 'emp_c' ? Promise.reject(new Error('boom')) : realSave(id, doc, v))
+    setAppearanceStore(server)
+
+    const results = await importLocalLooks({
+      readEntries: () => ({
+        emp_a: { doc: a, version: 4 },
+        emp_b: { doc: b, version: 2 },
+        emp_c: { doc: c, version: 1 },
+      }),
+    })
+
+    expect(results).toEqual([
+      { employeeId: 'emp_a', status: 'imported' },
+      { employeeId: 'emp_b', status: 'exists' },
+      { employeeId: 'emp_c', status: 'failed' },
+    ])
+    expect(await server.get('emp_b')).toEqual(c)
+    expect(useAppearanceCache.getState().versions.emp_a).toBe(1)
+  })
+})

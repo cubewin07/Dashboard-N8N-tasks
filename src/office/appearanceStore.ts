@@ -1,12 +1,19 @@
 import { useMemo } from 'react'
 import { create } from 'zustand'
 import { LocalAppearanceStore, type LocalAppearanceStoreOptions } from '@/adapters/local/LocalAppearanceStore'
+import { isSupabaseConfigured } from '@/adapters/supabase'
 import type { AppearanceV1 } from '@/domain/appearance'
 import { hashAppearance } from '@/scene/characters/appearance'
 import { generateAppearance } from '@/scene/characters/generate'
 import type { AppearanceEntry, AppearanceStore } from '@/ports/AppearanceStore'
 
-export { AppearanceConflictError } from '@/ports/AppearanceStore'
+import { AppearanceConflictError } from '@/ports/AppearanceStore'
+export { AppearanceConflictError }
+
+/** True when the app runs on the Supabase backend (R9). UI uses this instead of touching adapters. */
+export function isBackendConfigured(): boolean {
+  return isSupabaseConfigured()
+}
 
 export interface AppearanceCacheState {
   /** Saved looks by employee id (generated defaults are NOT stored here). */
@@ -48,15 +55,21 @@ export function setAppearanceStore(store: AppearanceStore): void {
   activeStore = store
   useAppearanceCache.setState({ docs: {}, versions: {} })
   if (store instanceof LocalAppearanceStore) applyEntries(store.readEntries())
-  void store.getEntries().then((entries) => {
-    if (activeStore === store) applyEntries(entries)
-  })
+  void store
+    .getEntries()
+    .then((entries) => {
+      if (activeStore === store) applyEntries(entries)
+    })
+    .catch((err: unknown) => console.warn('Loading saved looks failed:', err))
   unsubscribe = store.subscribe((id, doc) => {
     // Show the new look at once, then pick up the stored version.
     useAppearanceCache.setState((s) => ({ docs: { ...s.docs, [id]: sameIdentity(s.docs[id], doc) } }))
-    void store.getEntries().then((entries) => {
-      if (activeStore === store) applyEntries(entries)
-    })
+    void store
+      .getEntries()
+      .then((entries) => {
+        if (activeStore === store) applyEntries(entries)
+      })
+      .catch((err: unknown) => console.warn('Reloading saved looks failed:', err))
   })
 }
 
@@ -127,4 +140,31 @@ export function useAppearance(employeeId: string, name?: string): AppearanceV1 {
 export function useAppearanceVersion(employeeId: string): number {
   getStore()
   return useAppearanceCache((s) => s.versions[employeeId] ?? 0)
+}
+
+export type ImportStatus = 'imported' | 'exists' | 'failed'
+
+export interface ImportResult {
+  employeeId: string
+  status: ImportStatus
+}
+
+/**
+ * R14: copy looks saved in this browser's localStorage into the active store, once.
+ * Each goes in with expected version 0, so an employee that already has a stored look is
+ * reported as 'exists' and never overwritten.
+ */
+export async function importLocalLooks(
+  local: { readEntries(): Record<string, AppearanceEntry> } = new LocalAppearanceStore(),
+): Promise<ImportResult[]> {
+  const results: ImportResult[] = []
+  for (const [employeeId, entry] of Object.entries(local.readEntries())) {
+    try {
+      await saveAppearance(employeeId, entry.doc, 0)
+      results.push({ employeeId, status: 'imported' })
+    } catch (err) {
+      results.push({ employeeId, status: err instanceof AppearanceConflictError ? 'exists' : 'failed' })
+    }
+  }
+  return results
 }
