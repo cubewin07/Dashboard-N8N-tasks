@@ -36,6 +36,20 @@ export function useLabel(): (label: Label) => string {
  * Whether the config or the feed failed to boot, plus a retry that boots again.
  * Screens use it to replace an endless skeleton with an error state.
  */
+/** Where the feed is: still booting, failed to boot, or delivering state. */
+export type FeedPhase = 'connecting' | 'failed' | 'ready'
+
+/**
+ * Screens show a skeleton while `connecting` (never an "empty" message that is not yet true),
+ * an error state with a retry when `failed`, and their content when `ready`.
+ */
+export function useFeedPhase(): FeedPhase {
+  const hasState = useOffice((s) => s.state !== null)
+  const { failed } = useBootFailure()
+  if (hasState) return 'ready'
+  return failed ? 'failed' : 'connecting'
+}
+
 export function useBootFailure(): { failed: boolean; retry: () => void } {
   const status = useConfigStore((s) => s.status)
   const bootError = useOffice((s) => s.bootError)

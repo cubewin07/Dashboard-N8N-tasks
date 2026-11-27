@@ -48,6 +48,17 @@ export function hasWebGL2Support(): boolean {
   return probeCapabilities().webgl2
 }
 
+/** Phone-sized viewport (the same breakpoint `auto` uses to pick the 2D list). */
+export function isSmallScreen(): boolean {
+  try {
+    return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 768px)').matches
+      : false
+  } catch {
+    return false
+  }
+}
+
 export function detectTier(): DeviceTier {
   // R8: without WebGL2 the 2D screens are the only option, whatever was stored.
   if (!hasWebGL2Support()) return 'fallback'

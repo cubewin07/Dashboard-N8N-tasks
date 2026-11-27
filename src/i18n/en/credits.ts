@@ -10,6 +10,7 @@ export const credits: typeof viCredits = {
   filesCount: '{count} files',
   licenseLabel: 'Licence',
   sourceLabel: 'Source',
+  sourceLink: 'source',
   modifiedBadge: 'Modified',
   showFiles: 'Show file list',
   backToSettings: 'Back to Settings',

@@ -7,10 +7,11 @@ export const common = {
     errorBody: 'Kiểm tra mạng rồi thử lại nhé.',
   },
   nav: {
+    skipToMain: 'Bỏ qua, đến nội dung chính',
     office: 'Văn phòng',
     org: 'Sơ đồ',
-    queue: 'Hàng chờ',
-    activity: 'Nhật ký',
+    queue: 'Duyệt',
+    activity: 'Hoạt động',
     wardrobe: 'Tủ đồ',
     settings: 'Cài đặt',
     more: 'Thêm',
@@ -24,7 +25,7 @@ export const common = {
     cancel: 'Huỷ',
     retry: 'Thử lại',
   },
-  live: { live: 'Trực tuyến', reconnecting: 'Đang kết nối lại…', offline: 'Mất kết nối: dữ liệu có thể đã cũ', offlineShort: 'Mất kết nối' },
+  live: { connecting: 'Đang kết nối…', live: 'Trực tuyến', reconnecting: 'Đang kết nối lại…', offline: 'Mất kết nối: dữ liệu có thể đã cũ', offlineShort: 'Mất kết nối' },
   team: { online: 'Đội ngũ đang trực', offlineSince: 'Đội ngũ nghỉ từ {time} (máy tính tắt)', offline: 'Đội ngũ đang nghỉ (máy tính tắt)' },
   time: { now: 'vừa xong', min: '{n} phút trước', hour: '{n} giờ trước', day: '{n} ngày trước' },
   command: {
@@ -37,5 +38,5 @@ export const common = {
     alreadyResolved: 'Việc này đã được xử lý trên Telegram',
   },
   error: { generic: 'Có lỗi xảy ra. Vui lòng thử lại.', routeTitle: 'Không tải được trang', routeHint: 'Có thể ứng dụng vừa được cập nhật. Hãy tải lại trang để dùng bản mới nhất.', reload: 'Tải lại trang', loadTitle: 'Không tải được dữ liệu văn phòng', loadHint: 'Không đọc được cấu hình hoặc kết nối tới đội ngũ bị lỗi. Hãy thử lại.' },
-  demo: { badge: 'Bản demo', note: 'Dữ liệu mẫu, chưa kết nối hệ thống thật' },
+  demo: { badge: 'Bản mô phỏng', note: 'Dữ liệu mẫu, chưa kết nối hệ thống thật' },
 }

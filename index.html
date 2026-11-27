@@ -2,13 +2,21 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- R13: the app name mirrors `common.app.name` in src/i18n/vi (a test keeps them equal);
+         pages then set "Trang · Shop HQ" at runtime. No manifest or service worker (P11 D7). -->
+    <title>Shop HQ</title>
+    <meta name="application-name" content="Shop HQ" />
+    <meta name="apple-mobile-web-app-title" content="Shop HQ" />
+    <meta name="description" content="Văn phòng 3D của đội ngũ AI vận hành các gian hàng: sơ đồ nhân sự, hàng chờ duyệt, hoạt động và tủ đồ." />
     <meta name="theme-color" content="#FAF9F7" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="robots" content="noindex" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <title>Shop HQ</title>
   </head>
   <body>
     <div id="root"></div>

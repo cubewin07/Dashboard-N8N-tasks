@@ -1,18 +1,19 @@
 import type { activity as viActivity } from '../vi/activity'
 
 export const activity: typeof viActivity = {
-  title: 'Activity feed',
+  loading: 'Loading activity…',
+  title: 'Activity',
   description: 'Live stream of tasks, reviews, questions, and staffing across the building',
   tickerTitle: 'Live activity',
-  tickerExpand: 'Open feed',
+  tickerExpand: 'Open Activity',
   tickerCollapse: 'Collapse',
-  viewAllLink: 'View full activity log',
+  viewAllLink: 'View all activity',
   empty: 'No activity matches the selected filters.',
   filters: {
     departmentLabel: 'Department / Floor',
     allDepartments: 'All floors',
     floorManagement: 'Operations (Management floor)',
-    floorBoss: 'Executive office',
+    floorBoss: 'Boss floor',
     categoryLabel: 'Event group',
     categories: {
       all: 'All',

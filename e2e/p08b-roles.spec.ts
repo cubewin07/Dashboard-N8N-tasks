@@ -23,7 +23,7 @@ test.describe('P08b roles', () => {
 
     const nav = page.locator('nav[aria-label]:visible')
     await expect(nav.getByRole('link', { name: 'Tủ đồ' }).first()).toBeVisible()
-    for (const name of ['Hàng chờ', 'Sơ đồ', 'Nhật ký', 'Văn phòng']) {
+    for (const name of ['Duyệt', 'Sơ đồ', 'Hoạt động', 'Văn phòng']) {
       await expect(page.getByRole('link', { name })).toHaveCount(0)
     }
     await expect(page.locator('[data-nav-boss-queue-badge]')).toHaveCount(0)

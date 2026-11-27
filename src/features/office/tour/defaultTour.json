@@ -1,0 +1,142 @@
+{
+  "key": "default",
+  "seed": "trinh-dien",
+  "steps": [
+    {
+      "id": "overview",
+      "caption": {
+        "vi": "Đây là toà nhà của công ty. Mỗi tầng là một phòng ban, mỗi người là một nhân viên AI.",
+        "en": "This is the company building. Each floor is a department; each person is an AI employee."
+      },
+      "durationSec": 20,
+      "camera": { "mode": "overview" }
+    },
+    {
+      "id": "manager-request",
+      "caption": {
+        "vi": "Quản lý nhận yêu cầu Sếp gửi qua Telegram rồi chia việc cho các phòng.",
+        "en": "The manager takes a request the boss sent over Telegram and hands out the work."
+      },
+      "durationSec": 25,
+      "camera": { "mode": "follow", "followRole": "manager", "floorKey": "management" },
+      "simOnly": true,
+      "waitFor": "task.assigned",
+      "minSec": 10
+    },
+    {
+      "id": "cs-desk",
+      "caption": {
+        "vi": "Việc mới đến bàn một bạn Chăm sóc khách hàng. Camera đi theo bạn ấy.",
+        "en": "The new task lands on a Customer Care desk. The camera follows that person."
+      },
+      "durationSec": 25,
+      "camera": { "mode": "follow", "followRole": "worker", "departmentKey": "cs", "floorKey": "cs" },
+      "waitFor": "task.started",
+      "minSec": 10
+    },
+    {
+      "id": "working-desk",
+      "caption": {
+        "vi": "Vòng sáng quanh người là đang làm. Màu bàn cho biết trạng thái, huy hiệu cho biết nền tảng: Shopee, TikTok, Facebook.",
+        "en": "A glowing ring means working. The desk colour shows the status; the badge shows the platform: Shopee, TikTok, Facebook."
+      },
+      "durationSec": 20,
+      "camera": { "mode": "floor", "floorKey": "cs" }
+    },
+    {
+      "id": "review-pile",
+      "caption": {
+        "vi": "Việc xong nằm thành chồng giấy trên bàn người kiểm duyệt, chờ được duyệt.",
+        "en": "Finished work waits as a paper pile on the reviewer's desk."
+      },
+      "durationSec": 25,
+      "camera": { "mode": "follow", "followRole": "reviewer", "floorKey": "cs" },
+      "simOnly": true,
+      "waitFor": "review.requested",
+      "minSec": 10
+    },
+    {
+      "id": "elevator",
+      "caption": {
+        "vi": "Việc cần Sếp quyết định đi thang máy lên tầng trên cùng. Thang máy là công việc, cầu thang là giờ nghỉ.",
+        "en": "Work that needs the director rides the elevator to the top floor. The elevator carries work; the stairs are for breaks."
+      },
+      "durationSec": 20,
+      "camera": { "mode": "overview" },
+      "simOnly": true,
+      "waitFor": "review.escalated",
+      "minSec": 8
+    },
+    {
+      "id": "boss-pile",
+      "caption": {
+        "vi": "Đây là chồng giấy của Sếp. Sếp duyệt trong mục Duyệt, trên máy tính hay điện thoại. Nếu chưa ai duyệt, trình diễn sẽ tự duyệt ở cảnh sau.",
+        "en": "This is the boss's pile. Approve it under Approvals, on a computer or a phone. If nobody does, the demo approves it in the next scene."
+      },
+      "durationSec": 12,
+      "camera": { "mode": "floor", "floorKey": "boss" }
+    },
+    {
+      "id": "rush-hour",
+      "caption": {
+        "vi": "Giờ cao điểm 12.12: khách hỏi dồn dập, ghế chờ trước các bàn kín người.",
+        "en": "The 12.12 rush: customers pile in and the waiting seats in front of the desks fill up."
+      },
+      "durationSec": 30,
+      "camera": { "mode": "floor", "floorKey": "cs" },
+      "simOnly": true
+    },
+    {
+      "id": "help",
+      "caption": {
+        "vi": "Khi cần, phòng này nhờ phòng khác: Marketing nhờ Thiết kế làm ảnh quảng cáo.",
+        "en": "Departments help each other: Marketing asks Design for an ad image."
+      },
+      "durationSec": 25,
+      "camera": { "mode": "floor", "floorKey": "design" },
+      "simOnly": true,
+      "waitFor": "help.requested",
+      "minSec": 10
+    },
+    {
+      "id": "lunch",
+      "caption": {
+        "vi": "Giờ nghỉ trưa: người ngủ trưa tại bàn, người đi cầu thang lên tầng Giải trí.",
+        "en": "Lunch break: some nap at their desks, others take the stairs to the games floor."
+      },
+      "durationSec": 30,
+      "camera": { "mode": "floor", "floorKey": "games_rest" },
+      "simOnly": true
+    },
+    {
+      "id": "temp-hire",
+      "caption": {
+        "vi": "Ngày đông việc, nhân viên tạm đến sảnh nhận việc. Hết việc, công ty cho nhân viên tạm đang rảnh về.",
+        "en": "On a busy day temporary staff arrive at the lobby. When the work runs out, idle temps leave."
+      },
+      "durationSec": 25,
+      "camera": { "mode": "floor", "floorKey": "lobby_cafe" },
+      "simOnly": true,
+      "waitFor": "staff.hired",
+      "minSec": 10
+    },
+    {
+      "id": "wardrobe",
+      "caption": {
+        "vi": "Trong mục Tủ đồ, Sếp chọn trang phục cho từng người. Bộ mới hiện ngay trong toà nhà.",
+        "en": "In the Wardrobe the boss picks each person's outfit. New looks show up in the building right away."
+      },
+      "durationSec": 15,
+      "camera": { "mode": "floor", "floorKey": "marketing" }
+    },
+    {
+      "id": "closing",
+      "caption": {
+        "vi": "Hết phần trình diễn. Mở mục Duyệt trên điện thoại để tự tay duyệt một việc.",
+        "en": "That's the tour. Open Approvals on your phone and approve a task yourself."
+      },
+      "durationSec": 20,
+      "camera": { "mode": "overview" }
+    }
+  ]
+}

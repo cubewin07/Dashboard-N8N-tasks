@@ -3,7 +3,7 @@ export const adminOrg = {
   swatchGroupLabel: 'Màu',
   departments: {
     intro:
-      'Mỗi phòng ban là một tầng trong toà nhà. Tầng Giám đốc và tầng Điều hành luôn nằm trên cùng, nên không sắp xếp ở đây.',
+      'Mỗi phòng ban là một tầng trong toà nhà. Tầng Sếp và tầng Điều hành luôn nằm trên cùng, nên không sắp xếp ở đây.',
     add: 'Thêm phòng ban',
     listLabel: 'Danh sách phòng ban',
     staffCount: '{n} nhân viên đang làm',
@@ -84,7 +84,7 @@ export const adminOrg = {
         label: 'Chờ trả lời tối đa',
         hint: 'Quá thời gian này mà chưa ai trả lời, câu hỏi chuyển lên Trưởng phòng.',
       },
-      helpMaxRounds: { label: 'Số lượt nhờ giúp tối đa', hint: 'Mỗi lượt là một đồng nghiệp được nhờ.' },
+      helpMaxRounds: { label: 'Số lượt nhờ hỗ trợ tối đa', hint: 'Mỗi lượt là một đồng nghiệp được nhờ.' },
       maxQuestionsPerTask: {
         label: 'Số câu hỏi tối đa cho mỗi việc',
         hint: 'Đặt 0 để không cho hỏi trong lúc làm.',
@@ -119,7 +119,7 @@ export const adminOrg = {
       },
       maxRetries: {
         label: 'Số lần làm lại tối đa',
-        hint: 'Số lần được sửa lại khi người duyệt yêu cầu chỉnh sửa.',
+        hint: 'Số lần được sửa lại khi người kiểm duyệt yêu cầu chỉnh sửa.',
       },
       workStart: { label: 'Giờ bắt đầu làm việc', hint: '' },
       workEnd: { label: 'Giờ kết thúc làm việc', hint: '' },

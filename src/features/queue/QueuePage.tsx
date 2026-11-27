@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/app/auth'
-import { CommandButton, LoadErrorState, PageHeader, TimeAgo } from '@/components'
+import { CommandButton, ListSkeleton, LoadErrorState, PageHeader, TimeAgo } from '@/components'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Command } from '@/domain/commands'
 import { newId } from '@/domain/ids'
@@ -22,7 +22,7 @@ import { IntakeBox } from '@/features/office/IntakeBox'
 import { useI18n } from '@/i18n'
 import { priorityTone, toneClasses } from '@/lib/status'
 import { cn, fmt } from '@/lib/utils'
-import { useBootFailure, useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
+import { useBootFailure, useConfig, useFeedPhase, useLabel, useOfficeSelector } from '@/office/hooks'
 import { startOffice } from '@/office/store'
 
 const APPLIED_GRACE_MS = 1500
@@ -263,6 +263,8 @@ function BossQueueCard({ item }: { item: BossQueueItem }) {
               id={`answer-${item.id}`}
               data-question-answer-input
               type="text"
+              name="answer"
+              autoComplete="off"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder={t.queue.answerPlaceholder}
@@ -290,7 +292,8 @@ export function QueuePage() {
   const { config, status } = useConfig()
   const state = useOfficeSelector((s) => s)
   const [tab, setTab] = useState<'boss' | 'departments'>('boss')
-  const { failed, retry } = useBootFailure()
+  const { retry } = useBootFailure()
+  const phase = useFeedPhase()
 
   useEffect(() => {
     if (!config && status === 'loading') {
@@ -390,6 +393,7 @@ export function QueuePage() {
           className="gap-2 bg-surface-muted px-3.5 py-2 font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
         >
           <span>{t.queue.tabs.boss}</span>
+          {phase === 'ready' ? (
           <span
             data-boss-queue-count
             className={cn(
@@ -401,6 +405,7 @@ export function QueuePage() {
           >
             {liveBossItems.length}
           </span>
+          ) : null}
         </TabsTrigger>
 
         <TabsTrigger
@@ -413,8 +418,10 @@ export function QueuePage() {
       </TabsList>
 
       <TabsContent value="boss" className="mt-0">
-        {failed && !state ? (
+        {phase === 'failed' ? (
           <LoadErrorState onRetry={retry} />
+        ) : phase === 'connecting' ? (
+          <ListSkeleton label={t.queue.loading} />
         ) : displayedBossItems.length === 0 ? (
           <div
             data-queue-empty
@@ -433,6 +440,11 @@ export function QueuePage() {
       </TabsContent>
 
       <TabsContent value="departments" className="mt-0">
+        {phase === 'failed' ? (
+          <LoadErrorState onRetry={retry} />
+        ) : phase === 'connecting' ? (
+          <ListSkeleton label={t.queue.loading} />
+        ) : (
         <div data-dept-queue-list className="grid gap-4 md:grid-cols-2">
           {departmentApprovers.map(({ emp, role, dept, pileCount, topItems }) => (
             <section
@@ -495,6 +507,7 @@ export function QueuePage() {
             </section>
           ))}
         </div>
+        )}
       </TabsContent>
       </Tabs>
     </div>

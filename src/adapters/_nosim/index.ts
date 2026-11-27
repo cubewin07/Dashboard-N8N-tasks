@@ -7,3 +7,4 @@ export { NullFeed as SimFeed } from '@/adapters/local/NullFeed'
 
 export const SimControlPanel = null
 export const simControls = null
+export const tourControls = null

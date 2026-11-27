@@ -199,8 +199,8 @@ export const TASK_TITLE_TEMPLATES_VI: Record<string, readonly string[]> = {
 
   // System (2)
   'sys.hire_over_cap': [
-    'Đề nghị tuyển thêm nhân sự tạm thời vượt trần cho {department} dịp {event}',
-    'Xin phê duyệt bổ sung nhân viên thời vụ hỗ trợ {department} tháng {month}',
+    'Đề nghị tuyển thêm nhân viên tạm vượt trần cho {department} dịp {event}',
+    'Xin phê duyệt bổ sung nhân viên tạm hỗ trợ {department} tháng {month}',
   ],
   'sys.connect_account': [
     'Kết nối và phân quyền tài khoản gian hàng {shop} mới trên {platform}',

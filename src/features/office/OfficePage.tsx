@@ -1,14 +1,17 @@
-import { Box, List } from 'lucide-react'
+import { List } from 'lucide-react'
 import { Component, Fragment, lazy, Suspense, type ErrorInfo, type ReactNode } from 'react'
 import { hasWebGL2Support, useDeviceTierPreference } from '@/app/deviceTier'
-import { PageHeader } from '@/components'
+import { LoadErrorState, PageHeader } from '@/components'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { OrgList } from '@/features/org/OrgList'
+import { OrgTabs } from '@/features/org/OrgTabs'
 import { useI18n } from '@/i18n'
-import { useOffice } from '@/office'
+import { useBootFailure, useFeedPhase, useOffice } from '@/office'
 import { officeExtensions } from '@/office/extensions'
 import { useDiagnostics } from '@/office/diagnostics'
+import { TourButton, TourOverlay } from './tour/TourOverlay'
+import { View3dOptIn } from './View3dOptIn'
 
 const LazyOfficeCanvas = lazy(() => import('@/scene/OfficeCanvas'))
 
@@ -57,6 +60,9 @@ export function OfficePage() {
   const { t } = useI18n()
   const { tier, setOverride } = useDeviceTierPreference()
   useOffice((s) => Boolean(s.state))
+  // The building draws from config, so a feed that failed to boot would otherwise go unnoticed.
+  const phase = useFeedPhase()
+  const { retry } = useBootFailure()
   const ControlPanel = officeExtensions.controlPanel
 
   if (tier === 'fallback') {
@@ -67,12 +73,7 @@ export function OfficePage() {
           title={t.office.title}
           description={t.office.subtitle}
           actions={
-            webgl ? (
-              <Button variant="outline" size="sm" onClick={() => setOverride('full3d')}>
-                <Box className="size-4" aria-hidden />
-                <span>{t.office.view3dButton}</span>
-              </Button>
-            ) : null
+            webgl ? <View3dOptIn /> : null
           }
         />
         {webgl ? null : (
@@ -85,7 +86,7 @@ export function OfficePage() {
           </p>
         )}
         {ControlPanel ? <ControlPanel /> : null}
-        <OrgList compact />
+        <OrgTabs compact />
       </div>
     )
   }
@@ -96,16 +97,21 @@ export function OfficePage() {
         title={t.office.title}
         description={t.office.subtitle}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setOverride('fallback')}
-          >
-            <List className="size-4" aria-hidden />
-            <span>{t.office.view2dButton}</span>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <TourButton />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOverride('fallback')}
+            >
+              <List className="size-4" aria-hidden />
+              <span>{t.office.view2dButton}</span>
+            </Button>
+          </div>
         }
       />
+
+      {phase === 'failed' ? <LoadErrorState onRetry={retry} /> : null}
 
       <div className="relative space-y-4">
         {ControlPanel ? (
@@ -134,10 +140,11 @@ export function OfficePage() {
           <Suspense
             fallback={
               <div
+                role="status"
                 aria-busy="true"
-                aria-label={t.office.loadingCanvas}
                 className="h-[calc(100dvh-11rem)] min-h-[420px] w-full"
               >
+                <span className="sr-only">{t.office.loadingCanvas}</span>
                 <Skeleton className="h-full w-full rounded-[14px]" />
               </div>
             }
@@ -145,6 +152,7 @@ export function OfficePage() {
             <LazyOfficeCanvas />
           </Suspense>
         </CanvasErrorBoundary>
+        <TourOverlay />
       </div>
     </div>
   )

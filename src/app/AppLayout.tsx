@@ -29,6 +29,7 @@ import { useOffice } from '@/office'
 import { officeExtensions } from '@/office/extensions'
 import { useOfficeSelector } from '@/office/hooks'
 import { useAuth } from './auth'
+import { useDeviceTierPreference } from './deviceTier'
 import { can } from './roles'
 
 type MainNavKey = 'office' | 'org' | 'queue' | 'activity' | 'wardrobe' | 'admin'
@@ -169,6 +170,8 @@ function MobileTabBar() {
   useOffice((s) => Boolean(s.state))
   const ControlPanel = officeExtensions.controlPanel
 
+  const { tier } = useDeviceTierPreference()
+
   const moreActive =
     location.pathname.startsWith('/settings') ||
     location.pathname.startsWith('/admin')
@@ -179,12 +182,15 @@ function MobileTabBar() {
       active ? 'text-primary' : 'text-muted-foreground',
     )
 
-  // Boss keeps four tabs; the wardrobe sits in the "more" sheet so the bar is not crowded.
-  const tabKeys: MainNavKey[] = can(role, 'office') ? ['office', 'org', 'queue', 'activity'] : ['wardrobe']
-  const items = MAIN_NAV.filter(({ key }) => tabKeys.includes(key) && can(role, key)).map((n) => ({
-    ...n,
-    label: t.common.nav[n.key],
-  }))
+  // R2: Sơ đồ · Duyệt · Hoạt động · Tủ đồ · Thêm (Cài đặt, Quản trị). On a phone `/` is the
+  // 2D org view, so the first tab is "Sơ đồ" until the boss opts into 3D ("Văn phòng").
+  const tabKeys: MainNavKey[] = can(role, 'office') ? ['office', 'queue', 'activity', 'wardrobe'] : ['wardrobe']
+  const items = MAIN_NAV.filter(({ key }) => tabKeys.includes(key) && can(role, key)).map((n) =>
+    n.key === 'office' && tier === 'fallback'
+      ? { ...n, icon: Network, label: t.common.nav.org }
+      : { ...n, label: t.common.nav[n.key] },
+  )
+  const orgActive = location.pathname === '/' || location.pathname.startsWith('/org')
 
   return (
     <>
@@ -193,7 +199,14 @@ function MobileTabBar() {
         className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
         {items.map(({ key, to, icon: Icon, label }) => (
-          <NavLink key={key} to={to} end={to === '/'} className={({ isActive }) => tab(isActive)}>
+          <NavLink
+            key={key}
+            to={to}
+            end={to === '/'}
+            data-tab={key}
+            aria-current={key === 'office' && orgActive ? 'page' : undefined}
+            className={({ isActive }) => tab(key === 'office' ? orgActive : isActive)}
+          >
             <div className="relative flex items-center justify-center">
               <Icon className="size-5" aria-hidden />
               {key === 'queue' && (
@@ -224,16 +237,6 @@ function MobileTabBar() {
           </SheetHeader>
 
           <div className="mt-4 flex flex-col gap-1">
-            {can(role, 'office') && can(role, 'wardrobe') && (
-              <NavLink
-                to="/wardrobe"
-                onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-3 text-base hover:bg-surface-muted"
-              >
-                <Shirt className="size-5 text-muted-foreground" aria-hidden />
-                {t.common.nav.wardrobe}
-              </NavLink>
-            )}
             {can(role, 'admin') && (
               <NavLink
                 to="/admin"
@@ -282,13 +285,30 @@ function MobileTabBar() {
 }
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const { t } = useI18n()
   return (
     <div className="flex min-h-dvh">
+      {/* P11-T12: keyboard users jump past the sidebar and top bar. */}
+      <a
+        href="#main-content"
+        onClick={(e) => {
+          // HashRouter owns the hash: move focus instead of navigating.
+          e.preventDefault()
+          document.getElementById('main-content')?.focus()
+        }}
+        className="sr-only z-50 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        {t.common.nav.skipToMain}
+      </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
         <OfflineBanner />
-        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pb-28 pt-6 sm:px-6 lg:pb-10">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-[1400px] flex-1 px-4 pb-28 pt-6 outline-none sm:px-6 lg:pb-10"
+        >
           {children}
         </main>
       </div>

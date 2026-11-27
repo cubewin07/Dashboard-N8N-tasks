@@ -1,18 +1,19 @@
 import type { EventType } from '@/domain/events'
 
 export const activity = {
-  title: 'Nhật ký hoạt động',
+  loading: 'Đang tải hoạt động…',
+  title: 'Hoạt động',
   description: 'Theo dõi trực tiếp mọi diễn biến công việc, duyệt bài và hỗ trợ trong toà nhà',
   tickerTitle: 'Hoạt động trực tiếp',
-  tickerExpand: 'Mở nhật ký',
+  tickerExpand: 'Mở Hoạt động',
   tickerCollapse: 'Thu gọn',
-  viewAllLink: 'Xem toàn bộ nhật ký',
+  viewAllLink: 'Xem tất cả hoạt động',
   empty: 'Chưa có hoạt động nào khớp bộ lọc.',
   filters: {
     departmentLabel: 'Phòng ban / Tầng',
     allDepartments: 'Tất cả các tầng',
     floorManagement: 'Điều hành (Tầng quản lý)',
-    floorBoss: 'Phòng Giám đốc',
+    floorBoss: 'Tầng Sếp',
     categoryLabel: 'Nhóm sự kiện',
     categories: {
       all: 'Tất cả',
@@ -64,7 +65,7 @@ export const activity = {
   levels: {
     reviewer: 'Kiểm duyệt',
     dept_manager: 'Trưởng phòng',
-    boss: 'Giám đốc',
+    boss: 'Sếp',
   },
   templates: {
     'intake.received': '{actor} gửi yêu cầu mới ({channel}): “{task}”',
@@ -90,8 +91,8 @@ export const activity = {
     'help.timed_out': 'Yêu cầu hỗ trợ cho “{task}” quá hạn, chuyển sang {target}',
     'help.escalated': 'Chuyển yêu cầu hỗ trợ “{task}” lên {target} xử lý',
     'person.activity': '{actor} chuyển sang trạng thái {activity}',
-    'staff.hired': 'Tuyển thêm nhân sự tạm thời {actor}',
-    'staff.archived': 'Cho nghỉ nhân sự tạm thời {actor} ({reason})',
+    'staff.hired': 'Tuyển thêm nhân viên tạm {actor}',
+    'staff.archived': 'Cho nhân viên tạm {actor} nghỉ ({reason})',
     'config.changed': 'Cập nhật cấu hình hệ thống ({reason})',
     'system.heartbeat': 'Tín hiệu hệ thống trực tuyến ({reason})',
     'sim.scenario': 'Kích hoạt kịch bản mô phỏng: {scenario}',

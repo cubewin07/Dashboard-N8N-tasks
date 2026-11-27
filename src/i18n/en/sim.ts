@@ -11,7 +11,7 @@ export const sim: typeof viSim = {
   applySeed: 'Apply',
   copyLink: 'Copy link',
   copied: 'Copied!',
-  autoApproveBoss: 'Auto-approve for boss after 2 min (demo)',
+  autoApproveBoss: 'Auto-approve for boss after 2 min (simulator)',
   scenariosTitle: 'Scenarios',
   perfGroupTitle: 'Performance test',
   scenarios: {

@@ -1,10 +1,9 @@
 import { useEffect, useMemo } from 'react'
-import { LoadErrorState } from '@/components'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ListSkeleton, LoadErrorState } from '@/components'
 import { archivedStaff, orgTree, pileFor } from '@/domain/selectors'
 import { useI18n } from '@/i18n'
 import { fmt } from '@/lib/utils'
-import { useBootFailure, useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
+import { useBootFailure, useConfig, useFeedPhase, useLabel, useOfficeSelector } from '@/office/hooks'
 import { startOffice } from '@/office/store'
 import { FloorSection } from './FloorSection'
 
@@ -12,7 +11,8 @@ export function OrgList({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n()
   const label = useLabel()
   const { config, status } = useConfig()
-  const { failed, retry } = useBootFailure()
+  const { retry } = useBootFailure()
+  const phase = useFeedPhase()
   const state = useOfficeSelector((s) => s)
   const activeConfig = state?.config ?? config
   const peopleRuntime = state?.people
@@ -37,18 +37,13 @@ export function OrgList({ compact = false }: { compact?: boolean }) {
   )
   const archived = useMemo(() => (state ? archivedStaff(state) : []), [state])
 
-  if (failed && (!activeConfig || !state)) {
+  if (phase === 'failed') {
     return <LoadErrorState onRetry={retry} />
   }
 
-  if (!activeConfig || (!config && status === 'loading')) {
-    return (
-      <div aria-busy="true" aria-label={t.org.loading} className="space-y-4">
-        <Skeleton className="h-32 w-full rounded-[14px]" />
-        <Skeleton className="h-44 w-full rounded-[14px]" />
-        <Skeleton className="h-44 w-full rounded-[14px]" />
-      </div>
-    )
+  // Busy/idle badges come from the feed: without its state every row would read "Rảnh".
+  if (!activeConfig || phase === 'connecting') {
+    return <ListSkeleton label={t.org.loading} />
   }
 
   return (

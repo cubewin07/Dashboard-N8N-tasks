@@ -8,9 +8,10 @@ export const common: typeof vi = {
     errorBody: 'Check your connection and try again.',
   },
   nav: {
+    skipToMain: 'Skip to main content',
     office: 'Office',
     org: 'Org chart',
-    queue: 'Queue',
+    queue: 'Approvals',
     activity: 'Activity',
     wardrobe: 'Wardrobe',
     settings: 'Settings',
@@ -25,7 +26,7 @@ export const common: typeof vi = {
     cancel: 'Cancel',
     retry: 'Retry',
   },
-  live: { live: 'Live', reconnecting: 'Reconnecting…', offline: 'Offline: data may be stale', offlineShort: 'Offline' },
+  live: { connecting: 'Connecting…', live: 'Live', reconnecting: 'Reconnecting…', offline: 'Offline: data may be stale', offlineShort: 'Offline' },
   team: { online: 'Team online', offlineSince: 'Team offline since {time} (PC off)', offline: 'Team offline (PC off)' },
   time: { now: 'just now', min: '{n}m ago', hour: '{n}h ago', day: '{n}d ago' },
   command: {

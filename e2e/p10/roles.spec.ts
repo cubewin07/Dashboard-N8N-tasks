@@ -45,7 +45,7 @@ test.describe('P10 Roles tab (R3)', () => {
 
     const card = page.locator('[data-role-key="thuc_tap_sinh"]')
     await expect(card).toBeVisible()
-    await expect(card).toContainText('Cấp duyệt: Người duyệt (reviewer)')
+    await expect(card).toContainText('Cấp duyệt: Kiểm duyệt')
     await expect(card.getByRole('button', { name: /^Xoá vai trò/ })).toBeEnabled()
 
     // Persists after reload
