@@ -1,8 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { Toaster } from 'sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { I18nProvider } from '@/i18n'
 import { setConfigActorGetter } from '@/office/configStore'
 import { setCommandsAllowed } from '@/office/sessionRole'
 import { startOffice, stopOffice } from '@/office/store'
@@ -31,27 +29,16 @@ function OfficeBootstrap({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/** The language provider sits above, in `main.tsx`, so the backend gate shares it. */
 export function Providers({ children }: { children: ReactNode }) {
-  const [qc] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: { staleTime: 30_000, refetchOnWindowFocus: false },
-        },
-      }),
-  )
   return (
-    <QueryClientProvider client={qc}>
-      <I18nProvider>
-        <AuthProvider>
-          <OfficeBootstrap>
-            <TooltipProvider delayDuration={300}>
-              {children}
-              <Toaster position="top-center" richColors />
-            </TooltipProvider>
-          </OfficeBootstrap>
-        </AuthProvider>
-      </I18nProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <OfficeBootstrap>
+        <TooltipProvider delayDuration={300}>
+          {children}
+          <Toaster position="top-center" richColors />
+        </TooltipProvider>
+      </OfficeBootstrap>
+    </AuthProvider>
   )
 }
