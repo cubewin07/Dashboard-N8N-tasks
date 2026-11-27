@@ -1,0 +1,27 @@
+{
+  "id": "neck_necklace_01",
+  "slot": "neck",
+  "kind": "rigid",
+  "bone": "Neck",
+  "merge": true,
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/neck_necklace_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    },
+    "male": {
+      "file": "models/wardrobe/neck_necklace_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    }
+  }
+}

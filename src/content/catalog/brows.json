@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "id": "brows_01",
+      "slot": "brows",
+      "label": { "vi": "Chân mày cong nhẹ", "en": "Soft arched brows" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [0, 4] },
+      "thumb": "thumbs/brows_01.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "brows_02",
+      "slot": "brows",
+      "label": { "vi": "Chân mày ngang", "en": "Thick straight brows" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [1, 4] },
+      "thumb": "thumbs/brows_02.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    }
+  ]
+}
