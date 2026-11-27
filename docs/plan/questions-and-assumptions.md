@@ -16,7 +16,7 @@
 | **Q8** | React 19 upgrade | **Yes**, in P01 (required by React Three Fiber 9 / drei 10) | Plan | Harder the later it happens |
 | **Q9** | Boss avatar names, product type | "Giám đốc", "Phó giám đốc"; general household and fashion goods. All editable data | Plan | Seed/content only |
 | **Q10** | Licences | **CC0 and CC-BY 4.0** with an in-app credits page; nothing else | Plan | CC0-only means more Blender generation |
-| **Q11** | AI-generated models | **No.** Blender generator scripts instead (free, reproducible, licence-clean) | Plan | Asset phases could go faster with it |
+| **Q11** | AI-generated models | **Yes** (changed 2026-11-11; was "No"). Agent-written Blender generator scripts are the default (free, reproducible, licence-clean); text/image-to-3D tools are allowed when the output licence is recorded | Boss | Asset phases go faster |
 | **Q12** | Shop names | Placeholders: Shopee 1–3, Lazada 1, TikTok Shop 1 | Plan | Seed only |
 | **Q13** | Library / Google Drive screen | Code kept, hidden from navigation in P11, returns with real media | Plan | One nav item |
 | **Q14** | Wardrobe earlier for the sister? | **No.** It needs real characters (P07) first | Plan | Reorders P06–P08 |
