@@ -13,10 +13,12 @@ export function TeamOnlineIndicator({
   className?: string
 }) {
   const { t } = useI18n()
-  const connection = useOffice((s) => s.connection)
   const heartbeatAt = useOffice((s) => s.state?.lastHeartbeat?.at ?? null)
-  const feedNow = useOffice((s) => s.state?.now ?? null)
-  const online = isTeamOnline(connection, heartbeatAt, feedNow)
+  // A boolean selector: `state.now` moves with every event batch, which re-rendered this
+  // badge on every commit (P11-T02).
+  const online = useOffice((s) =>
+    isTeamOnline(s.connection, s.state?.lastHeartbeat?.at ?? null, s.state?.now ?? null),
+  )
 
   const label = online
     ? t.common.team.online

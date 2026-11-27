@@ -39,6 +39,75 @@ test.use({
   },
 })
 
+/**
+ * A minimal React DevTools hook: React (DOM and the R3F reconciler) reports every commit
+ * to it, so commits per second can be counted per renderer (performance.md §2).
+ */
+interface Fiber {
+  type: unknown & { displayName?: string; name?: string }
+  alternate: Fiber | null
+  child: Fiber | null
+  sibling: Fiber | null
+  memoizedProps: unknown
+  memoizedState: unknown
+}
+
+function installCommitCounter() {
+  const counts: Record<string, number> = {}
+  const names = new Map<number, string>()
+  let nextId = 1
+  ;(window as unknown as { __commits: Record<string, number> }).__commits = counts
+  ;(window as unknown as { __REACT_DEVTOOLS_GLOBAL_HOOK__: unknown }).__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+    supportsFiber: true,
+    renderers: new Map(),
+    inject(renderer: { rendererPackageName?: string }) {
+      const id = nextId++
+      names.set(id, renderer.rendererPackageName ?? `renderer-${id}`)
+      return id
+    },
+    onCommitFiberRoot(id: number, root: { current: Fiber }) {
+      const name = names.get(id) ?? 'unknown'
+      counts[name] = (counts[name] ?? 0) + 1
+      // Which components started a re-render in this commit. Names only (readable with an
+      // unminified build); used to find who re-renders while idle.
+      const who = ((window as unknown as { __who: Record<string, number> }).__who ??= {})
+      const stack: Fiber[] = [root.current]
+      while (stack.length) {
+        const f = stack.pop()!
+        // Same props but new state: this component started the render itself (its own
+        // state or a store subscription), not because a parent re-rendered.
+        if (
+          typeof f.type === 'function' &&
+          f.alternate &&
+          f.memoizedProps === f.alternate.memoizedProps &&
+          f.memoizedState !== f.alternate.memoizedState
+        ) {
+          const key = `${name}:${f.type.displayName ?? f.type.name ?? '?'}`
+          who[key] = (who[key] ?? 0) + 1
+        }
+        if (f.child) stack.push(f.child)
+        if (f.sibling) stack.push(f.sibling)
+      }
+    },
+    onCommitFiberUnmount() {},
+    onPostCommitFiberRoot() {},
+    checkDCE() {},
+  }
+}
+
+async function commitsPerSecond(page: Page, seconds: number) {
+  const read = () =>
+    page.evaluate(() => ({ ...(window as unknown as { __commits: Record<string, number> }).__commits }))
+  const before = await read()
+  await page.waitForTimeout(seconds * 1000)
+  const after = await read()
+  const out: Record<string, number> = {}
+  for (const key of Object.keys(after)) {
+    out[key] = Math.round((((after[key] ?? 0) - (before[key] ?? 0)) / seconds) * 10) / 10
+  }
+  return out
+}
+
 /** One sample per second; returns the medians of fps/p95 and the max of the counters. */
 async function sample(page: Page, seconds: number) {
   const rows: Stats[] = []
@@ -70,6 +139,7 @@ test.describe('P11 performance run (local only)', () => {
 
   test('reference scene: overview, floor focus and follow', async ({ page }, info) => {
     test.skip(info.project.name !== 'desktop', 'desktop budgets only')
+    await page.addInitScript(installCommitCounter)
     await page.goto('./#/login')
     await page.locator('#login-email').fill('boss@demo.local')
     await page.locator('#login-password').fill('123456')
@@ -98,6 +168,8 @@ test.describe('P11 performance run (local only)', () => {
     )
 
     const overview = await sample(page, SAMPLE_S)
+    // Idle-watching: nothing clicked, the sim running at 30×.
+    const reactCommitsPerSec = await commitsPerSecond(page, 5)
 
     await page.locator('[data-floor-picker-item="cs"]').first().click()
     await page.waitForTimeout(1000)
@@ -112,12 +184,34 @@ test.describe('P11 performance run (local only)', () => {
     await page.waitForTimeout(1000)
     const follow = await sample(page, SAMPLE_S)
 
+    // Idle-watching at normal speed (performance.md §2 budget: ≤ 5 commits/s, none from
+    // the canvas tree).
+    await page.evaluate(() => {
+      const dbg = (window as unknown as { __office_debug?: Debug }).__office_debug
+      dbg?.camera?.follow(null)
+      dbg?.sim?.setSpeed(1)
+    })
+    await page.locator('[data-camera-mode="overview"]').first().click()
+    await page.waitForTimeout(2000)
+    await page.evaluate(() => {
+      ;(window as unknown as { __who: Record<string, number> }).__who = {}
+    })
+    const reactCommitsPerSecIdle = await commitsPerSecond(page, 10)
+    const whoRendered = await page.evaluate(() =>
+      Object.entries((window as unknown as { __who: Record<string, number> }).__who ?? {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15),
+    )
+
     const report = {
       source: 'e2e/perf.spec.ts',
       at: new Date().toISOString(),
       gpu,
       viewport: page.viewportSize(),
       people,
+      reactCommitsPerSec,
+      reactCommitsPerSecIdle,
+      whoRendered,
       presets: { overview, floor, follow },
     }
     fs.writeFileSync(path.resolve('perf-report.json'), `${JSON.stringify(report, null, 2)}\n`)

@@ -181,6 +181,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame, collectStats }: SceneTelemetr
 
   useEffect(() => {
     floorKeysRef.current = floorKeys
+    if (IS_DEBUG_ENABLED && window.__office_debug) window.__office_debug.floorKeys = [...floorKeys]
   }, [floorKeys])
 
   useFrame((_, delta) => {
@@ -201,23 +202,35 @@ function SceneTelemetry({ floorKeys, onFirstFrame, collectStats }: SceneTelemetr
       elapsedRef.current = 0
     }
 
+    // P11-T02: the debug object is built once (effect below); a frame only updates numbers.
+    const debug = window.__office_debug
+    if (!debug) return
+    debug.drawCalls = gl.info.render.calls
+    debug.triangles = gl.info.render.triangles
+    debug.geometries = gl.info.memory.geometries
+    debug.textures = gl.info.memory.textures
+    debug.fps = fpsRef.current
+    debug.shadowRenders = getShadowRenders()
+  })
+
+  useEffect(() => {
+    if (!IS_DEBUG_ENABLED) return
     window.__office_debug = {
       ...window.__office_debug,
-      drawCalls: gl.info.render.calls,
-      triangles: gl.info.render.triangles,
-      geometries: gl.info.memory.geometries,
-      textures: gl.info.memory.textures,
-      fps: fpsRef.current,
-      shadowRenders: getShadowRenders(),
-      floorKeys: [...floorKeysRef.current],
+      drawCalls: 0,
+      triangles: 0,
+      geometries: 0,
+      textures: 0,
+      fps: 0,
       addDepartment: addDepartmentToStore,
       removeDepartment: removeDepartmentFromStore,
       director: directorDebug,
       camera: cameraDebug,
       characters: charactersDebug,
       stats: currentStats,
+      floorKeys: [...floorKeysRef.current],
     }
-  })
+  }, [cameraDebug])
 
   // useFrame runs before the render, so its numbers are one frame old. With
   // on-demand rendering that frame may never be followed by another: refresh
