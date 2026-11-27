@@ -69,6 +69,35 @@ Routes after cleanup: `/login`, `/reset-password`, `/` (office or, on phones, or
 | Demo mode | Chế độ trình diễn |
 | Simulator | Mô phỏng |
 
+### 3.7 Screen × state checklist (T06, 2026-11-28)
+Forced in `e2e/p11-states.spec.ts` (desktop and 375 px; screenshots `p11-state-<state>-<screen>.png` in the test output). Loading = a replay log that never answers; empty = `feed=none`; error = a replay log that does not exist.
+
+| Screen | Loading | Empty | Error |
+|---|---|---|---|
+| Văn phòng (3D) | canvas skeleton + asset progress | building from config, nobody busy | load error + Thử lại above the scene; badge "Mất kết nối" |
+| Văn phòng (phone) / Sơ đồ | list skeleton (no fake "Rảnh") | everyone idle | load error + Thử lại |
+| Duyệt (both tabs) | list skeleton, no count chip | "Chưa có công việc…" | load error + Thử lại |
+| Hoạt động | list skeleton | "Chưa có hoạt động…" | load error + Thử lại |
+| Tủ đồ · Quản trị · Cài đặt | config is local: never blocked by the feed | – | – |
+| LiveBadge | "Đang kết nối…" (grey) | "Trực tuyến" | "Mất kết nối" + offline banner |
+
+### 3.8 Accessibility audit (T12, 2026-11-28)
+`web-design-guidelines` (vercel-labs, fetched 2026-11-28) over the P11 screens: TourOverlay, OfficePage, View3dOptIn, AppLayout (phone tab bar), QueuePage, ActivityPage, OrgTabs, CreditsPage, LiveBadge, ListSkeleton; WCAG contrast computed from the tokens in `src/index.css`. Keyboard walk-through: Tab → skip link → main; 3D page through the floor picker, camera bar, people list (P05/P06 specs) and the tour controls.
+
+| # | Finding | Severity | Status |
+|---|---|---|---|
+| A1 | Tour: focus lost when the start button unmounts on start, and again on exit | High | Fixed: focus to Tạm dừng, back to the start button (`e2e/p11-a11y.spec.ts`) |
+| A2 | Tour: Space on a focused tour button toggled pause twice | High | Fixed: Space on a button/link is that control's click |
+| A3 | Small status text below 4.5:1 (done 2.9, waiting 2.9–3.2, blocked 4.3) | High | Fixed: darker status tokens, now 5.1–6.5:1 |
+| A4 | No skip link to the main content | Medium | Fixed: "Bỏ qua, đến nội dung chính" + focusable `<main>` |
+| A5 | Loading regions used `aria-label` on a plain `div` (not announced) | Medium | Fixed: `role="status"` + sr-only text |
+| A6 | Phone "Sơ đồ" tab had no `aria-current` on `/org` | Low | Fixed |
+| A7 | No `touch-action: manipulation` / tap highlight choice | Low | Fixed in the base layer |
+| A8 | Queue answer input without `name` / `autocomplete` | Low | Fixed |
+| A9 | Credits page renders ~400 rows without virtualisation | Low | Accepted: rows sit in collapsed groups; one-off page |
+| A10 | `outline-none` on `<main>` | Low | Accepted: programmatic focus target only (skip link), not interactive |
+| A11 | Title Case for headings/buttons | – | Not applicable: Vietnamese sentence case per §3.6 |
+
 ## 4. Design choices
 | # | Topic | Options | Choice | Reason | Revisit if |
 |---|---|---|---|---|---|
@@ -89,20 +118,31 @@ Routes after cleanup: `/login`, `/reset-password`, `/` (office or, on phones, or
 | D15 | Context loss (2026-11-28) | reload page · rebuild canvas | **Wait 2.5 s for the browser, then rebuild the canvas once, then a "Tải lại cảnh" button**; disposed canvases are ignored | R3F forces a context loss when it disposes a canvas, which must not count as a failure | – |
 | D16 | `?perf=1` overlay (2026-11-28) | r3f-perf · own panel | **Own panel** (`src/scene/debug/PerfOverlay.tsx`), any build | No new dependency for a debug view; it shows exactly `stats()`; read-only and cheap, so not limited to dev/preview | We need GPU timer queries |
 | D17 | Perf run (2026-11-28) | replace `perf-check.mjs` · add the spec | **Both**: `e2e/perf.spec.ts` is the local Mac run (stats per preset + React commits per renderer); `perf-check.mjs` stays the scripted check | Baseline numbers (M4 Pro, not a Mac Studio) already meet every §2 budget; T02 fixed the per-frame debug object and a badge re-rendering on every commit | – |
+| D18 | Phone tab bar (2026-11-28) | five fixed tabs · four + "Thêm" | **Sơ đồ · Hàng chờ · Nhật ký · Tủ đồ + Thêm (Cài đặt, Quản trị, sign-out)** | Five targets fit 375 px; settings and admin are rare on a phone. On a phone `/` is the 2D Sơ đồ, so the first tab is "Sơ đồ" until the boss opts into 3D ("Văn phòng") | – |
+| D19 | One company per browser profile (2026-11-28) | per-tab sims · shared sim | **`LinkedSimFeed`: the tab holding a Web Lock runs the sim; other tabs follow over a BroadcastChannel and forward commands** | T04's acceptance (approve on the phone-sized window, the desktop pile drops) needs one company. Limits: a hidden leader tab is throttled by the browser so the shared sim runs slower; when the leader closes, a follower takes over from the last config (the company restarts from its seed) | Real feed replaces the sim |
+| D20 | Phone 3D warning (2026-11-28) | exact size · rough size | **"vài MB"** (a few MB) | GLBs total about 7.7 MB and change with assets; a wrong exact number is worse than a rough one | – |
+| D21 | Page titles (2026-11-28) | static · per page | **`useDocumentTitle` in `PageHeader`: "<page> · Shop HQ"** | Browser tabs and history read as the page; titles come from i18n | – |
+| D22 | Credits source links (2026-11-28) | licence only · licence + source | **Both; our own files link to the generator script on GitHub** | Every credited file is traceable without opening the repo | – |
+| D23 | Feed phase (2026-11-28) | per-screen checks · one hook | **`useFeedPhase()`: connecting / failed / ready** | Screens showed "nothing waiting" and everyone "Rảnh" before the first snapshot, and a failed feed left the badge green; one rule fixes all screens | – |
+| D24 | Tour sim state (2026-11-28) | snapshot + rewind · restart | **`tourControls.begin` remembers speed, seed, auto-approve and restarts from the tour seed; `end` puts them back (the company restarts from its own seed)** | The sim cannot rewind; a fixed seed makes every showing the same. Without a sim, scenario steps are skipped and camera-only steps still play | The real feed needs a tour |
+| D25 | Tour data file (2026-11-28) | `tour.vi.json` · one bilingual file | **`defaultTour.json` with `Label` captions** | Captions follow the language switch like all config data | – |
+| D26 | Tour start (2026-11-28) | auto on first login · button | **Button "Chế độ trình diễn" on the 3D office** (answers §9 open question) | A tour that starts by itself would surprise; the legend already greets first-time users | – |
+| D27 | First-run legend (2026-11-28) | once per browser · once per user | **Once per user id (`office.legendSeen.v1:<id>`); E2E builds only when a spec opts in** | Dad and a stylist may share the Mac; an auto-opening sheet would block every other E2E spec | – |
+| D28 | Status colours (2026-11-28) | keep · darken | **Darken one step** (§3.8 A3) | Small status text failed AA everywhere; one token change fixes every screen | – |
 
 ## 5. Tasks
 - [x] **P11-T01** Perf tooling: `?perf=1`, `__office_debug.stats()`, `e2e/perf.spec.ts`, baseline report. *Files:* `src/scene/debug/*`, `e2e/perf.spec.ts`, `performance.md` (baseline table). *Acceptance:* baseline numbers committed to `performance.md` §4 before any fix.
 - [x] **P11-T02** Perf fixes per §3.1.3 until R1 holds. *Files:* `src/scene/**`. *Acceptance:* report meets every budget; before/after table in the PR; no visual regression in the screenshot specs.
 - [x] **P11-T03** ∥ Bundle and loading: chunking, dynamic imports, progressive scene load, progress UI. *Acceptance:* initial JS (gz) and 3D chunk sizes within `performance.md` §2; phone route loads no `three` chunk (network assertion in E2E).
-- [ ] **P11-T04** ∥ Phone fallback completion + bottom tab bar + "Xem 3D" opt-in. *Files:* `src/app/AppLayout.tsx`, `src/app/deviceGate.ts`, `src/features/{org,queue,activity,settings}/*`. *Acceptance:* R2, R3; Playwright 375×812 screenshots of all five tabs; approve from the phone queue changes the pile count in a desktop session of the same browser profile.
+- [x] **P11-T04** ∥ Phone fallback completion + bottom tab bar + "Xem 3D" opt-in. *Files:* `src/app/AppLayout.tsx`, `src/app/deviceGate.ts`, `src/features/{org,queue,activity,settings}/*`. *Acceptance:* R2, R3; Playwright 375×812 screenshots of all five tabs; approve from the phone queue changes the pile count in a desktop session of the same browser profile.
 - [x] **P11-T05** ∥ Resilience: error boundary, context loss, capability check, hidden-tab handling, diagnostics. *Acceptance:* R8; test forces `WEBGL_lose_context` and asserts recovery; diagnostics list shows a deliberately malformed replay event as skipped.
-- [ ] **P11-T06** ∥ Loading / empty / error states on every screen. *Acceptance:* R9; a checklist table (screen × state) in the PR with screenshots.
+- [x] **P11-T06** ∥ Loading / empty / error states on every screen. *Acceptance:* R9; a checklist table (screen × state) in the PR with screenshots.
 - [x] **P11-T07** Legacy removal per §3.2 + redirects + token cleanup. *Acceptance:* R4; typecheck, lint, tests, E2E green; `git grep -n "lib/mock\|hooks/queries\|RealtimeProvider"` empty; old hash URLs redirect.
-- [ ] **P11-T08** (settings part done in p11a; branding + credits page check in p11b) Settings rework + credits page + branding. *Files:* `src/features/settings/*`, `index.html`, `public/favicon.svg`. *Acceptance:* R12, R13; credits page lists every row of `credits.json` with licence and link.
+- [x] **P11-T08** (settings part done in p11a; branding + credits page check in p11b) Settings rework + credits page + branding. *Files:* `src/features/settings/*`, `index.html`, `public/favicon.svg`. *Acceptance:* R12, R13; credits page lists every row of `credits.json` with licence and link.
 - [x] **P11-T09** Simulator-removal proof per §3.3. *Files:* `src/adapters/_nosim/index.ts`, `vite.config.ts`, `.github/workflows/ci.yml`, `docs/plan/removing-the-simulator.md`. *Acceptance:* R5; `no-sim` job green; import-boundary test passes.
-- [ ] **P11-T10** Tour runner + default tour + `tourControls` extension. *Files:* `src/features/office/tour/*`, `src/office/extensions.ts`, `src/adapters/sim/ui/tourControls.ts`, i18n. *Acceptance:* R6; unit test for the step runner with fake timers; full run completes unattended twice with the same seed; reduced motion uses cuts.
-- [ ] **P11-T11** ∥ Legend / onboarding. *Files:* `src/features/office/Legend.tsx`. *Acceptance:* R7; shown once per user (localStorage flag), reopenable; each legend row matches the actual 3D visuals (reviewer checks against `phase-05` §3).
-- [ ] **P11-T12** Accessibility audit and fixes. *Steps:* run the `web-design-guidelines` skill on all features; keyboard walk-through script; contrast check on overlays over the 3D scene. *Acceptance:* R10; findings table with status in the PR.
+- [x] **P11-T10** Tour runner + default tour + `tourControls` extension. *Files:* `src/features/office/tour/*`, `src/office/extensions.ts`, `src/adapters/sim/ui/tourControls.ts`, i18n. *Acceptance:* R6; unit test for the step runner with fake timers; full run completes unattended twice with the same seed; reduced motion uses cuts.
+- [x] **P11-T11** ∥ Legend / onboarding. *Files:* `src/features/office/Legend.tsx`. *Acceptance:* R7; shown once per user (localStorage flag), reopenable; each legend row matches the actual 3D visuals (reviewer checks against `phase-05` §3).
+- [x] **P11-T12** Accessibility audit and fixes. *Steps:* run the `web-design-guidelines` skill on all features; keyboard walk-through script; contrast check on overlays over the 3D scene. *Acceptance:* R10; findings table with status in the PR.
 - [ ] **P11-T13** Vietnamese copy pass + `en` completion. *Acceptance:* R11; terms table respected (`grep` for banned variants listed in the task); a native-reader check by the human is on the test checklist.
 - [ ] **P11-T14** Docs: `demo-script.md` (what to say and click, 10 minutes, including recovery tips), README, AGENTS.md refresh, overview status, `after-this-phase.md` update. *Acceptance:* R14; links resolve; `AGENTS.md` repo layout matches `tree -L 2 src`.
 - [ ] **P11-T15** Final whole-stack review + release checklist + human test checklist. *Steps:* `git diff main...stack/p11-polish` review per `stacked-prs.md` §6.2; contract/version consistency; duplicated helpers; boundary rules; licence ledger; size budgets. *Acceptance:* R15; review comment posted on the PR; checklist file `docs/plan/release-checklist.md` ticked.
