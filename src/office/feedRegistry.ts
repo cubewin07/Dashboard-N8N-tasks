@@ -44,6 +44,8 @@ export function sameOriginLogUrl(raw: string | null): string | undefined {
 
 interface SimModuleExports {
   SimFeed?: new (options?: { seed?: string | number }) => OfficeFeed
+  /** P11-T04: the sim shared by every tab of this browser profile (one leader runs it). */
+  LinkedSimFeed?: new (options?: { seed?: string | number }) => OfficeFeed
   simControls?: SimControlsDebugApi
   SimControlPanel?: ComponentType
 }
@@ -76,7 +78,8 @@ export async function createFeed(kind?: FeedKind): Promise<OfficeFeed> {
       officeExtensions.controlPanel = mod.SimControlPanel ?? null
       officeExtensions.simControls = mod.simControls ?? null
       const seed = getUrlParam('seed') ?? undefined
-      return new mod.SimFeed(seed ? { seed } : undefined)
+      const Feed = mod.LinkedSimFeed ?? mod.SimFeed
+      return new Feed(seed ? { seed } : undefined)
     }
   }
 

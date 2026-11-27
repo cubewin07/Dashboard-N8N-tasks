@@ -6,6 +6,7 @@ export {
   type SimControlsSnapshot,
 } from './controls'
 export { createSimFeed, SimFeed, type SimFeedOptions } from './SimFeed'
+export { LinkedSimFeed } from './tabLink'
 export {
   SimControlPanel,
   type SimControlPanelProps,
