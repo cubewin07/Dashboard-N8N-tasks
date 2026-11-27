@@ -32,6 +32,18 @@ export const router = createHashRouter([
         }),
       },
       {
+        path: '/queue',
+        lazy: async () => ({
+          Component: (await import('@/features/queue/QueuePage')).QueuePage,
+        }),
+      },
+      {
+        path: '/activity',
+        lazy: async () => ({
+          Component: (await import('@/features/activity/ActivityPage')).ActivityPage,
+        }),
+      },
+      {
         path: '/settings',
         lazy: async () => ({
           Component: (await import('@/features/settings/SettingsPage')).SettingsPage,

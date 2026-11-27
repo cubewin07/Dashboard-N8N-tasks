@@ -25,4 +25,7 @@ export const office: typeof viOffice = {
   shortcutStep: '↑↓ Step floor',
   shortcutEsc: 'Esc Overview',
   shortcutWasd: 'WASD/QE Move',
+  chipWorking: 'working {n}',
+  chipWaiting: 'waiting {n}',
+  chipReviewPile: 'to review {n}',
 }

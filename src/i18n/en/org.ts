@@ -29,4 +29,8 @@ export const org: typeof viOrg = {
   },
   emptyDepartment: 'No active staff in this department yet.',
   loading: 'Loading organisation chart…',
+  pileBadge: '{n} to review',
+  currentTaskPrefix: 'Task: {title}',
+  archivedSectionTitle: 'Archived temp staff ({n})',
+  archivedBadge: 'Archived',
 }

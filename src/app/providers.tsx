@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Toaster } from 'sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { I18nProvider } from '@/i18n'
-import { bootOffice, stopOffice } from '@/office/store'
+import { startOffice, stopOffice } from '@/office/store'
 import { AuthProvider, useAuth } from './auth'
 import { DriveProvider } from './drive'
 import { RealtimeProvider } from './RealtimeProvider'
@@ -16,7 +16,7 @@ function OfficeBootstrap({ children }: { children: ReactNode }) {
       stopOffice()
       return
     }
-    void bootOffice()
+    startOffice()
   }, [session])
   return <>{children}</>
 }

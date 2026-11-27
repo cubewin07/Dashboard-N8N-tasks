@@ -1,3 +1,5 @@
+import { useLayoutEffect, useRef } from 'react'
+import type { DirectionalLight } from 'three'
 import type { BuildingLayout } from '@/scene/layout'
 import { SCENE_PALETTE } from './palette'
 
@@ -14,12 +16,24 @@ export function Lights({ layout }: LightsProps) {
   const near = 2
   const far = Math.max(120, totalH * 3 + 60)
 
+  const lightRef = useRef<DirectionalLight>(null)
+
+  // r3f updates the shadow-camera bounds through props but never rebuilds the
+  // projection, so after a department is added the shadow frustum stayed stale
+  // and clipped the taller building.
+  useLayoutEffect(() => {
+    const cam = lightRef.current?.shadow.camera
+    if (!cam) return
+    cam.updateProjectionMatrix()
+  }, [extentX, extentY, near, far])
+
   return (
     <group name="scene-lights">
       <hemisphereLight
         args={[SCENE_PALETTE.hemiSky, SCENE_PALETTE.hemiGround, 0.95]}
       />
       <directionalLight
+        ref={lightRef}
         position={[24, Math.max(36, totalH + 16), 30]}
         intensity={1.35}
         color={SCENE_PALETTE.sunLight}

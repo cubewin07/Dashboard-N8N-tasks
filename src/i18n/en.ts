@@ -1,3 +1,4 @@
+import { activity } from './en/activity'
 import { common } from './en/common'
 import { inbox } from './en/inbox'
 import { library } from './en/library'
@@ -5,7 +6,9 @@ import { login } from './en/login'
 import { office } from './en/office'
 import { org } from './en/org'
 import { overview } from './en/overview'
+import { queue } from './en/queue'
 import { settings } from './en/settings'
+import { sim } from './en/sim'
 import { start } from './en/start'
 import { taskDetail } from './en/taskDetail'
 import { tasks } from './en/tasks'
@@ -25,4 +28,7 @@ export const en: Messages = {
   taskDetail,
   office,
   org,
+  activity,
+  queue,
+  sim,
 }

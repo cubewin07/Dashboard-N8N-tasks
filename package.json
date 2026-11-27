@@ -13,7 +13,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "content:validate": "node scripts/content-validate.mjs"
+    "content:validate": "node scripts/content-validate.mjs",
+    "golden:update": "node scripts/record-golden.mjs",
+    "check:sim-removable": "node scripts/check-sim-removable.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.4.1",
