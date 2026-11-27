@@ -76,7 +76,14 @@ def _load_catalog_defaults() -> dict[str, dict[str, str]]:
     defaults: dict[str, dict[str, str]] = {}
     for p in sorted(CATALOG_DIR.glob("*.json")):
         data = json.loads(p.read_text(encoding="utf-8"))
-        for item in data.get("items", []) or []:
+        # Only item catalogues hold a list of items; colors.json, face-atlas.json and
+        # generator-weights.json (whose "items" is a weights map) are skipped.
+        items = data.get("items") if isinstance(data, dict) else None
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict):
+                continue
             iid = item.get("id")
             tint = item.get("tint") or {}
             d = tint.get("defaults")
@@ -585,4 +592,11 @@ def render_all() -> None:
 
 
 if __name__ == "__main__":
-    render_all()
+    try:
+        render_all()
+    except Exception:
+        # Blender exits 0 after a Python error unless we exit ourselves.
+        import traceback
+
+        traceback.print_exc()
+        sys.exit(1)

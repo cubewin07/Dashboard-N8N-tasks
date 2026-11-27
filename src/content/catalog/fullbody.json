@@ -3,19 +3,207 @@
     {
       "id": "fullbody_dress_simple_01",
       "slot": "fullbody",
-      "label": { "vi": "Đầm suông", "en": "Simple shift dress" },
-      "bases": ["female"],
+      "label": {
+        "vi": "Đầm suông",
+        "en": "Simple shift dress"
+      },
+      "bases": [
+        "female"
+      ],
       "model": {
         "female": "models/wardrobe/fullbody_dress_simple_01_f.glb"
       },
       "thumb": "thumbs/fullbody_dress_simple_01.webp",
       "attach": "skinned",
       "tint": {
-        "regions": ["primary"],
-        "defaults": { "primary": "c_rose" }
+        "regions": [
+          "primary"
+        ],
+        "defaults": {
+          "primary": "c_rose"
+        }
       },
-      "hides": ["top", "bottom"],
-      "tags": ["office", "casual"],
+      "hides": [
+        "top",
+        "bottom"
+      ],
+      "tags": [
+        "office",
+        "casual"
+      ],
+      "credit": "own-generated"
+    },
+    {
+      "id": "fullbody_dress_office_01",
+      "slot": "fullbody",
+      "label": {
+        "vi": "Đầm công sở",
+        "en": "Office dress"
+      },
+      "bases": [
+        "female"
+      ],
+      "model": {
+        "female": "models/wardrobe/fullbody_dress_office_01_f.glb"
+      },
+      "thumb": "thumbs/fullbody_dress_office_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": [
+          "primary",
+          "accent"
+        ],
+        "defaults": {
+          "primary": "c_navy",
+          "accent": "c_white"
+        }
+      },
+      "hides": [
+        "top",
+        "bottom"
+      ],
+      "tags": [
+        "office",
+        "formal"
+      ],
+      "credit": "own-generated"
+    },
+    {
+      "id": "fullbody_ao_dai_01",
+      "slot": "fullbody",
+      "label": {
+        "vi": "Áo dài",
+        "en": "Ao dai"
+      },
+      "bases": [
+        "female",
+        "male"
+      ],
+      "model": {
+        "female": "models/wardrobe/fullbody_ao_dai_01_f.glb",
+        "male": "models/wardrobe/fullbody_ao_dai_01_m.glb"
+      },
+      "thumb": "thumbs/fullbody_ao_dai_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": [
+          "primary",
+          "secondary",
+          "accent"
+        ],
+        "defaults": {
+          "primary": "c_red",
+          "secondary": "c_white",
+          "accent": "c_mustard"
+        }
+      },
+      "hides": [
+        "top",
+        "bottom"
+      ],
+      "bodyLimits": {
+        "build": [
+          0.0,
+          0.94
+        ]
+      },
+      "tags": [
+        "traditional",
+        "tet",
+        "formal"
+      ],
+      "credit": "own-generated"
+    },
+    {
+      "id": "fullbody_jumpsuit_01",
+      "slot": "fullbody",
+      "label": {
+        "vi": "Bộ áo liền quần",
+        "en": "Jumpsuit"
+      },
+      "bases": [
+        "female",
+        "male"
+      ],
+      "model": {
+        "female": "models/wardrobe/fullbody_jumpsuit_01_f.glb",
+        "male": "models/wardrobe/fullbody_jumpsuit_01_m.glb"
+      },
+      "thumb": "thumbs/fullbody_jumpsuit_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": [
+          "primary",
+          "accent"
+        ],
+        "defaults": {
+          "primary": "c_olive",
+          "accent": "c_brown"
+        }
+      },
+      "hides": [
+        "top",
+        "bottom"
+      ],
+      "bodyLimits": {
+        "build": [
+          0.0,
+          0.88
+        ]
+      },
+      "tags": [
+        "casual",
+        "street"
+      ],
+      "credit": "own-generated"
+    },
+    {
+      "id": "fullbody_suit_set_01",
+      "slot": "fullbody",
+      "label": {
+        "vi": "Bộ vest",
+        "en": "Suit set"
+      },
+      "bases": [
+        "female",
+        "male"
+      ],
+      "model": {
+        "female": "models/wardrobe/fullbody_suit_set_01_f.glb",
+        "male": "models/wardrobe/fullbody_suit_set_01_m.glb"
+      },
+      "thumb": "thumbs/fullbody_suit_set_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": [
+          "primary",
+          "secondary",
+          "accent"
+        ],
+        "defaults": {
+          "primary": "c_navy",
+          "secondary": "c_white",
+          "accent": "c_maroon"
+        }
+      },
+      "hides": [
+        "top",
+        "bottom"
+      ],
+      "bodyLimits": {
+        "build": [
+          0.0,
+          0.91
+        ],
+        "muscle": [
+          0.0,
+          0.65
+        ]
+      },
+      "tags": [
+        "formal",
+        "office"
+      ],
       "credit": "own-generated"
     }
   ]

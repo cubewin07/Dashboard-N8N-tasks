@@ -1,0 +1,80 @@
+{
+  "items": [
+    {
+      "id": "head_cap_01",
+      "slot": "head",
+      "label": { "vi": "Mũ lưỡi trai", "en": "Baseball cap" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/head_cap_01.glb",
+        "male": "models/wardrobe/head_cap_01.glb"
+      },
+      "thumb": "thumbs/head_cap_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_navy", "accent": "c_white" }
+      },
+      "hides": [],
+      "tags": ["street", "casual", "sport"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "head_beret_01",
+      "slot": "head",
+      "label": { "vi": "Mũ nồi", "en": "Beret" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/head_beret_01.glb",
+        "male": "models/wardrobe/head_beret_01.glb"
+      },
+      "thumb": "thumbs/head_beret_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_maroon", "accent": "c_black" }
+      },
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "head_non_la_01",
+      "slot": "head",
+      "label": { "vi": "Nón lá", "en": "Conical leaf hat (nón lá)" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/head_non_la_01.glb",
+        "male": "models/wardrobe/head_non_la_01.glb"
+      },
+      "thumb": "thumbs/head_non_la_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary", "accent"],
+        "defaults": { "primary": "c_cream", "accent": "c_brown" }
+      },
+      "hides": [],
+      "tags": ["traditional", "tet", "summer"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "head_headband_01",
+      "slot": "head",
+      "label": { "vi": "Băng đô", "en": "Headband" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/head_headband_01.glb",
+        "male": "models/wardrobe/head_headband_01.glb"
+      },
+      "thumb": "thumbs/head_headband_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_rose" }
+      },
+      "hides": [],
+      "tags": ["casual", "sport"],
+      "credit": "own-generated"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "top_blouse_01",
+  "slot": "top",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/top_blouse_01_f.glb",
+      "tris": 504,
+      "hideRegions": [
+        "chest",
+        "belly"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.38
+    }
+  }
+}

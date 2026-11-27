@@ -1,0 +1,60 @@
+{
+  "id": "fullbody_suit_set_01",
+  "slot": "fullbody",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/fullbody_suit_set_01_f.glb",
+      "tris": 1204,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "hips",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r",
+        "shin_l",
+        "shin_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    },
+    "male": {
+      "file": "models/wardrobe/fullbody_suit_set_01_m.glb",
+      "tris": 1204,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "hips",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r",
+        "shin_l",
+        "shin_r"
+      ],
+      "bodyLimits": {
+        "Heavy": [
+          0.0,
+          0.65
+        ],
+        "Muscle": [
+          0.0,
+          0.65
+        ]
+      },
+      "maxPenetrationMm": 3.61
+    }
+  }
+}

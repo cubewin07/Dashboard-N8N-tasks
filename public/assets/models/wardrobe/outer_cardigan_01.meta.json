@@ -1,0 +1,39 @@
+{
+  "id": "outer_cardigan_01",
+  "slot": "outer",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/outer_cardigan_01_f.glb",
+      "tris": 636,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    },
+    "male": {
+      "file": "models/wardrobe/outer_cardigan_01_m.glb",
+      "tris": 636,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    }
+  }
+}

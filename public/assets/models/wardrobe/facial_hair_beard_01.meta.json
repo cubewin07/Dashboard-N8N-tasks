@@ -1,0 +1,18 @@
+{
+  "id": "facial_hair_beard_01",
+  "slot": "facial_hair",
+  "kind": "rigid",
+  "bone": "Head",
+  "merge": true,
+  "bases": {
+    "male": {
+      "file": "models/wardrobe/facial_hair_beard_01.glb",
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1
+    }
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "items": [
+    {
+      "id": "outer_blazer_01",
+      "slot": "outer",
+      "label": {
+        "vi": "Áo blazer",
+        "en": "Blazer"
+      },
+      "bases": [
+        "female",
+        "male"
+      ],
+      "model": {
+        "female": "models/wardrobe/outer_blazer_01_f.glb",
+        "male": "models/wardrobe/outer_blazer_01_m.glb"
+      },
+      "thumb": "thumbs/outer_blazer_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": [
+          "primary",
+          "secondary",
+          "accent"
+        ],
+        "defaults": {
+          "primary": "c_charcoal",
+          "secondary": "c_white",
+          "accent": "c_black"
+        }
+      },
+      "hides": [],
+      "requires": [
+        "top",
+        "fullbody"
+      ],
+      "tags": [
+        "office",
+        "formal"
+      ],
+      "credit": "own-generated",
+      "conflicts": [
+        "fullbody_ao_dai_01",
+        "fullbody_dress_office_01",
+        "fullbody_jumpsuit_01",
+        "fullbody_suit_set_01",
+        "top_tank_01"
+      ]
+    },
+    {
+      "id": "outer_cardigan_01",
+      "slot": "outer",
+      "label": {
+        "vi": "Áo khoác len cardigan",
+        "en": "Cardigan"
+      },
+      "bases": [
+        "female",
+        "male"
+      ],
+      "model": {
+        "female": "models/wardrobe/outer_cardigan_01_f.glb",
+        "male": "models/wardrobe/outer_cardigan_01_m.glb"
+      },
+      "thumb": "thumbs/outer_cardigan_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": [
+          "primary",
+          "secondary",
+          "accent"
+        ],
+        "defaults": {
+          "primary": "c_beige",
+          "secondary": "c_white",
+          "accent": "c_brown"
+        }
+      },
+      "hides": [],
+      "requires": [
+        "top",
+        "fullbody"
+      ],
+      "tags": [
+        "office",
+        "casual"
+      ],
+      "credit": "own-generated",
+      "conflicts": [
+        "fullbody_ao_dai_01",
+        "fullbody_dress_office_01",
+        "fullbody_dress_simple_01",
+        "fullbody_jumpsuit_01",
+        "fullbody_suit_set_01",
+        "top_tank_01"
+      ]
+    },
+    {
+      "id": "outer_bomber_01",
+      "slot": "outer",
+      "label": {
+        "vi": "Áo khoác bomber",
+        "en": "Bomber jacket"
+      },
+      "bases": [
+        "female",
+        "male"
+      ],
+      "model": {
+        "female": "models/wardrobe/outer_bomber_01_f.glb",
+        "male": "models/wardrobe/outer_bomber_01_m.glb"
+      },
+      "thumb": "thumbs/outer_bomber_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": [
+          "primary",
+          "accent"
+        ],
+        "defaults": {
+          "primary": "c_olive",
+          "accent": "c_black"
+        }
+      },
+      "hides": [],
+      "requires": [
+        "top",
+        "fullbody"
+      ],
+      "tags": [
+        "street"
+      ],
+      "credit": "own-generated",
+      "conflicts": [
+        "fullbody_ao_dai_01",
+        "fullbody_jumpsuit_01",
+        "fullbody_suit_set_01"
+      ]
+    },
+    {
+      "id": "outer_raincoat_01",
+      "slot": "outer",
+      "label": {
+        "vi": "Áo mưa",
+        "en": "Raincoat"
+      },
+      "bases": [
+        "female",
+        "male"
+      ],
+      "model": {
+        "female": "models/wardrobe/outer_raincoat_01_f.glb",
+        "male": "models/wardrobe/outer_raincoat_01_m.glb"
+      },
+      "thumb": "thumbs/outer_raincoat_01.webp",
+      "attach": "skinned",
+      "tint": {
+        "regions": [
+          "primary",
+          "accent"
+        ],
+        "defaults": {
+          "primary": "c_yellow",
+          "accent": "c_grey"
+        }
+      },
+      "hides": [],
+      "requires": [
+        "top",
+        "fullbody"
+      ],
+      "tags": [
+        "casual"
+      ],
+      "credit": "own-generated",
+      "conflicts": [
+        "fullbody_ao_dai_01",
+        "fullbody_dress_office_01",
+        "fullbody_jumpsuit_01",
+        "fullbody_suit_set_01"
+      ]
+    }
+  ]
+}

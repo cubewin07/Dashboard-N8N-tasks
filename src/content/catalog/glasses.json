@@ -18,6 +18,63 @@
       "hides": [],
       "tags": ["office", "casual"],
       "credit": "own-generated"
+    },
+    {
+      "id": "glasses_square_01",
+      "slot": "glasses",
+      "label": { "vi": "Kính vuông", "en": "Square glasses" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/glasses_square_01.glb",
+        "male": "models/wardrobe/glasses_square_01.glb"
+      },
+      "thumb": "thumbs/glasses_square_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_charcoal" }
+      },
+      "hides": [],
+      "tags": ["office", "casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "glasses_cat_eye_01",
+      "slot": "glasses",
+      "label": { "vi": "Kính mắt mèo", "en": "Cat-eye glasses" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/glasses_cat_eye_01.glb",
+        "male": "models/wardrobe/glasses_cat_eye_01.glb"
+      },
+      "thumb": "thumbs/glasses_cat_eye_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_maroon" }
+      },
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "glasses_sunglasses_01",
+      "slot": "glasses",
+      "label": { "vi": "Kính râm", "en": "Sunglasses" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/glasses_sunglasses_01.glb",
+        "male": "models/wardrobe/glasses_sunglasses_01.glb"
+      },
+      "thumb": "thumbs/glasses_sunglasses_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": {
+        "regions": ["primary"],
+        "defaults": { "primary": "c_black" }
+      },
+      "hides": [],
+      "tags": ["summer", "street"],
+      "credit": "own-generated"
     }
   ]
 }

@@ -63,6 +63,166 @@
       "hides": [],
       "tags": ["office", "casual"],
       "credit": "own-generated"
+    },
+    {
+      "id": "hair_short_02",
+      "slot": "hair",
+      "label": { "vi": "Tóc cắt ngắn tạo kiểu", "en": "Textured crop" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_short_02.glb",
+        "male": "models/wardrobe/hair_short_02.glb"
+      },
+      "thumb": "thumbs/hair_short_02.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "street"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_undercut_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc undercut", "en": "Undercut" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_undercut_01.glb",
+        "male": "models/wardrobe/hair_undercut_01.glb"
+      },
+      "thumb": "thumbs/hair_undercut_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["street", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_buzz_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc húi cua", "en": "Buzz cut" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_buzz_01.glb",
+        "male": "models/wardrobe/hair_buzz_01.glb"
+      },
+      "thumb": "thumbs/hair_buzz_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "sport"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_side_part_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc rẽ ngôi lệch", "en": "Side part" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_side_part_01.glb",
+        "male": "models/wardrobe/hair_side_part_01.glb"
+      },
+      "thumb": "thumbs/hair_side_part_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["office", "formal"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_bob_bangs_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc bob mái bằng", "en": "Bob with bangs" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_bob_bangs_01.glb",
+        "male": "models/wardrobe/hair_bob_bangs_01.glb"
+      },
+      "thumb": "thumbs/hair_bob_bangs_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_long_wavy_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc dài gợn sóng", "en": "Long wavy hair" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_long_wavy_01.glb",
+        "male": "models/wardrobe/hair_long_wavy_01.glb"
+      },
+      "thumb": "thumbs/hair_long_wavy_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_ponytail_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc đuôi ngựa", "en": "Ponytail" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_ponytail_01.glb",
+        "male": "models/wardrobe/hair_ponytail_01.glb"
+      },
+      "thumb": "thumbs/hair_ponytail_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["office", "casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_ponytail_high_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc đuôi ngựa cao", "en": "High ponytail" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_ponytail_high_01.glb",
+        "male": "models/wardrobe/hair_ponytail_high_01.glb"
+      },
+      "thumb": "thumbs/hair_ponytail_high_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["sport", "casual"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_twin_buns_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc búi hai bên", "en": "Twin buns" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_twin_buns_01.glb",
+        "male": "models/wardrobe/hair_twin_buns_01.glb"
+      },
+      "thumb": "thumbs/hair_twin_buns_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "party"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "hair_curly_01",
+      "slot": "hair",
+      "label": { "vi": "Tóc xoăn", "en": "Curly hair" },
+      "bases": ["female", "male"],
+      "model": {
+        "female": "models/wardrobe/hair_curly_01.glb",
+        "male": "models/wardrobe/hair_curly_01.glb"
+      },
+      "thumb": "thumbs/hair_curly_01.webp",
+      "attach": { "bone": "Head" },
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "street"],
+      "credit": "own-generated"
     }
   ]
 }

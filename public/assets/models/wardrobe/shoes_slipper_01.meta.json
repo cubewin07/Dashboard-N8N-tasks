@@ -1,0 +1,21 @@
+{
+  "id": "shoes_slipper_01",
+  "slot": "shoes",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/shoes_slipper_01_f.glb",
+      "tris": 328,
+      "hideRegions": [],
+      "bodyLimits": {},
+      "maxPenetrationMm": 2.49
+    },
+    "male": {
+      "file": "models/wardrobe/shoes_slipper_01_m.glb",
+      "tris": 328,
+      "hideRegions": [],
+      "bodyLimits": {},
+      "maxPenetrationMm": 2.74
+    }
+  }
+}

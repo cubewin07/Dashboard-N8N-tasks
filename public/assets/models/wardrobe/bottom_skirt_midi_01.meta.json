@@ -1,0 +1,21 @@
+{
+  "id": "bottom_skirt_midi_01",
+  "slot": "bottom",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/bottom_skirt_midi_01_f.glb",
+      "tris": 576,
+      "hideRegions": [
+        "hips",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    }
+  },
+  "maxStride": 0.85
+}

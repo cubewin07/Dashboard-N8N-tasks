@@ -243,6 +243,9 @@ def _import_character(body_path, garment_paths, region_tint=False):
             bpy.data.objects.remove(g_arm, do_unlink=True)
         if g_root != g_arm and g_root not in g_meshes:
             bpy.data.objects.remove(g_root, do_unlink=True)
+    # glTF import leaves every shape key at its stored default (1.0 on the bodies); start from the
+    # neutral body so pose sheets match the fit. render_shapes sets its combos afterwards.
+    _apply_shape_combo(meshes, {})
     return root, arm, meshes
 
 

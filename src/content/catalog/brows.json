@@ -27,6 +27,48 @@
       "hides": [],
       "tags": ["casual", "office"],
       "credit": "own-generated"
+    },
+    {
+      "id": "brows_03",
+      "slot": "brows",
+      "label": { "vi": "Chân mày mảnh", "en": "Thin arched brows" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [2, 4] },
+      "thumb": "thumbs/brows_03.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "brows_04",
+      "slot": "brows",
+      "label": { "vi": "Chân mày xếch", "en": "Angled brows" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [3, 4] },
+      "thumb": "thumbs/brows_04.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual", "office"],
+      "credit": "own-generated"
+    },
+    {
+      "id": "brows_05",
+      "slot": "brows",
+      "label": { "vi": "Chân mày ngắn", "en": "Short soft brows" },
+      "bases": ["female", "male"],
+      "model": null,
+      "faceTile": { "atlas": "face", "cell": [4, 4] },
+      "thumb": "thumbs/brows_05.webp",
+      "attach": "skinned",
+      "tint": null,
+      "hides": [],
+      "tags": ["casual"],
+      "credit": "own-generated"
     }
   ]
 }

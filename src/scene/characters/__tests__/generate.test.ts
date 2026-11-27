@@ -7,6 +7,8 @@ import {
   getCatalogItem,
   hasBaseSupport,
   isValidColorKey,
+  loadCatalog,
+  type CatalogItem,
 } from '../catalog'
 import { generateAppearance } from '../generate'
 
@@ -95,5 +97,49 @@ describe('generateAppearance (R9)', () => {
     expect(generateAppearance('emp_quan', DEFAULT_CATALOG, { name: 'Quân' }).base).toBe('male')
     expect(generateAppearance('emp_temp_01', DEFAULT_CATALOG, { name: 'My (Tạm 1)' }).base).toBe('female')
     expect(generateAppearance('emp_temp_02', DEFAULT_CATALOG, { name: 'Dũng (Tạm 8)' }).base).toBe('male')
+  })
+
+  describe('catalogue conflicts (P08a-T10)', () => {
+    const items = DEFAULT_CATALOG.items
+    const inners = items.filter((i) => i.slot === 'top' || i.slot === 'fullbody').map((i) => i.id)
+    const outers = items.filter((i) => i.slot === 'outer')
+
+    function catalogWith(patch: (item: CatalogItem) => CatalogItem) {
+      return loadCatalog({ slotFiles: [{ items: items.map(patch) }] })
+    }
+
+    function outersWorn(catalog: ReturnType<typeof loadCatalog>): Set<string> {
+      const worn = new Set<string>()
+      for (const emp of seedEmployees) {
+        const doc = generateAppearance(emp.id, catalog, { name: emp.name })
+        if (doc.outfit.outer) worn.add(doc.outfit.outer)
+      }
+      return worn
+    }
+
+    it('the stock catalogue still generates outers (the check below is meaningful)', () => {
+      expect(outers.length).toBeGreaterThan(0)
+      expect(outersWorn(DEFAULT_CATALOG).size).toBeGreaterThan(0)
+    })
+
+    it('never pairs an outer whose own row lists the inner item', () => {
+      const cat = catalogWith((i) => (i.slot === 'outer' ? { ...i, conflicts: inners } : i))
+      expect(outersWorn(cat).size).toBe(0)
+    })
+
+    it('never pairs an outer when the inner row lists the outer', () => {
+      const outerIds = outers.map((o) => o.id)
+      const cat = catalogWith((i) =>
+        i.slot === 'top' || i.slot === 'fullbody' ? { ...i, conflicts: outerIds } : i,
+      )
+      expect(outersWorn(cat).size).toBe(0)
+    })
+
+    it('still picks the remaining outers when only one is in conflict', () => {
+      const banned = outers[0].id
+      const cat = catalogWith((i) => (i.id === banned ? { ...i, conflicts: inners } : i))
+      const worn = outersWorn(cat)
+      expect(worn.has(banned)).toBe(false)
+    })
   })
 })

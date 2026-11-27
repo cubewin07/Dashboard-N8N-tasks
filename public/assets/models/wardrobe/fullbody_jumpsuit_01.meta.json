@@ -1,0 +1,46 @@
+{
+  "id": "fullbody_jumpsuit_01",
+  "slot": "fullbody",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/fullbody_jumpsuit_01_f.glb",
+      "tris": 1040,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "hips",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r",
+        "shin_l",
+        "shin_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    },
+    "male": {
+      "file": "models/wardrobe/fullbody_jumpsuit_01_m.glb",
+      "tris": 1040,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "hips",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r",
+        "shin_l",
+        "shin_r"
+      ],
+      "bodyLimits": {
+        "Heavy": [
+          0.0,
+          0.6
+        ]
+      },
+      "maxPenetrationMm": 3.83
+    }
+  }
+}

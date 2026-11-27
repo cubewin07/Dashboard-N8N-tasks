@@ -1,0 +1,59 @@
+{
+  "id": "fullbody_ao_dai_01",
+  "slot": "fullbody",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/fullbody_ao_dai_01_f.glb",
+      "tris": 1460,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "hips",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r",
+        "shin_l",
+        "shin_r"
+      ],
+      "bodyLimits": {},
+      "maxPenetrationMm": 0.0
+    },
+    "male": {
+      "file": "models/wardrobe/fullbody_ao_dai_01_m.glb",
+      "tris": 1460,
+      "hideRegions": [
+        "chest",
+        "belly",
+        "hips",
+        "upper_arm_l",
+        "upper_arm_r",
+        "elbow_l",
+        "elbow_r",
+        "forearm_l",
+        "forearm_r",
+        "thigh_l",
+        "thigh_r",
+        "knee_l",
+        "knee_r",
+        "shin_l",
+        "shin_r"
+      ],
+      "bodyLimits": {
+        "Heavy": [
+          0.0,
+          0.7
+        ]
+      },
+      "maxPenetrationMm": 2.53
+    }
+  },
+  "maxStride": 0.8
+}

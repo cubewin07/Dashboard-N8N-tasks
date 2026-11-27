@@ -30,18 +30,11 @@ ASSETS_DIR = os.path.join(ROOT, "public", "assets")
 DEFAULT_OUT_DIR = os.path.join(ASSETS_DIR, "thumbs")
 DEFAULT_TEST_OUT = os.path.join(ROOT, "art", ".cache", "p07", "thumbs", "test.webp")
 
-SLOT_FILES = [
-    "hair.json",
-    "top.json",
-    "bottom.json",
-    "fullbody.json",
-    "shoes.json",
-    "glasses.json",
-    "neck.json",
-    "eyes.json",
-    "brows.json",
-    "mouth.json",
-]
+# Every slot file in the catalogue (one JSON per WardrobeSlot); non-slot data files are skipped.
+NON_SLOT_FILES = {"colors.json", "face-atlas.json", "generator-weights.json", "presets.json"}
+SLOT_FILES = sorted(
+    f for f in os.listdir(CATALOG_DIR) if f.endswith(".json") and f not in NON_SLOT_FILES
+)
 
 THUMB_SIZE = 256
 MAX_BYTES = 15 * 1024
@@ -299,6 +292,16 @@ def _world_bounds(mesh_objs):
     return lo, hi
 
 
+def _one_side_bounds(mesh_objs, mid_x):
+    """Bounds of the vertices on the character's left (+X): a pair of earrings sits a head apart,
+    so framing both leaves each one a dot; one earring fills the thumbnail."""
+    pts = [ob.matrix_world @ v.co for ob in mesh_objs for v in ob.data.vertices]
+    pts = [p for p in pts if p.x > mid_x] or pts
+    lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
+    hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
+    return lo, hi
+
+
 def _setup_thumb_camera(scene, lo, hi):
     cam_data = bpy.data.cameras.new("thumb_cam")
     cam_data.type = "ORTHO"
@@ -386,6 +389,8 @@ def render_3d_thumb(glb_path, out_path, item=None, swatches=None):
         _apply_wardrobe_colors(mesh_objs, item, swatches)
 
     lo, hi = _world_bounds(mesh_objs)
+    if item is not None and item.get("slot") == "ears":
+        lo, hi = _one_side_bounds(mesh_objs, (lo.x + hi.x) * 0.5)
     scene = bpy.context.scene
     _setup_thumb_camera(scene, lo, hi)
     _setup_thumb_studio(scene)

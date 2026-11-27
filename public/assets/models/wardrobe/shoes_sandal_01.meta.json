@@ -1,0 +1,21 @@
+{
+  "id": "shoes_sandal_01",
+  "slot": "shoes",
+  "kind": "skinned",
+  "bases": {
+    "female": {
+      "file": "models/wardrobe/shoes_sandal_01_f.glb",
+      "tris": 520,
+      "hideRegions": [],
+      "bodyLimits": {},
+      "maxPenetrationMm": 1.95
+    },
+    "male": {
+      "file": "models/wardrobe/shoes_sandal_01_m.glb",
+      "tris": 520,
+      "hideRegions": [],
+      "bodyLimits": {},
+      "maxPenetrationMm": 1.37
+    }
+  }
+}
