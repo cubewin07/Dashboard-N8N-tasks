@@ -14,6 +14,8 @@ import { start } from './en/start'
 import { taskDetail } from './en/taskDetail'
 import { tasks } from './en/tasks'
 import { team } from './en/team'
+import { wardrobe } from './en/wardrobe'
+import { wardrobeEditor } from './en/wardrobeEditor'
 import type { Messages } from './vi'
 
 export const en: Messages = {
@@ -33,4 +35,6 @@ export const en: Messages = {
   activity,
   queue,
   sim,
+  wardrobe,
+  wardrobeEditor,
 }

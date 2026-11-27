@@ -1,0 +1,77 @@
+{
+  "presets": [
+    {
+      "key": "office",
+      "label": { "vi": "Công sở", "en": "Office" },
+      "picks": {
+        "hair": { "tagsAny": ["office"], "fallback": "hair_short_01" },
+        "top": { "tagsAny": ["office", "formal"], "fallback": "top_shirt_office_01" },
+        "bottom": { "tagsAny": ["office", "formal"], "fallback": "bottom_trousers_01" },
+        "outer": { "tagsAny": ["office", "formal"], "fallback": null, "chance": 0.5 },
+        "shoes": { "tagsAny": ["office", "formal"], "fallback": "shoes_loafer_01" },
+        "glasses": { "tagsAny": ["office"], "fallback": "glasses_round_01", "chance": 0.3 },
+        "neck": { "tagsAny": ["office", "formal"], "fallback": null, "chance": 0.3 },
+        "head": { "tagsAny": ["office"], "fallback": null, "chance": 0 }
+      },
+      "colours": {
+        "primary": ["c_white", "c_sky", "c_navy", "c_charcoal", "c_cream"],
+        "secondary": ["c_navy", "c_charcoal", "c_white"]
+      }
+    },
+    {
+      "key": "street",
+      "label": { "vi": "Dạo phố", "en": "Street" },
+      "picks": {
+        "hair": { "tagsAny": ["casual"], "fallback": "hair_long_01" },
+        "top": { "tagsAny": ["casual"], "fallback": "top_tshirt_crew_01" },
+        "bottom": { "tagsAny": ["casual"], "fallback": "bottom_jeans_01" },
+        "outer": { "tagsAny": ["casual"], "fallback": null, "chance": 0.4 },
+        "shoes": { "tagsAny": ["casual"], "fallback": "shoes_sneaker_01" },
+        "glasses": { "tagsAny": ["casual"], "fallback": "glasses_round_01", "chance": 0.4 },
+        "head": { "tagsAny": ["casual"], "fallback": null, "chance": 0.35 },
+        "bag": { "tagsAny": ["casual"], "fallback": null, "chance": 0.4 },
+        "neck": { "tagsAny": ["casual"], "fallback": null, "chance": 0.3 }
+      },
+      "colours": {
+        "primary": ["c_rose", "c_jade", "c_orange", "c_denim", "c_khaki", "c_yellow", "c_coral"],
+        "secondary": ["c_white", "c_black", "c_navy"]
+      }
+    },
+    {
+      "key": "tet",
+      "label": { "vi": "Áo dài Tết", "en": "Tet ao dai" },
+      "picks": {
+        "hair": { "tagsAny": ["traditional", "tet", "elegant"], "fallback": "hair_bun_01" },
+        "fullbody": { "tagsAny": ["tet", "aodai", "traditional"], "fallback": null },
+        "top": { "tagsAny": ["tet", "traditional"], "fallback": "top_shirt_office_01" },
+        "bottom": { "tagsAny": ["tet", "traditional"], "fallback": "bottom_trousers_01" },
+        "shoes": { "tagsAny": ["tet", "traditional"], "fallback": "shoes_loafer_01" },
+        "head": { "tagsAny": ["tet", "traditional"], "fallback": null, "chance": 0.5 },
+        "neck": { "tagsAny": ["tet", "party"], "fallback": null, "chance": 0.6 },
+        "ears": { "tagsAny": ["tet", "party"], "fallback": null, "chance": 0.6 }
+      },
+      "colours": {
+        "primary": ["c_red", "c_yellow", "c_mustard", "c_maroon", "c_coral"],
+        "secondary": ["c_yellow", "c_white", "c_cream"]
+      }
+    },
+    {
+      "key": "sport",
+      "label": { "vi": "Thể thao", "en": "Sporty" },
+      "picks": {
+        "hair": { "tagsAny": ["sport"], "fallback": "hair_short_01" },
+        "top": { "tagsAny": ["sport"], "fallback": "top_tshirt_crew_01" },
+        "bottom": { "tagsAny": ["sport"], "fallback": "bottom_shorts_01" },
+        "outer": { "tagsAny": ["sport"], "fallback": null, "chance": 0.3 },
+        "shoes": { "tagsAny": ["sport"], "fallback": "shoes_sneaker_01" },
+        "head": { "tagsAny": ["sport"], "fallback": null, "chance": 0.4 },
+        "wrist": { "tagsAny": ["sport"], "fallback": null, "chance": 0.4 },
+        "bag": { "tagsAny": ["sport"], "fallback": null, "chance": 0.3 }
+      },
+      "colours": {
+        "primary": ["c_red", "c_sky", "c_jade", "c_orange", "c_navy", "c_white"],
+        "secondary": ["c_white", "c_black"]
+      }
+    }
+  ]
+}

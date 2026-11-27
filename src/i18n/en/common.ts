@@ -7,6 +7,7 @@ export const common: typeof vi = {
     org: 'Org chart',
     queue: 'Queue',
     activity: 'Activity',
+    wardrobe: 'Wardrobe',
     legacyGroup: 'Classic',
     overview: 'Overview',
     inbox: 'Needs you',

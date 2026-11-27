@@ -11,6 +11,7 @@ import {
   DEFAULT_CATALOG,
   getDefaultColorKey,
   getSlotItems,
+  type BaseBody,
   type Catalog,
   type CatalogItem,
   type CatalogSlot,
@@ -21,6 +22,11 @@ import {
   slotChance,
   type GeneratorWeights,
 } from './generatorWeights'
+
+/** Items a seeded look may pick: the slot's items for this base, minus retired ones. */
+function liveSlotItems(catalog: Catalog, slot: CatalogSlot, base: BaseBody): readonly CatalogItem[] {
+  return getSlotItems(catalog, slot, base).filter((item) => !item.retired)
+}
 
 export interface GenerateAppearanceOptions {
   name?: string
@@ -274,7 +280,7 @@ export function generateAppearance(
   const skin = pickFrom(skinPool, rng).key
 
   // Hair item & colour
-  const hairOptions = getSlotItems(catalog, 'hair', base)
+  const hairOptions = liveSlotItems(catalog, 'hair', base)
   const hairItem = hairOptions.length > 0 ? pick(hairOptions).id : null
 
   const naturalHairColors = catalog.colors.hair.filter((c) => !c.fashion)
@@ -288,22 +294,22 @@ export function generateAppearance(
   const hairColor = pickFrom(hairColorPool, rng).key
 
   // Face
-  const eyesOptions = getSlotItems(catalog, 'eyes', base)
-  const browsOptions = getSlotItems(catalog, 'brows', base)
-  const mouthOptions = getSlotItems(catalog, 'mouth', base)
+  const eyesOptions = liveSlotItems(catalog, 'eyes', base)
+  const browsOptions = liveSlotItems(catalog, 'brows', base)
+  const mouthOptions = liveSlotItems(catalog, 'mouth', base)
   const eyes = eyesOptions.length > 0 ? pick(eyesOptions).id : 'eyes_01'
   const brows = browsOptions.length > 0 ? pick(browsOptions).id : 'brows_01'
   const mouth = mouthOptions.length > 0 ? pick(mouthOptions).id : 'mouth_01'
   const eyeColor = pickFrom(catalog.colors.eyes, rng).key
   const blush = base === 'female' ? rng() < 0.35 : false
-  const facialHairOptions = getSlotItems(catalog, 'facial_hair', base)
+  const facialHairOptions = liveSlotItems(catalog, 'facial_hair', base)
   const facialHair = wears('facial_hair', facialHairOptions) ? pick(facialHairOptions).id : null
 
   // Outfit
-  const fullbodyOptions = getSlotItems(catalog, 'fullbody', base)
-  const topOptions = getSlotItems(catalog, 'top', base)
-  const bottomOptions = getSlotItems(catalog, 'bottom', base)
-  const shoesOptions = getSlotItems(catalog, 'shoes', base)
+  const fullbodyOptions = liveSlotItems(catalog, 'fullbody', base)
+  const topOptions = liveSlotItems(catalog, 'top', base)
+  const bottomOptions = liveSlotItems(catalog, 'bottom', base)
+  const shoesOptions = liveSlotItems(catalog, 'shoes', base)
 
   const defaultFabric = getDefaultColorKey(catalog, 'fabric')
   const validSchemes = OUTFIT_COLOR_SCHEMES.filter(
@@ -376,7 +382,7 @@ export function generateAppearance(
 
   // Outer layer (needs a top or a fullbody underneath: catalogue `requires`).
   let outer: string | null = null
-  const outerOptions = getSlotItems(catalog, 'outer', base)
+  const outerOptions = liveSlotItems(catalog, 'outer', base)
   if ((top || fullbody) && wears('outer', outerOptions)) {
     const inner = top ?? fullbody
     const innerItem = inner ? catalog.byId.get(inner) : undefined
@@ -416,7 +422,7 @@ export function generateAppearance(
 
   // Accessories
   const accessories: AppearanceV1['accessories'] = {}
-  const glassesOptions = getSlotItems(catalog, 'glasses', base)
+  const glassesOptions = liveSlotItems(catalog, 'glasses', base)
   if (wears('glasses', glassesOptions)) {
     const glasses = pick(glassesOptions)
     accessories.glasses = glasses.id
@@ -432,7 +438,7 @@ export function generateAppearance(
     if (c) colors[glasses.id] = c
   }
 
-  const neckOptions = getSlotItems(catalog, 'neck', base)
+  const neckOptions = liveSlotItems(catalog, 'neck', base)
   if (wears('neck', neckOptions)) {
     const neck = pick(neckOptions)
     accessories.neck = neck.id
@@ -453,7 +459,7 @@ export function generateAppearance(
 
   // Remaining accessories keep their catalogue default colours (metal for jewellery).
   for (const slot of ['ears', 'wrist', 'head', 'bag'] as const) {
-    const options = getSlotItems(catalog, slot, base)
+    const options = liveSlotItems(catalog, slot, base)
     if (wears(slot, options)) accessories[slot] = pick(options).id
   }
 

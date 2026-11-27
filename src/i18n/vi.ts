@@ -14,6 +14,8 @@ import { start } from './vi/start'
 import { taskDetail } from './vi/taskDetail'
 import { tasks } from './vi/tasks'
 import { team } from './vi/team'
+import { wardrobe } from './vi/wardrobe'
+import { wardrobeEditor } from './vi/wardrobeEditor'
 
 export const vi = {
   common,
@@ -32,6 +34,8 @@ export const vi = {
   activity,
   queue,
   sim,
+  wardrobe,
+  wardrobeEditor,
 }
 
 export type Messages = typeof vi

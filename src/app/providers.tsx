@@ -3,21 +3,26 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Toaster } from 'sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { I18nProvider } from '@/i18n'
+import { setCommandsAllowed } from '@/office/sessionRole'
 import { startOffice, stopOffice } from '@/office/store'
 import { AuthProvider, useAuth } from './auth'
 import { DriveProvider } from './drive'
+import { can } from './roles'
 import { RealtimeProvider } from './RealtimeProvider'
 import { StartWorkProvider } from './startWork'
 
 function OfficeBootstrap({ children }: { children: ReactNode }) {
   const { session } = useAuth()
+  const role = session?.role
   useEffect(() => {
-    if (!session) {
+    setCommandsAllowed(can(role, 'command'))
+    // A stylist never boots the feed: no simulator, no office store.
+    if (!can(role, 'office')) {
       stopOffice()
       return
     }
     startOffice()
-  }, [session])
+  }, [role])
   return <>{children}</>
 }
 

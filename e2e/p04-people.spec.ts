@@ -33,7 +33,7 @@ async function people(page: Page): Promise<PersonRow[]> {
 
 async function openOffice(page: Page) {
   await page.goto('./#/login')
-  await page.locator('#login-email').fill('boss@example.com')
+  await page.locator('#login-email').fill('boss@demo.local')
   await page.locator('#login-password').fill('123456')
   await page.locator('button[type="submit"]').click()
   await expect(page).toHaveURL(/#\/(\?.*)?$/)
@@ -61,7 +61,7 @@ test.describe('P04 people and navigation', () => {
     if (testInfo.project.name === 'phone') {
       // Phones get the same facts in 2D: the people tab of the org page.
       await page.goto('./#/login')
-      await page.locator('#login-email').fill('boss@example.com')
+      await page.locator('#login-email').fill('boss@demo.local')
       await page.locator('#login-password').fill('123456')
       await page.locator('button[type="submit"]').click()
       await expect(page).toHaveURL(/#\/(\?.*)?$/)

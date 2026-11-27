@@ -6,6 +6,7 @@ export const common = {
     org: 'Sơ đồ',
     queue: 'Hàng chờ',
     activity: 'Nhật ký',
+    wardrobe: 'Tủ đồ',
     legacyGroup: 'Bản cũ',
     overview: 'Tổng quan',
     inbox: 'Cần bạn xử lý',

@@ -39,6 +39,10 @@ export interface WardrobeSkinnedMeta {
   slot: string
   kind: 'skinned'
   bases: Partial<Record<CharacterBase, WardrobeSkinnedBaseMeta>>
+  /** Worn hats: `crown` makes the runtime load the hair's `hatcut` geometry instead. */
+  hairClip?: 'crown'
+  /** Hair only: the variant without the crown, used under hats. */
+  hatcut?: string
 }
 
 export interface WardrobeRigidMeta {
@@ -48,6 +52,10 @@ export interface WardrobeRigidMeta {
   bone: string
   merge: boolean
   bases: Partial<Record<CharacterBase, WardrobeRigidBaseMeta>>
+  /** Worn hats: `crown` makes the runtime load the hair's `hatcut` geometry instead. */
+  hairClip?: 'crown'
+  /** Hair only: the variant without the crown, used under hats. */
+  hatcut?: string
 }
 
 export type WardrobeMeta = WardrobeSkinnedMeta | WardrobeRigidMeta

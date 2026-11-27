@@ -112,14 +112,14 @@ async function main() {
 
     console.log('Logging in at #/login...')
     await page.goto(`${baseUrl}#/login`)
-    await page.locator('#login-email').fill('boss@example.com')
+    await page.locator('#login-email').fill('boss@demo.local')
     await page.locator('#login-password').fill('123456')
     await page.locator('button[type="submit"]').click()
 
     console.log(
       'Verifying #/ renders [data-office-canvas] and [data-sim-control-panel] has count 0...',
     )
-    await page.waitForURL(/#\/$/)
+    await page.waitForURL(/#\/(\?.*)?$/)
     await page
       .locator('[data-office-canvas]')
       .waitFor({ state: 'visible', timeout: 15000 })
