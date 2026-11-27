@@ -60,6 +60,7 @@ Bundle and assets:
 
 ## 4. How to measure
 
+- **Frame stats (P11-T01):** `window.__office_debug.stats()` returns `{ fps, frameMsP95, drawCalls, triangles, geometries, textures, programs, jsHeapMB }` from a 240-frame rolling timer (`src/scene/debug/frameStats.ts`) and `renderer.info`. `?perf=1` (any build, in the hash or the page URL) shows the same numbers in a small overlay on the canvas, refreshed twice a second without React renders. The local run is `PERF=1 npx playwright test e2e/perf.spec.ts --project=desktop` (real GPU through Metal, `crowded` at 30×, 20 s settle, 10 s of samples per preset, writes `perf-report.json`). For numbers that are not distorted by the E2E build (on-demand frames, dpr 1), serve a `VITE_DEBUG=1` build and point the run at it with `E2E_PORT`.
 - **Debug surface:** `window.__office_debug` (dev and `?debug=1`): `{ fps, frameMsP95, drawCalls, triangles, geometries, textures, people, mixersPerSec, characters: { assembled, cacheSize }, reactCommits }` and `setCamera(preset)`, `setScenario(key)`. Read-only numbers come from `renderer.info` and a rolling frame timer.
 - **Automated check (from P04):** `npm run perf:check` → `scripts/perf-check.mjs` runs Playwright (headed Chrome on the developer Mac with GPU; not in CI) through the reference scene and camera presets, 20 s each, and writes `perf-report.json` + a markdown table to paste into the PR. It fails when a budget in §2 is exceeded by > 10 %.
 - **CI (headless, SwiftShader):** frame rate is meaningless there. CI checks only the **structural** numbers, which are deterministic: draw calls, triangles, geometries, React commits, bundle sizes (`scripts/size-budget.mjs` prints a job summary and fails on budget), "main chunk has no three".
@@ -89,6 +90,7 @@ The author fills the row for their layer and copies the table (with earlier rows
 | P05 | 2026-11-13 | SwiftShader (CI mode), same view | 38 | ≈ 19 (warning only) | 173 | 70 k | 0.07 ms |
 | P07b | 2026-11-15 | Mac (Apple M4 Pro), Metal, 1440×900, overview/floor/follow, 30× (`crowded`) | 80 | 60.0 / 60.0 / 60.0 | 195 / 142 / 76 | 418 k / 193 k / 213 k | 0.44 ms (1.11 ms avg assembly) |
 | P07b | 2026-11-15 | SwiftShader (CI mode), overview/floor/follow, 30× (`crowded`) | 80 | 5.2 / 6.9 / 7.3 (warning only) | 191 / 144 / 117 | 411 k / 191 k / 159 k | 0.24 ms (1.11 ms avg assembly) |
+| P11 baseline (T01, before fixes) | 2026-11-28 | Mac (Apple M4 Pro), Metal, 1440×900, `VITE_DEBUG=1` build, overview/floor/follow, 30× (`crowded`), `e2e/perf.spec.ts` | 80 | 60 / 60 / 60 (frame p95 18.1 / 17.8 / 18.0 ms) | 214 / 138 / 74 | 459 k / 137 k / 103 k | – (geometries 275–302, textures 94–98, programs 32–35, heap 26 MB) |
 
 ## 6. Regression policy
 

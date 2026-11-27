@@ -23,6 +23,9 @@ import { useI18n } from '@/i18n'
 import { Button } from '@/components/ui/button'
 import { usePeopleUi } from '@/office/uiStore'
 import { CameraRig } from '@/scene/camera/CameraRig'
+import { FrameStats } from '@/scene/debug/frameStats'
+import { PerfOverlay } from '@/scene/debug/PerfOverlay'
+import { currentStats, readStats, setStatsSource, type OfficeStats } from '@/scene/debug/stats'
 import { useKeyboardShortcuts } from '@/scene/camera/useKeyboardShortcuts'
 import {
   parseViewSearch,
@@ -68,6 +71,8 @@ export interface OfficeDebugInfo {
   characters?: CharactersDebug
   getState?: () => unknown
   sim?: unknown
+  /** P11-T01: frame timing + renderer counters (null before the scene renders). */
+  stats?: () => OfficeStats | null
 }
 
 declare global {
@@ -131,11 +136,13 @@ function viewPart(search: string): string {
 interface SceneTelemetryProps {
   floorKeys: readonly string[]
   onFirstFrame: () => void
+  /** Time frames for `stats()` and the `?perf=1` overlay. */
+  collectStats: boolean
 }
 
 const debugTarget = new THREE.Vector3()
 
-function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
+function SceneTelemetry({ floorKeys, onFirstFrame, collectStats }: SceneTelemetryProps) {
   const { gl } = useThree()
   const getThree = useThree((s) => s.get)
   const cameraDebug = useMemo(
@@ -164,6 +171,13 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   const elapsedRef = useRef(0)
   const fpsRef = useRef(60)
   const floorKeysRef = useRef<readonly string[]>(floorKeys)
+  const frames = useMemo(() => new FrameStats(), [])
+
+  useEffect(() => {
+    if (!collectStats) return
+    setStatsSource(() => readStats(gl, frames))
+    return () => setStatsSource(null)
+  }, [collectStats, gl, frames])
 
   useEffect(() => {
     floorKeysRef.current = floorKeys
@@ -171,6 +185,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
 
   useFrame((_, delta) => {
     onBeforeRenderFrame()
+    if (collectStats) frames.push(delta * 1000)
     if (!reportedReadyRef.current) {
       reportedReadyRef.current = true
       onFirstFrame()
@@ -200,6 +215,7 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       director: directorDebug,
       camera: cameraDebug,
       characters: charactersDebug,
+      stats: currentStats,
     }
   })
 
@@ -352,7 +368,10 @@ export function OfficeCanvas() {
   const assets = useLoadProgress()
 
   const location = useLocation()
-  const [, setSearchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  // `?perf=1` (in the hash or the page URL): the frame-stats overlay, in any build.
+  const perfOverlay =
+    searchParams.get('perf') === '1' || new URLSearchParams(window.location.search).get('perf') === '1'
   // Never write the URL while another route is loading: that would cancel the navigation.
   const routerBusy = useRouterBusy()
   const lastWrittenSearchRef = useRef<string | null>(null)
@@ -498,8 +517,11 @@ export function OfficeCanvas() {
         <SceneTelemetry
           floorKeys={floorKeys}
           onFirstFrame={() => setReady(true)}
+          collectStats={IS_DEBUG_ENABLED || perfOverlay}
         />
       </Canvas>
+
+      {perfOverlay ? <PerfOverlay /> : null}
 
       {/* HTML overlays: Tab order FloorPicker -> PeopleList -> CameraModeBar */}
       <div className="pointer-events-none absolute inset-4 flex flex-col justify-between gap-3">
