@@ -25,6 +25,7 @@ export const common: typeof vi = {
     more: 'More',
     signOut: 'Sign out',
     mainMenu: 'Main menu',
+    admin: 'Admin',
   },
   greeting: { morning: 'Good morning, Boss', afternoon: 'Good afternoon, Boss', evening: 'Good evening, Boss' },
   actions: {

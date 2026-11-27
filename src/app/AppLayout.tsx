@@ -15,6 +15,7 @@ import {
   Plus,
   Settings,
   Shirt,
+  SlidersHorizontal,
   Users,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
@@ -43,7 +44,7 @@ import { useAuth } from './auth'
 import { can } from './roles'
 import { useStartWork } from './startWork'
 
-type MainNavKey = 'office' | 'org' | 'queue' | 'activity' | 'wardrobe'
+type MainNavKey = 'office' | 'org' | 'queue' | 'activity' | 'wardrobe' | 'admin'
 type LegacyNavKey = 'overview' | 'inbox' | 'tasks' | 'start' | 'library' | 'team'
 
 const MAIN_NAV: { key: MainNavKey; to: string; icon: typeof Building2 }[] = [
@@ -52,6 +53,7 @@ const MAIN_NAV: { key: MainNavKey; to: string; icon: typeof Building2 }[] = [
   { key: 'queue', to: '/queue', icon: CheckSquare },
   { key: 'activity', to: '/activity', icon: Activity },
   { key: 'wardrobe', to: '/wardrobe', icon: Shirt },
+  { key: 'admin', to: '/admin', icon: SlidersHorizontal },
 ]
 
 const LEGACY_NAV: { key: LegacyNavKey; to: string; icon: typeof Inbox }[] = [
@@ -257,7 +259,9 @@ function MobileTabBar() {
   const ControlPanel = officeExtensions.controlPanel
 
   const moreActive =
-    location.pathname.startsWith('/settings') || isLegacyPath(location.pathname)
+    location.pathname.startsWith('/settings') ||
+    location.pathname.startsWith('/admin') ||
+    isLegacyPath(location.pathname)
 
   const tab = (active: boolean) =>
     cn(
@@ -318,6 +322,16 @@ function MobileTabBar() {
               >
                 <Shirt className="size-5 text-muted-foreground" aria-hidden />
                 {t.common.nav.wardrobe}
+              </NavLink>
+            )}
+            {can(role, 'admin') && (
+              <NavLink
+                to="/admin"
+                onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-3 text-base hover:bg-surface-muted"
+              >
+                <SlidersHorizontal className="size-5 text-muted-foreground" aria-hidden />
+                {t.common.nav.admin}
               </NavLink>
             )}
             <NavLink

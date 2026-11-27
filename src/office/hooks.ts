@@ -47,7 +47,7 @@ export function useCommandStatus(id: string | null | undefined): {
   }
 }
 
-export function useConfig(): ConfigStoreState {
+export function useConfig(): Pick<ConfigStoreState, 'config' | 'status' | 'error'> {
   const config = useConfigStore((s) => s.config)
   const status = useConfigStore((s) => s.status)
   const error = useConfigStore((s) => s.error)

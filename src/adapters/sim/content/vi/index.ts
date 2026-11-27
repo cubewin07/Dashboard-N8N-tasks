@@ -1,5 +1,6 @@
 export * from './bossMessages'
 export * from './customers'
+export * from './generic'
 export * from './notes'
 export * from './products'
 export * from './questions'

@@ -607,7 +607,16 @@ describe('domain reducer', () => {
     expect(c15.taskTypes).toHaveLength(1)
 
     const c16 = applyConfigChange(c15, { kind: 'config.replace', config: cfg })
-    expect(c16).toBe(cfg)
+    // Everything in the file comes back; what the file lacks is kept but switched off (D5).
+    const { departments, employees, platforms, ...rest } = c16
+    const { departments: d0, employees: e0, platforms: p0, ...rest0 } = cfg
+    expect(rest).toEqual(rest0)
+    expect(departments.slice(0, d0.length)).toEqual(d0)
+    expect(departments.slice(d0.length).every((d) => !d.active)).toBe(true)
+    expect(employees.slice(0, e0.length)).toEqual(e0)
+    expect(employees.slice(e0.length).every((e) => e.state === 'archived')).toBe(true)
+    expect(platforms.slice(0, p0.length)).toEqual(p0)
+    expect(platforms.slice(p0.length).every((p) => !p.active)).toBe(true)
   })
   it('frees a worker who finishes a task while an earlier task waits in review', () => {
     const reviewing = makeSampleTask({
@@ -893,5 +902,58 @@ describe('withConfig (P09: a newer config pushed by the ConfigSource)', () => {
     expect(s.people.emp_moi?.activity).toBe('idle')
     expect(s.people.emp_quan).toBeUndefined()
     expect(s.log).toBe(worked.log)
+  })
+})
+
+describe('staff.archived hands open reviews to another approver (P10-T13)', () => {
+  it('moves a pending or in-review item off the person who left', () => {
+    const cfg = makeSeedConfig()
+    const roleOf = new Map(cfg.roles.map((r) => [r.key, r]))
+    const reviewer = cfg.employees.find(
+      (e) => e.state === 'active' && roleOf.get(e.roleKey)?.caps.approveLevel === 'reviewer',
+    )!
+    const task = makeSampleTask({
+      id: 'task_01JTEST0000000000000000RV',
+      departmentId: reviewer.departmentId!,
+      assigneeId: null,
+      status: 'in_review',
+    })
+    const base = {
+      taskId: task.id,
+      level: 'reviewer' as const,
+      assigneeId: reviewer.id,
+      priority: 'normal' as const,
+      createdAt: t(1),
+      decidedAt: null,
+      decidedBy: null,
+      note: null,
+    }
+    const pending = { ...base, id: 'rev_01JTEST0000000000000000P1' as const, status: 'pending' as const }
+    const reading = { ...base, id: 'rev_01JTEST0000000000000000P2' as const, status: 'in_review' as const }
+    const done = {
+      ...base,
+      id: 'rev_01JTEST0000000000000000P3' as const,
+      status: 'approved' as const,
+      decidedAt: t(2),
+      decidedBy: reviewer.id,
+    }
+    const b = initialState(cfg, t(0))
+    const s0 = {
+      ...b,
+      tasks: { ...b.tasks, [task.id]: task },
+      reviews: { ...b.reviews, [pending.id]: pending, [reading.id]: reading, [done.id]: done },
+    }
+    const s1 = apply(
+      s0,
+      makeEvent('staff.archived', { employeeId: reviewer.id, reason: 'dismissed' }, { seq: 1, at: t(3) }),
+    )
+    for (const id of [pending.id, reading.id]) {
+      const r = s1.reviews[id]!
+      expect(r.assigneeId).not.toBe(reviewer.id)
+      expect(s1.people[r.assigneeId]).toBeDefined()
+      expect(r.status).toBe('pending')
+    }
+    // A decided item keeps who decided it.
+    expect(s1.reviews[done.id]).toEqual(done)
   })
 })

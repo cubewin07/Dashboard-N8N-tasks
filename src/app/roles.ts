@@ -12,6 +12,7 @@ export type Action =
   | 'credits'
   | 'legacy'
   | 'dev'
+  | 'admin'
 
 /** Exact path, or a prefix ending in `/*` (matches the prefix itself and anything below it). */
 export type RoutePattern = string
@@ -33,6 +34,7 @@ const actionAccess: Record<Role, ReadonlySet<Action>> = {
     'credits',
     'legacy',
     'dev',
+    'admin',
   ]),
   stylist: new Set<Action>(['wardrobe', 'credits']),
 }

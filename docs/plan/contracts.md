@@ -1,9 +1,10 @@
 # Contracts
 
-Version: **office-contract v1.2 (draft)**. This replaces `docs/CONTRACT.md` v0.2.
+Version: **office-contract v1.3 (draft)**. This replaces `docs/CONTRACT.md` v0.2.
 Any change to a port, event, command, config schema or appearance schema bumps the version (minor = additive, major = breaking) and adds a line to the changelog below. Zod schemas in `src/domain/{events,commands,config,appearance}.ts` are the executable form; this file is the readable form. A unit test (`contracts.test.ts`) fails if the `CONTRACT_VERSION` constant and this file's version differ.
 
 ### Changelog
+- **v1.3 (2026-11-26, P10, additive):** optional `OfficeFeed.reconfigure(config, change)`; `ConfigSource.apply(change)` and `history(limit)` now work (Local: localStorage overrides + a 200-row ring buffer; Supabase: one RPC per change kind); `ConfigChange` is complete (phase-10 §3.1). New RPCs in migration 0006: `reorder_departments(p_ids text[])`, `delete_role(p_key text)`, `delete_specialty(p_key text)`, `replace_config(p jsonb)` (boss only, one audit row; errcodes as §5.1 plus `23503` `role_in_use` / `specialty_in_use`, `P0002` `unknown_role` / `unknown_specialty`). Supersedes the v1.2 note that `SupabaseConfigSource.apply` throws until P10.
 - **v1.2 (2026-11-26, P09, additive):** `AuthPort.updatePassword?(password)` (optional; the demo port has none) and `AuthError { code: 'invalid_credentials' | 'not_allowed' | 'network' | 'unknown' }`; the Supabase write RPCs and their error codes (§5.1). `ConfigSource.subscribe` now fires on realtime edits (Supabase); `SupabaseConfigSource.apply` throws `ConfigError('not_supported')` until P10.
 - **v1.1 (2026-11-21, P08b, additive):** `AppearanceStore.getEntries()` returns saved looks with their versions (the editor needs the version for `save`); `save` rejects with `AppearanceConflictError { employeeId, current, currentVersion, expectedVersion }` on a version mismatch (unknown employee = version 0).
 - **v1.0 (draft):** Ports (`OfficeFeed`, `ConfigSource`, `AppearanceStore`, `AuthPort`), event envelope + catalogue, commands, config/appearance write rule.
@@ -154,7 +155,7 @@ The sim panel talks to `SimFeed` through its own API (`simControls`: speed, paus
 
 Why config is not a command: commands are processed by the worker system, which does not exist yet, and config edits are owner edits that must work while the worker service is offline. When real workers arrive, they *read* config; they never write it except `staff.hired/archived`, which the manager AI triggers through the same RPC path with a service role (after-this-phase §2).
 
-### 5.1 Supabase RPCs (P09, migration `0005_audit_and_rpcs.sql`)
+### 5.1 Supabase RPCs (P09 `0005_audit_and_rpcs.sql`, P10 `0006_replace_config.sql`)
 
 All are `security definer`, `set search_path = public, pg_temp`, executable by `authenticated` only (never `anon`), and every successful call writes one `config_audit` row (`actor`, `action`, `target`, `before`, `after`). Tables have select policies only; there is no other write path.
 
@@ -165,17 +166,21 @@ All are `security definer`, `set search_path = public, pg_temp`, executable by `
 | `set_policy` | `p jsonb` | boss | the single policy row |
 | `archive_employee` / `restore_employee` | `p_id text` (+ `p_reason text` for archive) | boss | sets `state` |
 | `delete_approval_rule` | `p_id text` | boss | |
-| `reorder_approval_rules` | `p_ids text[]` | boss | must list every rule exactly once |
+| `reorder_approval_rules` | `p_ids text[]` | boss | must list every rule exactly once (stores 0-based `order`) |
+| `reorder_departments` (0006) | `p_ids text[]` | boss | 1-based `order`; listed ids first, the rest keep their relative order |
+| `delete_role` (0006) | `p_key text` | boss | refuses built-in roles (`22023`) and roles with any holder (`23503 role_in_use`) |
+| `delete_specialty` (0006) | `p_key text` | boss | refuses a specialty used by an employee or task type (`23503 specialty_in_use`) |
+| `replace_config` (0006) | `p jsonb` (the editable parts of `OrgConfig`) | boss | atomic import/reset; upserts every collection, never deletes departments, platforms or employees (archive instead), removes approval rules not in `p` and unused custom roles/specialties/shops/task types; one audit row (`config`, `*`, `replace`) |
 
-Error codes (Postgres `errcode`, surfaced by supabase-js as `error.code`). In P09 only `save_appearance` is called from the browser; the config mapping is P10's job:
+Error codes (Postgres `errcode`, surfaced by supabase-js as `error.code`). From P10 `SupabaseConfigSource.apply` calls exactly one RPC per `ConfigChange` and maps errors as below (plus a failed fetch → `ConfigError('network')`, anything else → `'unknown'`):
 
 | errcode | message | Meaning | Browser mapping |
 |---|---|---|---|
 | `42501` | `insufficient_privilege` | wrong role, or no `app_users` row | save fails (P10: `ConfigError('forbidden')`) |
 | `22023` | `invalid_payload: …` / `invalid_doc: …` | missing key, wrong shape, doc not `v: 1` or too large | save fails (P10: `ConfigError('invalid')`) |
-| `23503` | `unknown_employee` | employee id does not exist | save fails |
+| `23503` | `unknown_employee` · `role_in_use` · `specialty_in_use` | missing reference, or a delete refused because the row is in use | save fails (P10: `unknown_*` → `ConfigError('not_found')`, other `23xxx` → `'invalid'`) |
 | `P0001` | `version_conflict` | `p_expected_version` is stale | `AppearanceConflictError` with the server doc and version |
-| `P0002` | `unknown_rule` | approval rule id does not exist | P10: `ConfigError('invalid')` |
+| `P0002` | `unknown_rule` · `unknown_role` · `unknown_specialty` | row does not exist | P10: `ConfigError('not_found')` |
 
 ## 6. Versioning and compatibility rules
 

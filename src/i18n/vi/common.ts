@@ -24,6 +24,7 @@ export const common = {
     more: 'Thêm',
     signOut: 'Đăng xuất',
     mainMenu: 'Menu chính',
+    admin: 'Quản trị',
   },
   greeting: { morning: 'Chào buổi sáng, Sếp', afternoon: 'Chào buổi chiều, Sếp', evening: 'Chào buổi tối, Sếp' },
   actions: {

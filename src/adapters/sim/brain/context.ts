@@ -82,6 +82,13 @@ export interface SimBrainContext {
     'cs' | 'marketing' | 'design' | 'accounting' | 'bossIntake',
     GeneratorSlotState
   >
+  /** Work generators for departments that have no task types of their own (P10-T13). */
+  genericGenerators: Map<DepartmentId, GeneratorSlotState>
+  /**
+   * Set when the boss lowers `staffing.tempCap`: idle temps are then archived (longest idle
+   * first) until the count fits. A boss-approved over-cap hire does not set it.
+   */
+  enforceTempCap: boolean
   queuedOfflineCommands: Command[]
   processedCommands: Map<string, CommandAck>
 }
@@ -191,6 +198,26 @@ export function getDeptManagerEmployeeId(
   return mgr?.id ?? getManagerEmployeeId(ctx)
 }
 
+/** Keys of the platforms the boss has left switched on (R9). */
+export function activePlatformKeys(ctx: SimBrainContext): Set<string> {
+  return new Set(
+    ctx.state.config.platforms.filter((p) => p.active).map((p) => p.key),
+  )
+}
+
+/**
+ * An employee id no one in the config has: ids come from a seeded RNG, so after a reload the
+ * sim could draw an id that a persisted employee already owns (P10-T13).
+ */
+export function newEmployeeId(ctx: SimBrainContext): EmployeeId {
+  const taken = new Set(ctx.state.config.employees.map((e) => e.id))
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const id = simId('emp', ctx.rng, ctx.clock.nowMs() + attempt)
+    if (!taken.has(id)) return id
+  }
+  throw new Error('Could not generate a unique employee id')
+}
+
 /** A department id looked up by its config key (e.g. 'cs'), not hard-coded. */
 export function departmentIdByKey(
   ctx: SimBrainContext,
@@ -237,10 +264,29 @@ export interface CreateSimTaskOptions {
   detail?: string | null
   titleCtx?: TitleRenderContext
   extraTags?: readonly string[]
+  /** A task type that is not in the config (the generic set for departments without one). */
+  taskType?: TaskType
   amountVnd?: number | null
   crossDepartment?: boolean
   actor?: EventActor | EmployeeId | 'system' | 'customer'
   causedBy?: string | null
+}
+
+function liveTitlePlatform(
+  ctx: SimBrainContext,
+  activeKeys: ReadonlySet<string>,
+): { platform: string; shop: string } | undefined {
+  const { platforms, shops } = ctx.state.config
+  const liveShops = shops.filter((s) => activeKeys.has(s.platformKey))
+  if (liveShops.length > 0) {
+    const shop = pick(ctx.rng, liveShops)
+    const platform = platforms.find((p) => p.key === shop.platformKey)
+    return { platform: platform?.label.vi ?? shop.platformKey, shop: shop.name }
+  }
+  const live = platforms.filter((p) => activeKeys.has(p.key))
+  if (live.length === 0) return undefined
+  const platform = pick(ctx.rng, live)
+  return { platform: platform.label.vi, shop: platform.label.vi }
 }
 
 export function createTaskInBrain(
@@ -249,16 +295,27 @@ export function createTaskInBrain(
   opts: CreateSimTaskOptions = {},
 ): Task {
   const tt =
+    opts.taskType ??
     ctx.state.config.taskTypes.find((t) => t.key === typeKey) ??
     ctx.state.config.taskTypes[0]!
   const departmentId =
     opts.departmentId ?? departmentIdForTaskType(ctx, tt)
-  const platformKey =
+  const requestedPlatformKey =
     opts.platformKey !== undefined
       ? opts.platformKey
       : tt.platformKeys.length > 0
         ? pick(ctx.rng, tt.platformKeys)
         : null
+  // R9: a platform switched off never lands on a new task. Another active platform of the
+  // same task type stands in; with none, the task carries no platform.
+  const hasInactivePlatform = ctx.state.config.platforms.some((p) => !p.active)
+  const activeKeys = hasInactivePlatform ? activePlatformKeys(ctx) : null
+  const platformKey =
+    activeKeys === null ||
+    requestedPlatformKey === null ||
+    activeKeys.has(requestedPlatformKey)
+      ? requestedPlatformKey
+      : (tt.platformKeys.find((k) => activeKeys.has(k)) ?? null)
 
   const matchingShops = platformKey
     ? ctx.state.config.shops.filter((s) => s.platformKey === platformKey)
@@ -298,12 +355,18 @@ export function createTaskInBrain(
   )
 
   const { month } = ctx.clock.getIctParts()
+  // The title pools name every platform and shop; with one switched off, keep them to live ones.
+  const titlePlatform =
+    activeKeys !== null && platformKey === null
+      ? liveTitlePlatform(ctx, activeKeys)
+      : undefined
   const title =
     opts.title ??
     renderTaskTitle(tt.key, ctx.rng, {
       departmentId,
       platformKey: platformKey ?? undefined,
-      shop: shopObj?.name,
+      shop: shopObj?.name ?? titlePlatform?.shop,
+      platform: titlePlatform?.platform,
       month,
       quarter: Math.ceil(month / 3),
       ...opts.titleCtx,

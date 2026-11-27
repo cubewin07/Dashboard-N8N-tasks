@@ -1,8 +1,12 @@
-import type { CarriedItem, ConfigChange, OrgConfig } from './config'
+import type { CarriedItem, OrgConfig } from './config'
+import { applyConfigChange } from './configChange'
+
+export { applyConfigChange }
 import { EVENT_TYPES, type EventType, type OfficeEvent } from './events'
 import { isIdOf } from './ids'
 import type { EmployeeId, Iso, MessageId, ReviewId, TaskId } from './primitives'
 import { crossedHour, pruneFinished } from './retention'
+import { pickApprover } from './reviews'
 import type { IntakeMessage, OfficeState, PersonRuntime, ReviewItem, Task } from './work'
 
 const MAX_LOG_SIZE = 500
@@ -41,120 +45,6 @@ export function initialState(config: OrgConfig, now: Iso): OfficeState {
     log: [],
     seq: 0,
     lastHeartbeat: null,
-  }
-}
-
-export function applyConfigChange(
-  config: OrgConfig,
-  change: ConfigChange,
-  now?: Iso,
-): OrgConfig {
-  switch (change.kind) {
-    case 'department.upsert': {
-      const exists = config.departments.some((d) => d.id === change.department.id)
-      const departments = exists
-        ? config.departments.map((d) => (d.id === change.department.id ? change.department : d))
-        : [...config.departments, change.department]
-      return { ...config, departments }
-    }
-    case 'department.reorder': {
-      const orderMap = new Map(change.ids.map((id, i) => [id, i + 1]))
-      const departments = config.departments.map((d) =>
-        orderMap.has(d.id) ? { ...d, order: orderMap.get(d.id)! } : d,
-      )
-      return { ...config, departments }
-    }
-    case 'role.upsert': {
-      const exists = config.roles.some((r) => r.key === change.role.key)
-      const roles = exists
-        ? config.roles.map((r) => (r.key === change.role.key ? change.role : r))
-        : [...config.roles, change.role]
-      return { ...config, roles }
-    }
-    case 'role.delete': {
-      return { ...config, roles: config.roles.filter((r) => r.key !== change.key) }
-    }
-    case 'specialty.upsert': {
-      const exists = config.specialties.some((s) => s.key === change.specialty.key)
-      const specialties = exists
-        ? config.specialties.map((s) => (s.key === change.specialty.key ? change.specialty : s))
-        : [...config.specialties, change.specialty]
-      return { ...config, specialties }
-    }
-    case 'specialty.delete': {
-      return {
-        ...config,
-        specialties: config.specialties.filter((s) => s.key !== change.key),
-      }
-    }
-    case 'employee.upsert': {
-      const exists = config.employees.some((e) => e.id === change.employee.id)
-      const employees = exists
-        ? config.employees.map((e) => (e.id === change.employee.id ? change.employee : e))
-        : [...config.employees, change.employee]
-      return { ...config, employees }
-    }
-    case 'employee.archive': {
-      const employees = config.employees.map((e) =>
-        e.id === change.id
-          ? { ...e, state: 'archived' as const, archivedAt: now ?? e.archivedAt }
-          : e,
-      )
-      return { ...config, employees }
-    }
-    case 'employee.restore': {
-      const employees = config.employees.map((e) =>
-        e.id === change.id ? { ...e, state: 'active' as const, archivedAt: null } : e,
-      )
-      return { ...config, employees }
-    }
-    case 'policy.set': {
-      return { ...config, policy: change.policy }
-    }
-    case 'rule.upsert': {
-      const exists = config.approvalRules.some((r) => r.id === change.rule.id)
-      const approvalRules = exists
-        ? config.approvalRules.map((r) => (r.id === change.rule.id ? change.rule : r))
-        : [...config.approvalRules, change.rule]
-      return { ...config, approvalRules }
-    }
-    case 'rule.delete': {
-      return {
-        ...config,
-        approvalRules: config.approvalRules.filter((r) => r.id !== change.id),
-      }
-    }
-    case 'rule.reorder': {
-      const orderMap = new Map(change.ids.map((id, i) => [id, i + 1]))
-      const approvalRules = config.approvalRules.map((r) =>
-        orderMap.has(r.id) ? { ...r, order: orderMap.get(r.id)! } : r,
-      )
-      return { ...config, approvalRules }
-    }
-    case 'platform.upsert': {
-      const exists = config.platforms.some((p) => p.key === change.platform.key)
-      const platforms = exists
-        ? config.platforms.map((p) => (p.key === change.platform.key ? change.platform : p))
-        : [...config.platforms, change.platform]
-      return { ...config, platforms }
-    }
-    case 'shop.upsert': {
-      const exists = config.shops.some((s) => s.id === change.shop.id)
-      const shops = exists
-        ? config.shops.map((s) => (s.id === change.shop.id ? change.shop : s))
-        : [...config.shops, change.shop]
-      return { ...config, shops }
-    }
-    case 'taskType.upsert': {
-      const exists = config.taskTypes.some((t) => t.key === change.taskType.key)
-      const taskTypes = exists
-        ? config.taskTypes.map((t) => (t.key === change.taskType.key ? change.taskType : t))
-        : [...config.taskTypes, change.taskType]
-      return { ...config, taskTypes }
-    }
-    case 'config.replace': {
-      return change.config
-    }
   }
 }
 
@@ -1437,7 +1327,7 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
         }
       }
 
-      return {
+      const archived: OfficeState = {
         ...state,
         now: event.at,
         seq: event.seq,
@@ -1447,6 +1337,23 @@ export function apply(state: OfficeState, event: OfficeEvent): OfficeState {
         questions: nextQuestions,
         log: appendLog(state.log, event),
       }
+
+      // Open review items the person still held go to the next approver at the same level
+      // (same pick, incl. fallbacks, as a new review), so no task waits on someone gone.
+      let nextReviews = archived.reviews
+      for (const review of Object.values(state.reviews)) {
+        if (review.assigneeId !== p.employeeId) continue
+        if (review.status !== 'pending' && review.status !== 'in_review') continue
+        const task = state.tasks[review.taskId]
+        if (!task) continue
+        const to = pickApprover(review.level, task, { ...archived, reviews: nextReviews })
+        if (!to) continue
+        nextReviews = {
+          ...nextReviews,
+          [review.id]: { ...review, assigneeId: to, status: 'pending' },
+        }
+      }
+      return nextReviews === archived.reviews ? archived : { ...archived, reviews: nextReviews }
     }
 
     case 'config.changed': {

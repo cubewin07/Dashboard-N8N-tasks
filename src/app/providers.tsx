@@ -3,13 +3,21 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Toaster } from 'sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { I18nProvider } from '@/i18n'
+import { setConfigActorGetter } from '@/office/configStore'
 import { setCommandsAllowed } from '@/office/sessionRole'
 import { startOffice, stopOffice } from '@/office/store'
 import { AuthProvider, useAuth } from './auth'
+import { authPort } from './authRegistry'
 import { DriveProvider } from './drive'
 import { can } from './roles'
 import { RealtimeProvider } from './RealtimeProvider'
 import { StartWorkProvider } from './startWork'
+
+// Config writes are role-checked against whoever is signed in right now (R15).
+setConfigActorGetter(() => {
+  const s = authPort.session()
+  return s ? { userId: s.userId, role: s.role, displayName: s.displayName } : null
+})
 
 function OfficeBootstrap({ children }: { children: ReactNode }) {
   const { session } = useAuth()

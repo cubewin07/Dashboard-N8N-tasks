@@ -55,6 +55,8 @@ export function createBrainContext(
       accounting: { nextFireSimMs: startMs },
       bossIntake: { nextFireSimMs: startMs },
     },
+    genericGenerators: new Map(),
+    enforceTempCap: false,
     queuedOfflineCommands: [],
     processedCommands: new Map(),
   }
