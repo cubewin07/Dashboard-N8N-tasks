@@ -9,8 +9,7 @@
         "en": "This is the company building. Each floor is a department; each person is an AI employee."
       },
       "durationSec": 20,
-      "camera": { "mode": "overview" },
-      "sim": { "speed": 1, "autoApproveBoss": false }
+      "camera": { "mode": "overview" }
     },
     {
       "id": "manager-request",
@@ -20,7 +19,7 @@
       },
       "durationSec": 25,
       "camera": { "mode": "follow", "followRole": "manager", "floorKey": "management" },
-      "sim": { "scenario": "boss_telegram" },
+      "simOnly": true,
       "waitFor": "task.assigned",
       "minSec": 10
     },
@@ -52,7 +51,7 @@
       },
       "durationSec": 25,
       "camera": { "mode": "follow", "followRole": "reviewer", "floorKey": "cs" },
-      "sim": { "scenario": "long_queue" },
+      "simOnly": true,
       "waitFor": "review.requested",
       "minSec": 10
     },
@@ -64,7 +63,7 @@
       },
       "durationSec": 20,
       "camera": { "mode": "overview" },
-      "sim": { "scenario": "angry_refund" },
+      "simOnly": true,
       "waitFor": "review.escalated",
       "minSec": 8
     },
@@ -85,7 +84,7 @@
       },
       "durationSec": 30,
       "camera": { "mode": "floor", "floorKey": "cs" },
-      "sim": { "scenario": "sale_1212", "speed": 30, "autoApproveBoss": true }
+      "simOnly": true
     },
     {
       "id": "help",
@@ -95,7 +94,7 @@
       },
       "durationSec": 25,
       "camera": { "mode": "floor", "floorKey": "design" },
-      "sim": { "scenario": "busy_day" },
+      "simOnly": true,
       "waitFor": "help.requested",
       "minSec": 10
     },
@@ -107,7 +106,7 @@
       },
       "durationSec": 30,
       "camera": { "mode": "floor", "floorKey": "games_rest" },
-      "sim": { "scenario": "lunch" }
+      "simOnly": true
     },
     {
       "id": "temp-hire",
@@ -117,7 +116,7 @@
       },
       "durationSec": 25,
       "camera": { "mode": "floor", "floorKey": "lobby_cafe" },
-      "sim": { "scenario": "hire_temps" },
+      "simOnly": true,
       "waitFor": "staff.hired",
       "minSec": 10
     },
@@ -137,8 +136,7 @@
         "en": "That's the tour. Open Approvals on your phone and approve a task yourself."
       },
       "durationSec": 20,
-      "camera": { "mode": "overview" },
-      "sim": { "speed": 1 }
+      "camera": { "mode": "overview" }
     }
   ]
 }

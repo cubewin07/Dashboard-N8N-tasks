@@ -4,8 +4,9 @@ import { LabelSchema } from '@/domain/primitives'
 
 /**
  * A guided tour is data (phase-11 §3.4, D4): captions and order get tuned after a showing
- * without a code change. Camera steps use only the public camera API; `sim` steps go
- * through the optional `tourControls` extension and are skipped when there is no simulator.
+ * without a code change. Camera steps use only the public camera API. What the simulator
+ * does in a scene lives with the sim (`adapters/sim/content/tourDirections.json`, by step id),
+ * reached through the optional `tourControls` extension; `simOnly` scenes are skipped without it.
  */
 export const TourCameraSchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('overview') }),
@@ -24,13 +25,8 @@ export const TourStepSchema = z.object({
   caption: LabelSchema,
   durationSec: z.number().positive().max(120),
   camera: TourCameraSchema,
-  sim: z
-    .object({
-      scenario: z.string().min(1).optional(),
-      speed: z.union([z.literal(0), z.literal(1), z.literal(30), z.literal(120)]).optional(),
-      autoApproveBoss: z.boolean().optional(),
-    })
-    .optional(),
+  /** The scene shows something only the simulator makes happen: skipped on real data. */
+  simOnly: z.boolean().optional(),
   /** Move on as soon as this event arrives (after `minSec`), or at `durationSec` at the latest. */
   waitFor: EventTypeSchema.optional(),
   minSec: z.number().nonnegative().optional(),

@@ -19,12 +19,6 @@ export interface SimControlsDebugApi {
 }
 
 /** What a tour step may ask of the simulator (`docs/plan/phase-11-polish.md` §3.4). */
-export interface TourSimStep {
-  scenario?: string
-  speed?: 0 | 1 | 30 | 120
-  autoApproveBoss?: boolean
-}
-
 /**
  * The tour's only way into the simulator. Absent on real data: the tour then skips its
  * `sim` steps. `begin` remembers the sim settings and restarts from the tour's seed so the
@@ -32,7 +26,8 @@ export interface TourSimStep {
  */
 export interface TourControlsApi {
   begin: (seed: string) => void
-  apply: (step: TourSimStep) => void
+  /** The tour entered this step (by id); the sim plays its part of the scene, if it has one. */
+  apply: (stepId: string) => void
   end: () => void
 }
 

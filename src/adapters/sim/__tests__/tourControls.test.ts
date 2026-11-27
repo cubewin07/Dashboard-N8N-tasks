@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import defaultTour from '@/features/office/tour/defaultTour.json'
 import type { SimControlsSnapshot } from '../controls'
 import { SCENARIO_DESCRIPTORS } from '../scenarios'
-import { createTourControls } from '../ui/tourControls'
+import { createTourControls, TOUR_DIRECTIONS } from '../ui/tourControls'
 
 function stubControls() {
   const calls: string[] = []
@@ -38,10 +38,14 @@ function stubControls() {
 describe('tourControls', () => {
   it('starts from the tour seed and puts the previous settings back', () => {
     const { calls, controls } = stubControls()
-    const tour = createTourControls(controls)
+    const tour = createTourControls(controls, {
+      noon: { speed: 1, autoApproveBoss: true, scenario: 'lunch' },
+      odd: { scenario: 'not_a_scenario' },
+    })
     tour.begin('trinh-dien')
-    tour.apply({ speed: 1, autoApproveBoss: true, scenario: 'lunch' })
-    tour.apply({ scenario: 'not_a_scenario' })
+    tour.apply('noon')
+    tour.apply('odd')
+    tour.apply('camera-only')
     tour.end()
     tour.end()
     expect(calls).toEqual([
@@ -55,10 +59,15 @@ describe('tourControls', () => {
     ])
   })
 
-  it('every scenario the default tour names exists', () => {
+  it('directs real tour steps with real scenarios, and every simOnly scene has a scenario', () => {
     const known = new Set(SCENARIO_DESCRIPTORS.map((d) => d.key as string))
-    const named = defaultTour.steps.flatMap((s) => ('sim' in s && s.sim && 'scenario' in s.sim ? [s.sim.scenario] : []))
-    expect(named.length).toBeGreaterThan(0)
-    for (const key of named) expect(known.has(key ?? ''), key).toBe(true)
+    const stepIds = new Set(defaultTour.steps.map((s) => s.id))
+    for (const [id, step] of Object.entries(TOUR_DIRECTIONS)) {
+      expect(stepIds.has(id), id).toBe(true)
+      if (step.scenario) expect(known.has(step.scenario), step.scenario).toBe(true)
+    }
+    const simOnly = defaultTour.steps.filter((s) => 'simOnly' in s && s.simOnly).map((s) => s.id)
+    expect(simOnly.length).toBeGreaterThan(0)
+    for (const id of simOnly) expect(TOUR_DIRECTIONS[id]?.scenario, id).toBeTruthy()
   })
 })

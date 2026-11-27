@@ -53,7 +53,7 @@ export class TourRunner<Snapshot = unknown> {
     private readonly ports: TourPorts<Snapshot>,
   ) {
     this.now = ports.now ?? (() => Date.now())
-    this.steps = ports.sim ? tour.steps : tour.steps.filter((s) => !s.sim || !s.sim.scenario)
+    this.steps = ports.sim ? tour.steps : tour.steps.filter((s) => !s.simOnly)
   }
 
   view(): TourView {
@@ -122,7 +122,7 @@ export class TourRunner<Snapshot = unknown> {
     this.index = index
     const step = this.steps[index]!
     this.ports.camera.show(step.camera)
-    if (step.sim && this.ports.sim) this.ports.sim.apply(step.sim)
+    this.ports.sim?.apply(step.id)
     this.elapsedBeforePause = 0
     this.eventSeen = false
     this.stepStartedAt = this.now()

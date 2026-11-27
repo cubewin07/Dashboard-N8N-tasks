@@ -1,0 +1,35 @@
+{
+  "//": "P11: what the simulator does in each scene of the default tour (src/features/office/tour/defaultTour.json), by step id. Lives with the sim so a build without it carries no sim vocabulary.",
+  "steps": {
+    "overview": {
+      "speed": 1,
+      "autoApproveBoss": false
+    },
+    "manager-request": {
+      "scenario": "boss_telegram"
+    },
+    "review-pile": {
+      "scenario": "long_queue"
+    },
+    "elevator": {
+      "scenario": "angry_refund"
+    },
+    "rush-hour": {
+      "scenario": "sale_1212",
+      "speed": 30,
+      "autoApproveBoss": true
+    },
+    "help": {
+      "scenario": "busy_day"
+    },
+    "lunch": {
+      "scenario": "lunch"
+    },
+    "temp-hire": {
+      "scenario": "hire_temps"
+    },
+    "closing": {
+      "speed": 1
+    }
+  }
+}

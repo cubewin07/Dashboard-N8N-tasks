@@ -12,7 +12,7 @@ function harness(tour: Tour, withSim = true) {
   const handlers = new Map<EventType, Set<() => void>>()
   const sim: TourControlsApi = {
     begin: (seed) => calls.push(`sim.begin ${seed}`),
-    apply: (s) => calls.push(`sim.apply ${JSON.stringify(s)}`),
+    apply: (id) => calls.push(`sim.apply ${id}`),
     end: () => calls.push('sim.end'),
   }
   const ports: TourPorts<string> = {
@@ -44,7 +44,7 @@ const small: Tour = {
       caption: { vi: 'B', en: 'B' },
       durationSec: 30,
       camera: { mode: 'floor', floorKey: 'cs' },
-      sim: { scenario: 'lunch' },
+      simOnly: true,
       waitFor: 'review.requested',
       minSec: 5,
     },
