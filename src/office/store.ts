@@ -292,8 +292,11 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
 
   const run = async (): Promise<OfficeState> => {
     stopOffice()
-    const config = await loadConfig()
-    const feed = customFeed ?? createFeed()
+    // The sim chunk downloads while the config loads.
+    const [config, feed] = await Promise.all([
+      loadConfig(),
+      customFeed ? Promise.resolve(customFeed) : createFeed(),
+    ])
     activeFeed = feed
 
     const snapshot = await feed.start(config)
