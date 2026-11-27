@@ -14,9 +14,13 @@ import { PeopleList } from '@/features/office/PeopleList'
 import { PersonDrawer } from '@/features/office/PersonDrawer'
 import { ShortcutHint } from '@/features/office/ShortcutHint'
 import { useFollowUrlSync } from '@/features/office/useFollowUrlSync'
+import { qualitySettings } from '@/office/capabilities'
 import { useConfigStore } from '@/office/configStore'
+import { useDiagnostics } from '@/office/diagnostics'
 import { useOfficeSelector } from '@/office/hooks'
-import { useReducedMotionPref } from '@/office/prefs'
+import { useOfficeQuality, useReducedMotionPref } from '@/office/prefs'
+import { useI18n } from '@/i18n'
+import { Button } from '@/components/ui/button'
 import { usePeopleUi } from '@/office/uiStore'
 import { CameraRig } from '@/scene/camera/CameraRig'
 import { useKeyboardShortcuts } from '@/scene/camera/useKeyboardShortcuts'
@@ -224,6 +228,56 @@ function maxDpr(): number {
   return Math.min(2, Math.max(1, window.devicePixelRatio || 1))
 }
 
+/** How long a lost WebGL context may stay lost before the canvas is rebuilt (once). */
+const CONTEXT_RESTORE_WAIT_MS = 2500
+
+type ContextStatus = 'ok' | 'lost' | 'failed'
+
+/**
+ * WebGL context loss (P11 §3.5): wait for the browser to restore it; if it does not,
+ * rebuild the canvas once by itself, then offer "Tải lại cảnh".
+ */
+function useContextRecovery() {
+  const [status, setStatus] = useState<ContextStatus>('ok')
+  const [canvasKey, setCanvasKey] = useState(0)
+  const autoRetried = useRef(false)
+
+  useEffect(() => {
+    if (status !== 'lost') return
+    const id = window.setTimeout(() => {
+      if (!autoRetried.current) {
+        autoRetried.current = true
+        setCanvasKey((k) => k + 1)
+        setStatus('ok')
+      } else {
+        setStatus('failed')
+      }
+    }, CONTEXT_RESTORE_WAIT_MS)
+    return () => window.clearTimeout(id)
+  }, [status])
+
+  const watch = (canvas: HTMLCanvasElement) => {
+    canvas.addEventListener('webglcontextlost', (event) => {
+      // Without preventDefault the browser never tries to restore it.
+      event.preventDefault()
+      useDiagnostics.getState().record('context_lost', 'webglcontextlost')
+      setStatus('lost')
+    })
+    canvas.addEventListener('webglcontextrestored', () => {
+      useDiagnostics.getState().record('context_restored', 'webglcontextrestored')
+      requestShadowUpdate()
+      setStatus('ok')
+    })
+  }
+
+  const reload = () => {
+    setCanvasKey((k) => k + 1)
+    setStatus('ok')
+  }
+
+  return { status, canvasKey, watch, reload }
+}
+
 /**
  * Observes layout, floor focus / cut-away, and model streaming version to request
  * shadow map updates only when the scene structure or visibility changes.
@@ -275,8 +329,13 @@ function createLayoutBuilder(): (config: OrgConfig) => BuildingLayout {
 
 export function OfficeCanvas() {
   const config = useConfigStore((s) => s.config)
+  const { t } = useI18n()
   const [ready, setReady] = useState(false)
-  const [dpr, setDpr] = useState(IS_E2E ? 1 : Math.min(1.5, maxDpr()))
+  const quality = useOfficeQuality()
+  const settings = qualitySettings(quality === 'off' ? 'low' : quality)
+  const dprCap = Math.min(maxDpr(), settings.maxDpr)
+  const [dpr, setDpr] = useState(IS_E2E ? 1 : Math.min(1.5, dprCap))
+  const recovery = useContextRecovery()
   const reducedMotion = useReducedMotionPref()
   const assets = useLoadProgress()
 
@@ -377,6 +436,8 @@ export function OfficeCanvas() {
     <div
       data-office-canvas
       data-ready={ready ? 'true' : 'false'}
+      data-context={recovery.status}
+      data-quality={quality}
       data-assets={assets.settled ? 'ready' : 'loading'}
       data-camera-mode-state={mode}
       data-focused-floor={focusedFloorKey ?? ''}
@@ -384,9 +445,16 @@ export function OfficeCanvas() {
       className="relative h-[calc(100dvh-11rem)] min-h-[460px] w-full overflow-hidden rounded-[14px] border border-border bg-surface"
     >
       <Canvas
+        key={recovery.canvasKey}
         frameloop={IS_E2E ? 'demand' : 'always'}
-        shadows={IS_E2E ? true : 'soft'}
-        dpr={dpr}
+        shadows={
+          IS_E2E ? true : settings.shadows === 'soft' ? 'soft' : settings.shadows === 'basic'
+        }
+        dpr={Math.min(dpr, dprCap)}
+        onCreated={({ gl }) => {
+          setReady(false)
+          recovery.watch(gl.domElement)
+        }}
         gl={{
           toneMapping: THREE.NoToneMapping,
           outputColorSpace: THREE.SRGBColorSpace,
@@ -394,13 +462,13 @@ export function OfficeCanvas() {
         }}
         camera={{ position: [14, 24, 52], fov: 35, near: 0.5, far: 320 }}
       >
-        {!IS_E2E && (
+        {!IS_E2E && settings.adaptive && (
           <PerformanceMonitor
             flipflops={3}
             onFallback={() => setDpr(1)}
             onChange={({ factor }) => {
               const nextDpr = Math.round((1 + factor) * 100) / 100
-              setDpr(Math.min(maxDpr(), nextDpr))
+              setDpr(Math.min(dprCap, nextDpr))
             }}
           />
         )}
@@ -448,6 +516,25 @@ export function OfficeCanvas() {
       </div>
 
       <PersonDrawer placement="canvas" />
+
+      {recovery.status !== 'ok' ? (
+        <div
+          role="status"
+          data-context-overlay
+          className="absolute inset-0 z-30 grid place-items-center bg-background/80 p-6 backdrop-blur-sm"
+        >
+          <div className="max-w-sm space-y-3 rounded-[14px] border border-border bg-surface p-5 text-center shadow-soft">
+            <p className="text-sm">
+              {recovery.status === 'lost' ? t.office.contextLost : t.office.contextFailed}
+            </p>
+            {recovery.status === 'failed' ? (
+              <Button onClick={recovery.reload} data-reload-scene>
+                {t.office.reloadScene}
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
