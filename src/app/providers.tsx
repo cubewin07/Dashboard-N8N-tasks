@@ -1,5 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
-import { Toaster } from 'sonner'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { setConfigActorGetter } from '@/office/configStore'
 import { setCommandsAllowed } from '@/office/sessionRole'
@@ -7,6 +6,10 @@ import { startOffice, stopOffice } from '@/office/store'
 import { AuthProvider, useAuth } from './auth'
 import { authPort } from './authRegistry'
 import { can } from './roles'
+
+// P11-T03: sonner (~10 KB gzip) stays out of the shell. Toasts only come from user actions
+// on lazy routes, long after this has loaded.
+const Toaster = lazy(() => import('sonner').then((m) => ({ default: m.Toaster })))
 
 // Config writes are role-checked against whoever is signed in right now (R15).
 setConfigActorGetter(() => {
@@ -36,7 +39,9 @@ export function Providers({ children }: { children: ReactNode }) {
       <OfficeBootstrap>
         <TooltipProvider delayDuration={300}>
           {children}
-          <Toaster position="top-center" richColors />
+          <Suspense fallback={null}>
+            <Toaster position="top-center" richColors />
+          </Suspense>
         </TooltipProvider>
       </OfficeBootstrap>
     </AuthProvider>

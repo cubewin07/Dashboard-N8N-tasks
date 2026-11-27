@@ -101,4 +101,24 @@ test.describe('P01 foundation smoke', () => {
     }
     expect(heavy).toEqual([])
   })
+
+  test('toasts still show with the lazy Toaster (P11-T03)', async ({ page }) => {
+    await page.goto('./#/login')
+    await page.locator('#login-email').fill('boss@demo.local')
+    await page.locator('#login-password').fill('123456')
+    await page.locator('button[type="submit"]').click()
+    await expect(page).toHaveURL(/#\/(\?.*)?$/)
+    // After the landing settles (the office writes its view into the URL first).
+    await expect(page.locator('[data-office-canvas][data-ready="true"], [data-org-list]').first()).toBeVisible({
+      timeout: 20_000,
+    })
+    await page.goto('./#/settings')
+    await expect(page).toHaveURL(/#\/settings$/)
+    await page.getByRole('button', { name: 'Đổi mật khẩu' }).click()
+    await page.locator('#current-password').fill('123456')
+    await page.locator('#new-password').fill('1234567')
+    await page.locator('#confirm-new-password').fill('1234567')
+    await page.getByRole('button', { name: 'Lưu mật khẩu mới' }).click()
+    await expect(page.getByText('Đã cập nhật mật khẩu thành công')).toBeVisible()
+  })
 })
