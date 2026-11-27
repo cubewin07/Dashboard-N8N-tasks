@@ -1,10 +1,10 @@
-import { createHashRouter, Outlet } from 'react-router-dom'
+import { createHashRouter, Navigate, Outlet } from 'react-router-dom'
 import { LoginPage } from '@/features/login/LoginPage'
 import { AppLayout } from './AppLayout'
 import { AuthGuard } from './auth'
 import { authPort } from './authRegistry'
 import { can } from './roles'
-import { LegacyBoundary } from './LegacyBoundary'
+import { LEGACY_REDIRECTS } from './legacyRedirects'
 import { RouteError } from './RouteError'
 import { RoleGuard, UnknownRoute } from './RoleGuard'
 
@@ -94,53 +94,22 @@ export const router = createHashRouter([
           Component: (await import('@/features/credits/CreditsPage')).CreditsPage,
         }),
       },
-      {
-        element: <LegacyBoundary />,
-        children: [
-          {
-            path: '/legacy',
-            lazy: async () => ({
-              Component: (await import('@/features/overview/OverviewPage')).OverviewPage,
-            }),
-          },
-          {
-            path: '/inbox',
-            lazy: async () => ({
-              Component: (await import('@/features/inbox/InboxPage')).InboxPage,
-            }),
-          },
-          {
-            path: '/tasks',
-            lazy: async () => ({
-              Component: (await import('@/features/tasks/TasksPage')).TasksPage,
-            }),
-          },
-          {
-            path: '/tasks/:id',
-            lazy: async () => ({
-              Component: (await import('@/features/tasks/TaskDetailPage')).TaskDetailPage,
-            }),
-          },
-          {
-            path: '/start',
-            lazy: async () => ({
-              Component: (await import('@/features/start/StartPage')).StartPage,
-            }),
-          },
-          {
-            path: '/library',
-            lazy: async () => ({
-              Component: (await import('@/features/library/LibraryPage')).LibraryPage,
-            }),
-          },
-          {
-            path: '/team',
-            lazy: async () => ({
-              Component: (await import('@/features/team/TeamPage')).TeamPage,
-            }),
-          },
-        ],
-      },
+      // P11-T07: the old MVP screens are gone. Their hashes land on the screen that replaced them.
+      ...LEGACY_REDIRECTS.map(({ from, to }) => ({
+        path: from,
+        element: <Navigate to={to} replace />,
+      })),
+      // Frozen Library (P11 D2): only routed when real media is being tested.
+      ...(import.meta.env.VITE_FEATURE_LIBRARY === '1'
+        ? [
+            {
+              path: '/library',
+              lazy: async () => ({
+                Component: (await import('@/features/library/LibraryPage')).LibraryPage,
+              }),
+            },
+          ]
+        : []),
       // Unknown hash (typo, or a dev-only route on the production build): go to the role's home.
       { path: '*', element: <UnknownRoute /> },
     ],

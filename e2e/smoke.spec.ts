@@ -66,13 +66,19 @@ test.describe('P01 foundation smoke', () => {
       )
       expect(settingsOverflow).toBe(true)
     } else {
-      // Desktop: expand collapsible "Bản cũ" group and check legacy route
-      const classicToggle = page.locator('aside button[aria-expanded]')
-      await expect(classicToggle).toHaveAttribute('aria-expanded', 'false')
-      await classicToggle.click()
-      await expect(classicToggle).toHaveAttribute('aria-expanded', 'true')
-      await page.locator('aside a[href="#/legacy"]').click()
-      await expect(page).toHaveURL(/#\/legacy$/)
+      // P11-T07: the old MVP hashes redirect to the screens that replaced them.
+      await expect(page.locator('aside button[aria-expanded]')).toHaveCount(0)
+      for (const [from, to] of [
+        ['inbox', /#\/queue$/],
+        ['tasks', /#\/activity$/],
+        ['team', /#\/org$/],
+        // The office adds its own view state (`?cam=overview`) once it mounts.
+        ['start', /#\/(\?.*)?$/],
+        ['legacy', /#\/(\?.*)?$/],
+      ] as const) {
+        await page.goto(`./#/${from}`)
+        await expect(page).toHaveURL(to)
+      }
     }
   })
 })

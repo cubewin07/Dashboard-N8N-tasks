@@ -3,14 +3,14 @@ import { can, canAccessRoute, landingFor } from '../roles'
 
 describe('roles', () => {
   it('boss can do everything', () => {
-    for (const a of ['command', 'wardrobe', 'office', 'org', 'queue', 'activity', 'settings.full', 'credits', 'legacy', 'dev'] as const) {
+    for (const a of ['command', 'wardrobe', 'office', 'org', 'queue', 'activity', 'settings.full', 'credits', 'dev'] as const) {
       expect(can('boss', a)).toBe(true)
     }
   })
   it('stylist only gets wardrobe and credits', () => {
     expect(can('stylist', 'wardrobe')).toBe(true)
     expect(can('stylist', 'credits')).toBe(true)
-    for (const a of ['command', 'office', 'org', 'queue', 'activity', 'settings.full', 'legacy', 'dev'] as const) {
+    for (const a of ['command', 'office', 'org', 'queue', 'activity', 'settings.full', 'dev'] as const) {
       expect(can('stylist', a)).toBe(false)
     }
     expect(can(null, 'wardrobe')).toBe(false)

@@ -8,10 +8,7 @@ import { setCommandsAllowed } from '@/office/sessionRole'
 import { startOffice, stopOffice } from '@/office/store'
 import { AuthProvider, useAuth } from './auth'
 import { authPort } from './authRegistry'
-import { DriveProvider } from './drive'
 import { can } from './roles'
-import { RealtimeProvider } from './RealtimeProvider'
-import { StartWorkProvider } from './startWork'
 
 // Config writes are role-checked against whoever is signed in right now (R15).
 setConfigActorGetter(() => {
@@ -48,16 +45,10 @@ export function Providers({ children }: { children: ReactNode }) {
       <I18nProvider>
         <AuthProvider>
           <OfficeBootstrap>
-            <RealtimeProvider>
-              <DriveProvider>
-                <StartWorkProvider>
-                  <TooltipProvider delayDuration={300}>
-                    {children}
-                    <Toaster position="top-center" richColors />
-                  </TooltipProvider>
-                </StartWorkProvider>
-              </DriveProvider>
-            </RealtimeProvider>
+            <TooltipProvider delayDuration={300}>
+              {children}
+              <Toaster position="top-center" richColors />
+            </TooltipProvider>
           </OfficeBootstrap>
         </AuthProvider>
       </I18nProvider>

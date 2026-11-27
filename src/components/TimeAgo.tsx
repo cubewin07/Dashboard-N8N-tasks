@@ -2,7 +2,7 @@ import { useNow } from '@/hooks/useNow'
 import { useI18n } from '@/i18n'
 import { formatDateTime, relative } from '@/lib/time'
 import { cn } from '@/lib/utils'
-import { useIsLegacyRoute, useOffice } from '@/office'
+import { useOffice } from '@/office'
 
 export function TimeAgo({
   iso,
@@ -14,7 +14,6 @@ export function TimeAgo({
   className?: string
 }) {
   const { t, lang } = useI18n()
-  const isLegacy = useIsLegacyRoute()
   const feedNow = useOffice((s) => s.state?.now ?? null)
   const wallNow = useNow(30_000)
 
@@ -22,7 +21,7 @@ export function TimeAgo({
     ? typeof baseNow === 'string'
       ? new Date(baseNow)
       : baseNow
-    : !isLegacy && feedNow
+    : feedNow
       ? new Date(feedNow)
       : wallNow
 

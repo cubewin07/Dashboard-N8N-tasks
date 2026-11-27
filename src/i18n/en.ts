@@ -6,34 +6,22 @@ import { adminRules } from './en/adminRules'
 import { activity } from './en/activity'
 import { common } from './en/common'
 import { credits } from './en/credits'
-import { inbox } from './en/inbox'
 import { library } from './en/library'
 import { login } from './en/login'
 import { office } from './en/office'
 import { org } from './en/org'
-import { overview } from './en/overview'
 import { queue } from './en/queue'
 import { settings } from './en/settings'
 import { sim } from './en/sim'
-import { start } from './en/start'
-import { taskDetail } from './en/taskDetail'
-import { tasks } from './en/tasks'
-import { team } from './en/team'
 import { wardrobe } from './en/wardrobe'
 import { wardrobeEditor } from './en/wardrobeEditor'
 import type { Messages } from './vi'
 
 export const en: Messages = {
   common,
-  overview,
-  inbox,
-  tasks,
-  start,
   library,
-  team,
   settings,
   login,
-  taskDetail,
   office,
   org,
   credits,

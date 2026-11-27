@@ -28,7 +28,6 @@ export interface OfficeStoreValue {
   state: OfficeState | null
   connection: ConnectionState
   commands: Record<string, OfficeCommandRecord>
-  legacyActive: boolean
   /** Message of the last failed boot (config or feed), cleared when a boot starts. */
   bootError: string | null
   send: (cmd: Command) => Promise<CommandAck>
@@ -255,16 +254,9 @@ export const useOffice = create<OfficeStoreValue>(() => ({
   state: null,
   connection: 'live',
   commands: {},
-  legacyActive: false,
   bootError: null,
   send: sendCommand,
 }))
-
-export function setLegacyRouteActive(active: boolean): void {
-  if (useOffice.getState().legacyActive !== active) {
-    useOffice.setState({ legacyActive: active })
-  }
-}
 
 export function stopOffice(): void {
   cancelScheduledFlush()
