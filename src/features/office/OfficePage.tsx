@@ -10,6 +10,7 @@ import { useI18n } from '@/i18n'
 import { useBootFailure, useFeedPhase, useOffice } from '@/office'
 import { officeExtensions } from '@/office/extensions'
 import { useDiagnostics } from '@/office/diagnostics'
+import { TourButton, TourOverlay } from './tour/TourOverlay'
 import { View3dOptIn } from './View3dOptIn'
 
 const LazyOfficeCanvas = lazy(() => import('@/scene/OfficeCanvas'))
@@ -96,14 +97,17 @@ export function OfficePage() {
         title={t.office.title}
         description={t.office.subtitle}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setOverride('fallback')}
-          >
-            <List className="size-4" aria-hidden />
-            <span>{t.office.view2dButton}</span>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <TourButton />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOverride('fallback')}
+            >
+              <List className="size-4" aria-hidden />
+              <span>{t.office.view2dButton}</span>
+            </Button>
+          </div>
         }
       />
 
@@ -147,6 +151,7 @@ export function OfficePage() {
             <LazyOfficeCanvas />
           </Suspense>
         </CanvasErrorBoundary>
+        <TourOverlay />
       </div>
     </div>
   )
