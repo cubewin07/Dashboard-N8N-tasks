@@ -1,6 +1,7 @@
 import type { activity as viActivity } from '../vi/activity'
 
 export const activity: typeof viActivity = {
+  loading: 'Loading activity…',
   title: 'Activity feed',
   description: 'Live stream of tasks, reviews, questions, and staffing across the building',
   tickerTitle: 'Live activity',

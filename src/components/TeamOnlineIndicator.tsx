@@ -20,6 +20,11 @@ export function TeamOnlineIndicator({
     isTeamOnline(s.connection, s.state?.lastHeartbeat?.at ?? null, s.state?.now ?? null),
   )
 
+  // No feed state yet (booting, failed, or a stylist who never boots the feed): the LiveBadge
+  // speaks for the connection; claiming the team is on or off duty would be a guess.
+  const hasState = useOffice((s) => s.state !== null)
+  if (!hasState) return null
+
   const label = online
     ? t.common.team.online
     : heartbeatAt

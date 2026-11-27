@@ -24,7 +24,7 @@ export const common = {
     cancel: 'Huỷ',
     retry: 'Thử lại',
   },
-  live: { live: 'Trực tuyến', reconnecting: 'Đang kết nối lại…', offline: 'Mất kết nối: dữ liệu có thể đã cũ', offlineShort: 'Mất kết nối' },
+  live: { connecting: 'Đang kết nối…', live: 'Trực tuyến', reconnecting: 'Đang kết nối lại…', offline: 'Mất kết nối: dữ liệu có thể đã cũ', offlineShort: 'Mất kết nối' },
   team: { online: 'Đội ngũ đang trực', offlineSince: 'Đội ngũ nghỉ từ {time} (máy tính tắt)', offline: 'Đội ngũ đang nghỉ (máy tính tắt)' },
   time: { now: 'vừa xong', min: '{n} phút trước', hour: '{n} giờ trước', day: '{n} ngày trước' },
   command: {

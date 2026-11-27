@@ -391,7 +391,7 @@ export function startOffice(): void {
   bootOffice().catch((err: unknown) => {
     const message = err instanceof Error ? err.message : String(err)
     console.warn('Office boot failed:', err)
-    useOffice.setState({ bootError: message })
+    useOffice.setState({ bootError: message, connection: 'offline' })
   })
 }
 

@@ -25,7 +25,7 @@ export const common: typeof vi = {
     cancel: 'Cancel',
     retry: 'Retry',
   },
-  live: { live: 'Live', reconnecting: 'Reconnecting…', offline: 'Offline: data may be stale', offlineShort: 'Offline' },
+  live: { connecting: 'Connecting…', live: 'Live', reconnecting: 'Reconnecting…', offline: 'Offline: data may be stale', offlineShort: 'Offline' },
   team: { online: 'Team online', offlineSince: 'Team offline since {time} (PC off)', offline: 'Team offline (PC off)' },
   time: { now: 'just now', min: '{n}m ago', hour: '{n}h ago', day: '{n}d ago' },
   command: {

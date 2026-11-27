@@ -1,6 +1,7 @@
 import type { queue as viQueue } from '../vi/queue'
 
 export const queue: typeof viQueue = {
+  loading: 'Loading the queue…',
   title: 'Approval queue',
   description:
     'Approve items needing executive decisions and monitor review piles across departments',

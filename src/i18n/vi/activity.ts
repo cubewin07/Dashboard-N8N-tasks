@@ -1,6 +1,7 @@
 import type { EventType } from '@/domain/events'
 
 export const activity = {
+  loading: 'Đang tải hoạt động…',
   title: 'Nhật ký hoạt động',
   description: 'Theo dõi trực tiếp mọi diễn biến công việc, duyệt bài và hỗ trợ trong toà nhà',
   tickerTitle: 'Hoạt động trực tiếp',

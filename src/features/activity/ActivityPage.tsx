@@ -7,7 +7,7 @@ import {
   Users,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type UIEvent } from 'react'
-import { LoadErrorState, PageHeader, TimeAgo } from '@/components'
+import { ListSkeleton, LoadErrorState, PageHeader, TimeAgo } from '@/components'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,7 +23,7 @@ import {
 } from '@/domain/selectors'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
-import { useBootFailure, useConfig, useLabel, useOfficeSelector } from '@/office/hooks'
+import { useBootFailure, useConfig, useFeedPhase, useLabel, useOfficeSelector } from '@/office/hooks'
 import { startOffice } from '@/office/store'
 import { actorLabel, formatActivitySentence } from './formatActivity'
 
@@ -81,7 +81,8 @@ export function ActivityPage() {
   const [categoryFilter, setCategoryFilter] = useState<'all' | ActivityCategory>('all')
   const [scrollTop, setScrollTop] = useState(0)
   const listRef = useRef<HTMLDivElement>(null)
-  const { failed, retry } = useBootFailure()
+  const { retry } = useBootFailure()
+  const phase = useFeedPhase()
   const [selectedItem, setSelectedItem] = useState<ActivitySentenceParts | null>(null)
 
   useEffect(() => {
@@ -203,8 +204,10 @@ export function ActivityPage() {
       </div>
 
       {/* Virtualised activity list */}
-      {failed && !state ? (
+      {phase === 'failed' ? (
         <LoadErrorState onRetry={retry} />
+      ) : phase === 'connecting' ? (
+        <ListSkeleton label={t.activity.loading} />
       ) : totalCount === 0 ? (
         <div
           data-activity-empty

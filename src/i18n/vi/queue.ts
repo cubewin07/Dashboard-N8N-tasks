@@ -1,4 +1,5 @@
 export const queue = {
+  loading: 'Đang tải hàng chờ…',
   title: 'Hàng chờ duyệt',
   description:
     'Phê duyệt các công việc cần quyết định của Giám đốc và theo dõi tải duyệt toàn công ty',

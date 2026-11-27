@@ -1,13 +1,13 @@
 import { List } from 'lucide-react'
 import { Component, Fragment, lazy, Suspense, type ErrorInfo, type ReactNode } from 'react'
 import { hasWebGL2Support, useDeviceTierPreference } from '@/app/deviceTier'
-import { PageHeader } from '@/components'
+import { LoadErrorState, PageHeader } from '@/components'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { OrgList } from '@/features/org/OrgList'
 import { OrgTabs } from '@/features/org/OrgTabs'
 import { useI18n } from '@/i18n'
-import { useOffice } from '@/office'
+import { useBootFailure, useFeedPhase, useOffice } from '@/office'
 import { officeExtensions } from '@/office/extensions'
 import { useDiagnostics } from '@/office/diagnostics'
 import { View3dOptIn } from './View3dOptIn'
@@ -59,6 +59,9 @@ export function OfficePage() {
   const { t } = useI18n()
   const { tier, setOverride } = useDeviceTierPreference()
   useOffice((s) => Boolean(s.state))
+  // The building draws from config, so a feed that failed to boot would otherwise go unnoticed.
+  const phase = useFeedPhase()
+  const { retry } = useBootFailure()
   const ControlPanel = officeExtensions.controlPanel
 
   if (tier === 'fallback') {
@@ -103,6 +106,8 @@ export function OfficePage() {
           </Button>
         }
       />
+
+      {phase === 'failed' ? <LoadErrorState onRetry={retry} /> : null}
 
       <div className="relative space-y-4">
         {ControlPanel ? (
