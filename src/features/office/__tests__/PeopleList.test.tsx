@@ -331,7 +331,7 @@ describe('PeopleList + PersonDrawer (P04-T11, P04-T12)', () => {
     const drawer = container.querySelector<HTMLElement>('[data-person-drawer="emp_ngoc"]')!
     expect(drawer.querySelector('[data-drawer-field="pile"]')?.textContent).toBe('1')
     expect(
-      within(drawer).getByRole('link', { name: 'Mở hàng chờ duyệt' }).getAttribute('href'),
+      within(drawer).getByRole('link', { name: 'Mở trang Duyệt' }).getAttribute('href'),
     ).toBe('/queue')
 
     fireEvent.click(within(drawer).getByRole('button', { name: 'Đóng' }))

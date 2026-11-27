@@ -59,7 +59,7 @@
     {
       "id": "elevator",
       "caption": {
-        "vi": "Việc cần Giám đốc quyết định đi thang máy lên tầng trên cùng. Thang máy là công việc, cầu thang là giờ nghỉ.",
+        "vi": "Việc cần Sếp quyết định đi thang máy lên tầng trên cùng. Thang máy là công việc, cầu thang là giờ nghỉ.",
         "en": "Work that needs the director rides the elevator to the top floor. The elevator carries work; the stairs are for breaks."
       },
       "durationSec": 20,
@@ -112,7 +112,7 @@
     {
       "id": "temp-hire",
       "caption": {
-        "vi": "Ngày đông việc, nhân viên thời vụ đến sảnh nhận việc. Hết việc, công ty bớt người thời vụ đang rảnh.",
+        "vi": "Ngày đông việc, nhân viên tạm đến sảnh nhận việc. Hết việc, công ty cho nhân viên tạm đang rảnh về.",
         "en": "On a busy day temporary staff arrive at the lobby. When the work runs out, idle temps leave."
       },
       "durationSec": 25,

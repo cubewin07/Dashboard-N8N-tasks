@@ -22,7 +22,7 @@ const FIXED_FLOOR_META: Record<
     colorSwatch: 'management',
   },
   boss: {
-    label: { vi: 'Tầng Giám đốc', en: 'Executive Floor' },
+    label: { vi: 'Tầng Sếp', en: 'Boss floor' },
     colorSwatch: 'boss',
   },
 }

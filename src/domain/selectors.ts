@@ -49,8 +49,8 @@ export interface OrgFloorNode {
 }
 
 const BOSS_FLOOR_LABEL: Label = {
-  vi: 'Phòng Giám đốc',
-  en: 'Executive Suite',
+  vi: 'Tầng Sếp',
+  en: 'Boss floor',
 }
 
 const MANAGEMENT_FLOOR_LABEL: Label = {

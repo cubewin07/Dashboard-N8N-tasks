@@ -10,8 +10,8 @@ export const common = {
     skipToMain: 'Bỏ qua, đến nội dung chính',
     office: 'Văn phòng',
     org: 'Sơ đồ',
-    queue: 'Hàng chờ',
-    activity: 'Nhật ký',
+    queue: 'Duyệt',
+    activity: 'Hoạt động',
     wardrobe: 'Tủ đồ',
     settings: 'Cài đặt',
     more: 'Thêm',
@@ -38,5 +38,5 @@ export const common = {
     alreadyResolved: 'Việc này đã được xử lý trên Telegram',
   },
   error: { generic: 'Có lỗi xảy ra. Vui lòng thử lại.', routeTitle: 'Không tải được trang', routeHint: 'Có thể ứng dụng vừa được cập nhật. Hãy tải lại trang để dùng bản mới nhất.', reload: 'Tải lại trang', loadTitle: 'Không tải được dữ liệu văn phòng', loadHint: 'Không đọc được cấu hình hoặc kết nối tới đội ngũ bị lỗi. Hãy thử lại.' },
-  demo: { badge: 'Bản demo', note: 'Dữ liệu mẫu, chưa kết nối hệ thống thật' },
+  demo: { badge: 'Bản mô phỏng', note: 'Dữ liệu mẫu, chưa kết nối hệ thống thật' },
 }

@@ -1,18 +1,18 @@
 export const queue = {
-  loading: 'Đang tải hàng chờ…',
-  title: 'Hàng chờ duyệt',
+  loading: 'Đang tải việc chờ duyệt…',
+  title: 'Chờ duyệt',
   description:
-    'Phê duyệt các công việc cần quyết định của Giám đốc và theo dõi tải duyệt toàn công ty',
+    'Duyệt những việc cần Sếp quyết định và theo dõi việc chờ duyệt ở từng phòng',
   tabs: {
     boss: 'Chờ sếp duyệt',
-    departments: 'Hàng chờ các phòng',
+    departments: 'Chờ duyệt các phòng',
   },
   emptyBoss: 'Chưa có công việc hay câu hỏi nào đang chờ sếp duyệt.',
   emptyDepartmentPile: 'Không có giấy tờ chờ duyệt',
   whyBossToggle: 'Vì sao cần sếp duyệt?',
   whyBossDefault: 'Áp dụng mức duyệt mặc định từ chính sách công ty',
   requesterLabel: 'Người gửi: {name}',
-  assigneeLabel: 'Người duyệt: {name}',
+  assigneeLabel: 'Kiểm duyệt: {name}',
   priority: {
     urgent: 'Khẩn cấp',
     high: 'Cao',

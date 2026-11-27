@@ -11,7 +11,7 @@ export const common: typeof vi = {
     skipToMain: 'Skip to main content',
     office: 'Office',
     org: 'Org chart',
-    queue: 'Queue',
+    queue: 'Approvals',
     activity: 'Activity',
     wardrobe: 'Wardrobe',
     settings: 'Settings',

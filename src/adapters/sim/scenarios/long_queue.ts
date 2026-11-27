@@ -18,7 +18,7 @@ export function runLongQueueScenario(ctx: SimBrainContext): void {
   emitSimEvent(ctx, 'sim.scenario', {
     key: 'long_queue',
     label: {
-      vi: 'Hàng chờ duyệt dài',
+      vi: 'Nhiều việc chờ duyệt',
       en: 'Long approval queue',
     },
   })

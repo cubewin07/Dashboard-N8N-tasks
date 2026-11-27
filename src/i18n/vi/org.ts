@@ -7,7 +7,7 @@ export const org = {
   hoursOffice: 'Giờ hành chính',
   headcount: '{n} nhân sự',
   kindCore: 'Cốt lõi',
-  kindTemp: 'Tạm thời',
+  kindTemp: 'Nhân viên tạm',
   modelTier: {
     strong: 'Mô hình mạnh',
     standard: 'Mô hình chuẩn',

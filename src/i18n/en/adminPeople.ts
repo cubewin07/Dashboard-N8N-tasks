@@ -33,7 +33,7 @@ export const adminPeople: typeof vi = {
       state: 'State',
       actions: 'Actions',
     },
-    kind: { core: 'Core', temp: 'Temporary' },
+    kind: { core: 'Core', temp: 'Temp staff' },
     state: { active: 'Working', archived: 'Left' },
     fields: {
       name: 'Name',
@@ -140,7 +140,7 @@ export const adminPeople: typeof vi = {
       private_office: 'Private office',
       review_desk: 'Review desk',
       desk: 'Desk',
-      boss_office: 'Executive office',
+      boss_office: 'Boss floor',
       manager_office: 'General manager office',
     },
     delete: {
