@@ -56,6 +56,5 @@ export const library = {
     copiedToast: 'Đã sao chép liên kết vào bộ nhớ tạm',
     copyLink: 'Sao chép liên kết',
     openDrive: 'Mở trong Drive',
-    goToTask: 'Đến công việc #{id}',
   },
 }

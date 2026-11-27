@@ -92,6 +92,9 @@ const tmpHead = new THREE.Vector3()
 const tmpNdc = new THREE.Vector2()
 const tmpCentre = new THREE.Vector3()
 /** Distance bands before camera overrides, kept for hysteresis. */
+/** Feed time a hidden tab may skip before people snap instead of walking it off. */
+const HIDDEN_SNAP_FEED_MS = 2 * 60_000
+
 const rawBands: LodBand[] = []
 const lodOverride: LodOverride = { mode: 'overview', focusedFloorIndex: null, followedFloorIndex: null }
 
@@ -134,6 +137,8 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
 
   const inputsRef = useRef<PersonVisualInput[]>([])
   const accRef = useRef(0)
+  /** Set when the tab comes back after the feed moved on: snap instead of catching up. */
+  const snapRef = useRef(false)
   const clockRef = useRef(new ClockRateEstimator())
   const tintsRef = useRef<{
     config: OrgConfig | null
@@ -342,6 +347,25 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
     }
   }, [gl, camera, raycaster])
 
+  // Hidden tab (P11 §3.5): the browser stops frames, the feed keeps its time. When the
+  // feed moved on by more than a couple of minutes, people snap to where they should be.
+  useEffect(() => {
+    let hiddenAtFeedMs: number | null = null
+    const onVisibility = () => {
+      const clock = getFeedClock()
+      if (document.hidden) {
+        hiddenAtFeedMs = clock?.nowMs ?? null
+        return
+      }
+      if (hiddenAtFeedMs !== null && clock && clock.nowMs - hiddenAtFeedMs > HIDDEN_SNAP_FEED_MS) {
+        snapRef.current = true
+      }
+      hiddenAtFeedMs = null
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
+
   useFrame((frame, delta) => {
     const state: OfficeState | null = useOffice.getState().state
     const visual = visualRef.current
@@ -349,6 +373,11 @@ export function People({ layout, elevator, reducedMotion = false }: PeopleProps)
     const indicators = indicatorsRef.current
     if (!state || !visual || !cars || !indicators) return
     director.sync(state)
+    if (snapRef.current) {
+      snapRef.current = false
+      director.snap()
+      accRef.current = 0
+    }
 
     if (tintsRef.current.config !== state.config) {
       tintsRef.current = {

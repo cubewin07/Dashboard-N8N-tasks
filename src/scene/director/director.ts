@@ -275,6 +275,18 @@ export class Director {
     this.visible = visible ?? (() => true)
   }
 
+  /**
+   * After a long pause (a hidden tab, P11 §3.5): forget walks and errands in flight and
+   * start everyone from their place in the current state, instead of walking through the
+   * backlog the feed built up meanwhile. The piles already follow the state.
+   */
+  snap(): void {
+    const state = this.state
+    if (!state) return
+    this.state = null
+    this.sync(state)
+  }
+
   /** Feed the latest state. New events since the previous call become errands and arrivals. */
   sync(state: OfficeState): void {
     if (state === this.state) return

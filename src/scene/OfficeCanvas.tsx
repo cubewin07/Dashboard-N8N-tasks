@@ -14,11 +14,18 @@ import { PeopleList } from '@/features/office/PeopleList'
 import { PersonDrawer } from '@/features/office/PersonDrawer'
 import { ShortcutHint } from '@/features/office/ShortcutHint'
 import { useFollowUrlSync } from '@/features/office/useFollowUrlSync'
+import { qualitySettings } from '@/office/capabilities'
 import { useConfigStore } from '@/office/configStore'
+import { useDiagnostics } from '@/office/diagnostics'
 import { useOfficeSelector } from '@/office/hooks'
-import { useReducedMotionPref } from '@/office/prefs'
+import { useOfficeQuality, useReducedMotionPref } from '@/office/prefs'
+import { useI18n } from '@/i18n'
+import { Button } from '@/components/ui/button'
 import { usePeopleUi } from '@/office/uiStore'
 import { CameraRig } from '@/scene/camera/CameraRig'
+import { FrameStats } from '@/scene/debug/frameStats'
+import { PerfOverlay } from '@/scene/debug/PerfOverlay'
+import { currentStats, readStats, setStatsSource, type OfficeStats } from '@/scene/debug/stats'
 import { useKeyboardShortcuts } from '@/scene/camera/useKeyboardShortcuts'
 import {
   parseViewSearch,
@@ -64,6 +71,8 @@ export interface OfficeDebugInfo {
   characters?: CharactersDebug
   getState?: () => unknown
   sim?: unknown
+  /** P11-T01: frame timing + renderer counters (null before the scene renders). */
+  stats?: () => OfficeStats | null
 }
 
 declare global {
@@ -127,11 +136,13 @@ function viewPart(search: string): string {
 interface SceneTelemetryProps {
   floorKeys: readonly string[]
   onFirstFrame: () => void
+  /** Time frames for `stats()` and the `?perf=1` overlay. */
+  collectStats: boolean
 }
 
 const debugTarget = new THREE.Vector3()
 
-function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
+function SceneTelemetry({ floorKeys, onFirstFrame, collectStats }: SceneTelemetryProps) {
   const { gl } = useThree()
   const getThree = useThree((s) => s.get)
   const cameraDebug = useMemo(
@@ -160,13 +171,22 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
   const elapsedRef = useRef(0)
   const fpsRef = useRef(60)
   const floorKeysRef = useRef<readonly string[]>(floorKeys)
+  const frames = useMemo(() => new FrameStats(), [])
+
+  useEffect(() => {
+    if (!collectStats) return
+    setStatsSource(() => readStats(gl, frames))
+    return () => setStatsSource(null)
+  }, [collectStats, gl, frames])
 
   useEffect(() => {
     floorKeysRef.current = floorKeys
+    if (IS_DEBUG_ENABLED && window.__office_debug) window.__office_debug.floorKeys = [...floorKeys]
   }, [floorKeys])
 
   useFrame((_, delta) => {
     onBeforeRenderFrame()
+    if (collectStats) frames.push(delta * 1000)
     if (!reportedReadyRef.current) {
       reportedReadyRef.current = true
       onFirstFrame()
@@ -182,22 +202,35 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
       elapsedRef.current = 0
     }
 
+    // P11-T02: the debug object is built once (effect below); a frame only updates numbers.
+    const debug = window.__office_debug
+    if (!debug) return
+    debug.drawCalls = gl.info.render.calls
+    debug.triangles = gl.info.render.triangles
+    debug.geometries = gl.info.memory.geometries
+    debug.textures = gl.info.memory.textures
+    debug.fps = fpsRef.current
+    debug.shadowRenders = getShadowRenders()
+  })
+
+  useEffect(() => {
+    if (!IS_DEBUG_ENABLED) return
     window.__office_debug = {
       ...window.__office_debug,
-      drawCalls: gl.info.render.calls,
-      triangles: gl.info.render.triangles,
-      geometries: gl.info.memory.geometries,
-      textures: gl.info.memory.textures,
-      fps: fpsRef.current,
-      shadowRenders: getShadowRenders(),
-      floorKeys: [...floorKeysRef.current],
+      drawCalls: 0,
+      triangles: 0,
+      geometries: 0,
+      textures: 0,
+      fps: 0,
       addDepartment: addDepartmentToStore,
       removeDepartment: removeDepartmentFromStore,
       director: directorDebug,
       camera: cameraDebug,
       characters: charactersDebug,
+      stats: currentStats,
+      floorKeys: [...floorKeysRef.current],
     }
-  })
+  }, [cameraDebug])
 
   // useFrame runs before the render, so its numbers are one frame old. With
   // on-demand rendering that frame may never be followed by another: refresh
@@ -222,6 +255,68 @@ function SceneTelemetry({ floorKeys, onFirstFrame }: SceneTelemetryProps) {
 /** Never render more pixels than the screen has: a 1x monitor stays at 1x. */
 function maxDpr(): number {
   return Math.min(2, Math.max(1, window.devicePixelRatio || 1))
+}
+
+/** How long a lost WebGL context may stay lost before the canvas is rebuilt (once). */
+const CONTEXT_RESTORE_WAIT_MS = 2500
+
+type ContextStatus = 'ok' | 'lost' | 'failed'
+
+/**
+ * WebGL context loss (P11 §3.5): wait for the browser to restore it; if it does not,
+ * rebuild the canvas once by itself, then offer "Tải lại cảnh".
+ */
+function useContextRecovery() {
+  const [status, setStatus] = useState<ContextStatus>('ok')
+  const [canvasKey, setCanvasKey] = useState(0)
+  const autoRetried = useRef(false)
+  // R3F forces a context loss on the canvas it disposes (on unmount and on every rebuild):
+  // only the canvas on screen counts.
+  const current = useRef<HTMLCanvasElement | null>(null)
+  useEffect(
+    () => () => {
+      current.current = null
+    },
+    [],
+  )
+
+  useEffect(() => {
+    if (status !== 'lost') return
+    const id = window.setTimeout(() => {
+      if (!autoRetried.current) {
+        autoRetried.current = true
+        setCanvasKey((k) => k + 1)
+        setStatus('ok')
+      } else {
+        setStatus('failed')
+      }
+    }, CONTEXT_RESTORE_WAIT_MS)
+    return () => window.clearTimeout(id)
+  }, [status])
+
+  const watch = (canvas: HTMLCanvasElement) => {
+    current.current = canvas
+    canvas.addEventListener('webglcontextlost', (event) => {
+      if (canvas !== current.current) return
+      // Without preventDefault the browser never tries to restore it.
+      event.preventDefault()
+      useDiagnostics.getState().record('context_lost', 'webglcontextlost')
+      setStatus('lost')
+    })
+    canvas.addEventListener('webglcontextrestored', () => {
+      if (canvas !== current.current) return
+      useDiagnostics.getState().record('context_restored', 'webglcontextrestored')
+      requestShadowUpdate()
+      setStatus('ok')
+    })
+  }
+
+  const reload = () => {
+    setCanvasKey((k) => k + 1)
+    setStatus('ok')
+  }
+
+  return { status, canvasKey, watch, reload }
 }
 
 /**
@@ -275,13 +370,21 @@ function createLayoutBuilder(): (config: OrgConfig) => BuildingLayout {
 
 export function OfficeCanvas() {
   const config = useConfigStore((s) => s.config)
+  const { t } = useI18n()
   const [ready, setReady] = useState(false)
-  const [dpr, setDpr] = useState(IS_E2E ? 1 : Math.min(1.5, maxDpr()))
+  const quality = useOfficeQuality()
+  const settings = qualitySettings(quality === 'off' ? 'low' : quality)
+  const dprCap = Math.min(maxDpr(), settings.maxDpr)
+  const [dpr, setDpr] = useState(IS_E2E ? 1 : Math.min(1.5, dprCap))
+  const recovery = useContextRecovery()
   const reducedMotion = useReducedMotionPref()
   const assets = useLoadProgress()
 
   const location = useLocation()
-  const [, setSearchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  // `?perf=1` (in the hash or the page URL): the frame-stats overlay, in any build.
+  const perfOverlay =
+    searchParams.get('perf') === '1' || new URLSearchParams(window.location.search).get('perf') === '1'
   // Never write the URL while another route is loading: that would cancel the navigation.
   const routerBusy = useRouterBusy()
   const lastWrittenSearchRef = useRef<string | null>(null)
@@ -377,6 +480,8 @@ export function OfficeCanvas() {
     <div
       data-office-canvas
       data-ready={ready ? 'true' : 'false'}
+      data-context={recovery.status}
+      data-quality={quality}
       data-assets={assets.settled ? 'ready' : 'loading'}
       data-camera-mode-state={mode}
       data-focused-floor={focusedFloorKey ?? ''}
@@ -384,9 +489,16 @@ export function OfficeCanvas() {
       className="relative h-[calc(100dvh-11rem)] min-h-[460px] w-full overflow-hidden rounded-[14px] border border-border bg-surface"
     >
       <Canvas
+        key={recovery.canvasKey}
         frameloop={IS_E2E ? 'demand' : 'always'}
-        shadows={IS_E2E ? true : 'soft'}
-        dpr={dpr}
+        shadows={
+          IS_E2E ? true : settings.shadows === 'soft' ? 'soft' : settings.shadows === 'basic'
+        }
+        dpr={Math.min(dpr, dprCap)}
+        onCreated={({ gl }) => {
+          setReady(false)
+          recovery.watch(gl.domElement)
+        }}
         gl={{
           toneMapping: THREE.NoToneMapping,
           outputColorSpace: THREE.SRGBColorSpace,
@@ -394,13 +506,13 @@ export function OfficeCanvas() {
         }}
         camera={{ position: [14, 24, 52], fov: 35, near: 0.5, far: 320 }}
       >
-        {!IS_E2E && (
+        {!IS_E2E && settings.adaptive && (
           <PerformanceMonitor
             flipflops={3}
             onFallback={() => setDpr(1)}
             onChange={({ factor }) => {
               const nextDpr = Math.round((1 + factor) * 100) / 100
-              setDpr(Math.min(maxDpr(), nextDpr))
+              setDpr(Math.min(dprCap, nextDpr))
             }}
           />
         )}
@@ -418,8 +530,11 @@ export function OfficeCanvas() {
         <SceneTelemetry
           floorKeys={floorKeys}
           onFirstFrame={() => setReady(true)}
+          collectStats={IS_DEBUG_ENABLED || perfOverlay}
         />
       </Canvas>
+
+      {perfOverlay ? <PerfOverlay /> : null}
 
       {/* HTML overlays: Tab order FloorPicker -> PeopleList -> CameraModeBar */}
       <div className="pointer-events-none absolute inset-4 flex flex-col justify-between gap-3">
@@ -448,6 +563,25 @@ export function OfficeCanvas() {
       </div>
 
       <PersonDrawer placement="canvas" />
+
+      {recovery.status !== 'ok' ? (
+        <div
+          role="status"
+          data-context-overlay
+          className="absolute inset-0 z-30 grid place-items-center bg-background/80 p-6 backdrop-blur-sm"
+        >
+          <div className="max-w-sm space-y-3 rounded-[14px] border border-border bg-surface p-5 text-center shadow-soft">
+            <p className="text-sm">
+              {recovery.status === 'lost' ? t.office.contextLost : t.office.contextFailed}
+            </p>
+            {recovery.status === 'failed' ? (
+              <Button onClick={recovery.reload} data-reload-scene>
+                {t.office.reloadScene}
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

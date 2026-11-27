@@ -8,6 +8,7 @@ import { ConfigError } from '@/ports/ConfigSource'
 import type { ConnectionState, OfficeFeed } from '@/ports/OfficeFeed'
 import { applyConfigEdit, loadConfig, setConfigClock, useConfigStore } from './configStore'
 import { officeExtensions } from './extensions'
+import { useDiagnostics } from './diagnostics'
 import { createFeed } from './feedRegistry'
 import { getCommandsAllowed } from './sessionRole'
 
@@ -28,7 +29,6 @@ export interface OfficeStoreValue {
   state: OfficeState | null
   connection: ConnectionState
   commands: Record<string, OfficeCommandRecord>
-  legacyActive: boolean
   /** Message of the last failed boot (config or feed), cleared when a boot starts. */
   bootError: string | null
   send: (cmd: Command) => Promise<CommandAck>
@@ -39,6 +39,7 @@ let unsubscribeEvents: (() => void) | null = null
 let unsubscribeConn: (() => void) | null = null
 let unsubscribeReset: (() => void) | null = null
 let unsubscribeConfig: (() => void) | null = null
+let unsubscribeIssues: (() => void) | null = null
 let bootPromise: Promise<OfficeState> | null = null
 
 let pendingEvents: OfficeEvent[] = []
@@ -255,16 +256,9 @@ export const useOffice = create<OfficeStoreValue>(() => ({
   state: null,
   connection: 'live',
   commands: {},
-  legacyActive: false,
   bootError: null,
   send: sendCommand,
 }))
-
-export function setLegacyRouteActive(active: boolean): void {
-  if (useOffice.getState().legacyActive !== active) {
-    useOffice.setState({ legacyActive: active })
-  }
-}
 
 export function stopOffice(): void {
   cancelScheduledFlush()
@@ -286,6 +280,10 @@ export function stopOffice(): void {
     unsubscribeConfig()
     unsubscribeConfig = null
   }
+  if (unsubscribeIssues) {
+    unsubscribeIssues()
+    unsubscribeIssues = null
+  }
   if (activeFeed) {
     activeFeed.stop()
     activeFeed = null
@@ -300,9 +298,17 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
 
   const run = async (): Promise<OfficeState> => {
     stopOffice()
-    const config = await loadConfig()
-    const feed = customFeed ?? createFeed()
+    // The sim chunk downloads while the config loads.
+    const [config, feed] = await Promise.all([
+      loadConfig(),
+      customFeed ? Promise.resolve(customFeed) : createFeed(),
+    ])
     activeFeed = feed
+
+    // Before start: a replay log reports its invalid events while it loads.
+    if (feed.onIssue) {
+      unsubscribeIssues = feed.onIssue((issue) => useDiagnostics.getState().recordFeedIssue(issue))
+    }
 
     const snapshot = await feed.start(config)
     useOffice.setState({
@@ -364,6 +370,11 @@ export async function bootOffice(customFeed?: OfficeFeed): Promise<OfficeState> 
     bootPromise = null
   })
   return bootPromise
+}
+
+/** Which feed drives the office (Settings → Giới thiệu). Null before boot. */
+export function getFeedKind(): OfficeFeed['kind'] | null {
+  return activeFeed?.kind ?? null
 }
 
 export function getOfficeState(): OfficeState | null {

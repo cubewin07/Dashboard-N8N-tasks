@@ -1,9 +1,10 @@
 # Contracts
 
-Version: **office-contract v1.3 (draft)**. This replaces `docs/CONTRACT.md` v0.2.
+Version: **office-contract v1.4 (draft)**. This replaces `docs/CONTRACT.md` v0.2.
 Any change to a port, event, command, config schema or appearance schema bumps the version (minor = additive, major = breaking) and adds a line to the changelog below. Zod schemas in `src/domain/{events,commands,config,appearance}.ts` are the executable form; this file is the readable form. A unit test (`contracts.test.ts`) fails if the `CONTRACT_VERSION` constant and this file's version differ.
 
 ### Changelog
+- **v1.4 (2026-11-28, P11, additive):** optional `OfficeFeed.onIssue(cb)` reports events the feed dropped (`FeedIssue { kind: 'invalid_event', reason, eventId?, type? }`); the store subscribes before `start` and counts them for Settings → Giới thiệu → Chẩn đoán. Invalid events are never thrown to the UI. New feed kind for builds without a simulator: the `NullFeed` (`kind: 'replay'`, rejects every command with `no_feed`).
 - **v1.3 (2026-11-26, P10, additive):** optional `OfficeFeed.reconfigure(config, change)`; `ConfigSource.apply(change)` and `history(limit)` now work (Local: localStorage overrides + a 200-row ring buffer; Supabase: one RPC per change kind); `ConfigChange` is complete (phase-10 §3.1). New RPCs in migration 0006: `reorder_departments(p_ids text[])`, `delete_role(p_key text)`, `delete_specialty(p_key text)`, `replace_config(p jsonb)` (boss only, one audit row; errcodes as §5.1 plus `23503` `role_in_use` / `specialty_in_use`, `P0002` `unknown_role` / `unknown_specialty`). Supersedes the v1.2 note that `SupabaseConfigSource.apply` throws until P10.
 - **v1.2 (2026-11-26, P09, additive):** `AuthPort.updatePassword?(password)` (optional; the demo port has none) and `AuthError { code: 'invalid_credentials' | 'not_allowed' | 'network' | 'unknown' }`; the Supabase write RPCs and their error codes (§5.1). `ConfigSource.subscribe` now fires on realtime edits (Supabase); `SupabaseConfigSource.apply` throws `ConfigError('not_supported')` until P10.
 - **v1.1 (2026-11-21, P08b, additive):** `AppearanceStore.getEntries()` returns saved looks with their versions (the editor needs the version for `save`); `save` rejects with `AppearanceConflictError { employeeId, current, currentVersion, expectedVersion }` on a version mismatch (unknown employee = version 0).
@@ -24,8 +25,12 @@ interface OfficeFeed {
   now(): Iso
   /** Connection to the source: 'live' | 'reconnecting' | 'offline'. Drives LiveBadge. */
   connection(): ConnectionState; onConnection(cb: (c: ConnectionState) => void): () => void
+  reconfigure?(config: OrgConfig, change: ConfigChange | null): void   // v1.3
+  /** Events dropped because they failed validation (never thrown to the UI). */
+  onIssue?(cb: (issue: FeedIssue) => void): () => void                // v1.4
   stop(): void
 }
+// FeedIssue = { kind: 'invalid_event'; reason: string; eventId?: string | null; type?: string | null }
 
 interface ConfigSource {
   load(): Promise<OrgConfig>                                  // validated with zod

@@ -1,10 +1,10 @@
-import { useTeamOnline } from '@/hooks/queries'
 import { useI18n } from '@/i18n'
 import { formatTime } from '@/lib/time'
 import { cn, fmt } from '@/lib/utils'
-import { useIsLegacyRoute, useOffice } from '@/office'
+import { useOffice } from '@/office'
 import { isTeamOnline } from '@/office/liveness'
 
+/** Whether the team (the feed's worker) is on duty, from the feed's heartbeat. */
 export function TeamOnlineIndicator({
   compact,
   className,
@@ -13,16 +13,12 @@ export function TeamOnlineIndicator({
   className?: string
 }) {
   const { t } = useI18n()
-  const isLegacy = useIsLegacyRoute()
-  const legacyTeam = useTeamOnline()
-  const officeConn = useOffice((s) => s.connection)
-  const officeHeartbeatAt = useOffice((s) => s.state?.lastHeartbeat?.at ?? null)
-  const officeNow = useOffice((s) => s.state?.now ?? null)
-
-  const online = isLegacy
-    ? legacyTeam.online
-    : isTeamOnline(officeConn, officeHeartbeatAt, officeNow)
-  const heartbeatAt = isLegacy ? legacyTeam.heartbeatAt : officeHeartbeatAt
+  const heartbeatAt = useOffice((s) => s.state?.lastHeartbeat?.at ?? null)
+  // A boolean selector: `state.now` moves with every event batch, which re-rendered this
+  // badge on every commit (P11-T02).
+  const online = useOffice((s) =>
+    isTeamOnline(s.connection, s.state?.lastHeartbeat?.at ?? null, s.state?.now ?? null),
+  )
 
   const label = online
     ? t.common.team.online

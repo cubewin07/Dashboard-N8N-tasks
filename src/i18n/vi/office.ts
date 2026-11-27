@@ -2,7 +2,11 @@ export const office = {
   title: 'Văn phòng',
   subtitle: 'Toà nhà công ty AI vận hành trực tuyến',
   loadingCanvas: 'Đang tải không gian 3D…',
-  canvasError: 'Không thể khởi tạo khung hình 3D. Đang hiển thị danh sách 2D.',
+  canvasError: 'Cảnh 3D gặp lỗi. Đang hiển thị danh sách 2D.',
+  reloadScene: 'Tải lại cảnh',
+  contextLost: 'Cảnh 3D tạm dừng vì trình duyệt thu hồi bộ nhớ đồ hoạ. Đang khôi phục…',
+  contextFailed: 'Chưa khôi phục được cảnh 3D. Dữ liệu vẫn cập nhật bình thường.',
+  webglUnavailable: 'Thiết bị hoặc trình duyệt này không hỗ trợ WebGL 2, nên Văn phòng hiển thị dạng danh sách 2D. Mọi thông tin vẫn có đủ ở đây.',
   fallbackBanner:
     'Chế độ danh sách 2D gọn nhẹ. Bạn có thể chuyển sang không gian 3D bất cứ lúc nào.',
   view3dButton: 'Xem 3D',

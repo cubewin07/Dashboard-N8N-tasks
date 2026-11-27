@@ -6,6 +6,7 @@ import { PageHeader } from '@/components'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useI18n } from '@/i18n'
+import { QueryScope } from '@/lib/queryClient'
 import { fmt } from '@/lib/utils'
 
 const CreditsSchema = z.object({
@@ -68,6 +69,14 @@ function groupCredits(assets: readonly CreditAsset[]): CreditGroup[] {
 }
 
 export function CreditsPage() {
+  return (
+    <QueryScope>
+      <CreditsContent />
+    </QueryScope>
+  )
+}
+
+function CreditsContent() {
   const { t } = useI18n()
   const { data, isPending, isError } = useQuery({
     queryKey: ['asset-credits'],

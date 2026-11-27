@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
+import pkg from './package.json' with { type: 'json' }
 
 const useSimStub =
   process.env.VITE_SIM_STUB === '1' || process.env.VITE_FEED === 'none'
@@ -25,6 +26,11 @@ function simStubPlugin(): Plugin {
 
 export default defineConfig({
   base: '/Dashboard-N8N-tasks/',
+  // Settings → Giới thiệu: app version and the commit it was built from (CI sets GITHUB_SHA).
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
+    'import.meta.env.VITE_APP_BUILD': JSON.stringify((process.env.GITHUB_SHA ?? '').slice(0, 7)),
+  },
   plugins: [
     ...(useSimStub ? [simStubPlugin()] : []),
     react(),

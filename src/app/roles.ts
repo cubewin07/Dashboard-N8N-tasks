@@ -10,7 +10,6 @@ export type Action =
   | 'activity'
   | 'settings.full'
   | 'credits'
-  | 'legacy'
   | 'dev'
   | 'admin'
 
@@ -32,7 +31,6 @@ const actionAccess: Record<Role, ReadonlySet<Action>> = {
     'activity',
     'settings.full',
     'credits',
-    'legacy',
     'dev',
     'admin',
   ]),

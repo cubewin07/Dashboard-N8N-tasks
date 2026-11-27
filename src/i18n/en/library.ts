@@ -57,6 +57,5 @@ export const library: typeof viLibrary = {
     copiedToast: 'Link copied to clipboard',
     copyLink: 'Copy link',
     openDrive: 'Open in Drive',
-    goToTask: 'Go to task #{id}',
   },
 }

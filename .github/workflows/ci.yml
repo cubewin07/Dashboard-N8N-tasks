@@ -52,17 +52,10 @@ jobs:
           VITE_E2E: '1'
           VITE_DEBUG: '1'
 
-      - name: Bundle size report & main-chunk check
+      - name: Bundle budgets (performance.md §2)
         run: |
-          echo "### Dist JS bundle sizes" >> "$GITHUB_STEP_SUMMARY"
-          echo "| File | Raw (KB) | Gzip (KB) |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| --- | ---: | ---: |" >> "$GITHUB_STEP_SUMMARY"
-          for f in dist/assets/*.js; do
-            raw=$(wc -c < "$f" | awk '{printf "%.1f", $1/1024}')
-            gz=$(gzip -c "$f" | wc -c | awk '{printf "%.1f", $1/1024}')
-            echo "| \`$(basename "$f")\` | $raw | $gz |" >> "$GITHUB_STEP_SUMMARY"
-          done
           node scripts/check-main-bundle.mjs
+          npm run size:budget
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
@@ -84,14 +77,49 @@ jobs:
           path: perf-report.json
           if-no-files-found: ignore
 
-      - name: Simulator removability check
-        run: npm run check:sim-removable
-
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  # P11-T09 / R5: the app without the simulator. @/adapters/sim is aliased to the
+  # NullFeed stub; the smoke and no-sim specs must pass and no sim code may ship.
+  no-sim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITE_FEED: none
+      VITE_E2E: '1'
+      VITE_DEBUG: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E smoke without the simulator
+        run: npx playwright test e2e/smoke.spec.ts e2e/no-sim.spec.ts
+
+      - name: No simulator code in the build
+        run: node scripts/check-sim-removable.mjs --dist
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-no-sim
           path: |
             playwright-report/
             test-results/

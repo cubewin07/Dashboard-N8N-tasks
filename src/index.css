@@ -28,24 +28,6 @@
   --status-idle: #8a867f;
   --status-idle-soft: #f0eeea;
 
-  /* Per-employee tints */
-  --emp-thu: #e11d48;
-  --emp-thu-soft: #ffe4e9;
-  --emp-mai: #0284c7;
-  --emp-mai-soft: #e0f2fe;
-  --emp-linh: #d97706;
-  --emp-linh-soft: #fef3c7;
-  --emp-ha: #7c3aed;
-  --emp-ha-soft: #ede9fe;
-  --emp-vy: #db2777;
-  --emp-vy-soft: #fce7f3;
-  --emp-an: #0d9488;
-  --emp-an-soft: #ccfbf1;
-  --emp-bao: #ea580c;
-  --emp-bao-soft: #ffedd5;
-  --emp-boss: #1c1b19;
-  --emp-boss-soft: #ece9e3;
-
   --shadow-soft: 0 1px 2px rgb(28 27 25 / 0.04), 0 8px 24px -12px rgb(28 27 25 / 0.12);
 }
 
@@ -94,23 +76,6 @@
   --color-done-soft: var(--status-done-soft);
   --color-idle: var(--status-idle);
   --color-idle-soft: var(--status-idle-soft);
-
-  --color-emp-thu: var(--emp-thu);
-  --color-emp-thu-soft: var(--emp-thu-soft);
-  --color-emp-mai: var(--emp-mai);
-  --color-emp-mai-soft: var(--emp-mai-soft);
-  --color-emp-linh: var(--emp-linh);
-  --color-emp-linh-soft: var(--emp-linh-soft);
-  --color-emp-ha: var(--emp-ha);
-  --color-emp-ha-soft: var(--emp-ha-soft);
-  --color-emp-vy: var(--emp-vy);
-  --color-emp-vy-soft: var(--emp-vy-soft);
-  --color-emp-an: var(--emp-an);
-  --color-emp-an-soft: var(--emp-an-soft);
-  --color-emp-bao: var(--emp-bao);
-  --color-emp-bao-soft: var(--emp-bao-soft);
-  --color-emp-boss: var(--emp-boss);
-  --color-emp-boss-soft: var(--emp-boss-soft);
 
   --radius-card: 14px;
   --shadow-soft: var(--shadow-soft);

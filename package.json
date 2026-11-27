@@ -18,6 +18,7 @@
     "golden:update": "node scripts/record-golden.mjs",
     "check:sim-removable": "node scripts/check-sim-removable.mjs",
     "perf:check": "node scripts/perf-check.mjs",
+    "size:budget": "node scripts/size-budget.mjs",
     "director:stats": "node scripts/director-stats.mjs",
     "art:build": "node scripts/art-build.mjs",
     "art:sheets": "node scripts/art-sheets.mjs",

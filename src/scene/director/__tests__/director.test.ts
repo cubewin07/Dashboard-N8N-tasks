@@ -131,6 +131,24 @@ describe('Director scenarios', () => {
     expect(w.director.stats().teleports).toBe(0)
   })
 
+  it('snap() puts everybody back in place instead of walking off a backlog (hidden tab)', () => {
+    const w = makeWorld('snap')
+    // Let people wander, then snap: every person starts again from their own desk floor.
+    w.run(600)
+    const moved = w.director
+      .people()
+      .some((p) => w.layout.floors[p.floorIndex]!.key !== w.layout.seatOf[p.id]?.floorKey)
+    expect(moved).toBe(true)
+    w.director.snap()
+    w.run(0.1)
+    for (const p of w.director.people()) {
+      const seat = w.layout.seatOf[p.id]
+      if (!seat) continue
+      expect(w.layout.floors[p.floorIndex]!.key).toBe(seat.floorKey)
+    }
+    expect(w.director.people().length).toBe(Object.keys(w.state.people).length)
+  })
+
   it('a hire walks in through the lobby and reaches the department floor', () => {
     const w = makeWorld('hire')
     const template = w.state.config.employees.find((e) => e.departmentId === 'dep_marketing')!

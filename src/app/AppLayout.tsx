@@ -2,26 +2,16 @@ import {
   Activity,
   Building2,
   CheckSquare,
-  ChevronDown,
-  ChevronRight,
-  Images,
-  Inbox,
-  LayoutGrid,
-  ListChecks,
   LogOut,
   Menu,
   Network,
-  Play,
-  Plus,
   Settings,
   Shirt,
   SlidersHorizontal,
-  Users,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { LiveBadge, OfflineBanner, TeamOnlineIndicator } from '@/components'
-import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
@@ -31,8 +21,6 @@ import {
 } from '@/components/ui/sheet'
 import { bossQueue } from '@/domain/selectors'
 import { IntakeBox } from '@/features/office/IntakeBox'
-import { StartWorkSheet } from '@/features/start/StartWorkSheet'
-import { useInboxCount } from '@/hooks/queries'
 import { useNow } from '@/hooks/useNow'
 import { useI18n } from '@/i18n'
 import { formatHeaderDate, ictHour } from '@/lib/time'
@@ -42,10 +30,8 @@ import { officeExtensions } from '@/office/extensions'
 import { useOfficeSelector } from '@/office/hooks'
 import { useAuth } from './auth'
 import { can } from './roles'
-import { useStartWork } from './startWork'
 
 type MainNavKey = 'office' | 'org' | 'queue' | 'activity' | 'wardrobe' | 'admin'
-type LegacyNavKey = 'overview' | 'inbox' | 'tasks' | 'start' | 'library' | 'team'
 
 const MAIN_NAV: { key: MainNavKey; to: string; icon: typeof Building2 }[] = [
   { key: 'office', to: '/', icon: Building2 },
@@ -56,21 +42,6 @@ const MAIN_NAV: { key: MainNavKey; to: string; icon: typeof Building2 }[] = [
   { key: 'admin', to: '/admin', icon: SlidersHorizontal },
 ]
 
-const LEGACY_NAV: { key: LegacyNavKey; to: string; icon: typeof Inbox }[] = [
-  { key: 'overview', to: '/legacy', icon: LayoutGrid },
-  { key: 'inbox', to: '/inbox', icon: Inbox },
-  { key: 'tasks', to: '/tasks', icon: ListChecks },
-  { key: 'start', to: '/start', icon: Play },
-  { key: 'library', to: '/library', icon: Images },
-  { key: 'team', to: '/team', icon: Users },
-]
-
-const LEGACY_PREFIXES = ['/legacy', '/inbox', '/tasks', '/start', '/library', '/team']
-
-function isLegacyPath(pathname: string): boolean {
-  return LEGACY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
-}
-
 function Logo() {
   const { t } = useI18n()
   return (
@@ -80,21 +51,6 @@ function Logo() {
       </span>
       <span className="text-[17px] font-semibold tracking-tight">{t.common.app.name}</span>
     </div>
-  )
-}
-
-function InboxBadge({ className }: { className?: string }) {
-  const { total } = useInboxCount()
-  if (!total) return null
-  return (
-    <span
-      className={cn(
-        'tabular min-w-5 rounded-full bg-blocked px-1.5 text-center text-[11px] font-semibold leading-5 text-primary-foreground',
-        className,
-      )}
-    >
-      {total}
-    </span>
   )
 }
 
@@ -118,10 +74,6 @@ function Sidebar() {
   const { t } = useI18n()
   const { session, signOut } = useAuth()
   const role = session?.role
-  const { openStartWork } = useStartWork()
-  const location = useLocation()
-  const [legacyOpen, setLegacyOpen] = useState(() => isLegacyPath(location.pathname))
-
   const navCls = ({ isActive }: { isActive: boolean }) =>
     cn(
       'flex items-center gap-3 rounded-lg px-3 py-2 text-[15px] font-medium transition-colors',
@@ -145,45 +97,6 @@ function Sidebar() {
           </NavLink>
         ))}
 
-        {can(role, 'legacy') && (
-        <div className="mt-3 border-t border-border pt-3">
-          <button
-            type="button"
-            aria-expanded={legacyOpen}
-            onClick={() => setLegacyOpen((prev) => !prev)}
-            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase transition-colors hover:bg-surface-muted hover:text-foreground"
-          >
-            <span>{t.common.nav.legacyGroup}</span>
-            {legacyOpen ? (
-              <ChevronDown className="size-4" aria-hidden />
-            ) : (
-              <ChevronRight className="size-4" aria-hidden />
-            )}
-          </button>
-
-          {legacyOpen && (
-            <div className="mt-1 flex flex-col gap-1 pl-1">
-              {LEGACY_NAV.map(({ key, to, icon: Icon }) => (
-                <NavLink key={key} to={to} end={to === '/legacy'} className={navCls}>
-                  <Icon className="size-[18px]" aria-hidden />
-                  <span className="flex-1">{t.common.nav[key]}</span>
-                  {key === 'inbox' && <InboxBadge />}
-                </NavLink>
-              ))}
-              <div className="px-2 pt-2">
-                <Button
-                  size="sm"
-                  onClick={() => openStartWork()}
-                  className="w-full justify-center"
-                >
-                  <Plus className="size-4" aria-hidden />
-                  <span>{t.common.actions.startWork}</span>
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-        )}
       </nav>
 
       <div className="mt-auto flex flex-col gap-1 border-t border-border pt-4">
@@ -251,17 +164,14 @@ function MobileTabBar() {
   const { t } = useI18n()
   const { session, signOut } = useAuth()
   const role = session?.role
-  const { openStartWork } = useStartWork()
   const [moreOpen, setMoreOpen] = useState(false)
   const location = useLocation()
-  const [legacyOpen, setLegacyOpen] = useState(() => isLegacyPath(location.pathname))
   useOffice((s) => Boolean(s.state))
   const ControlPanel = officeExtensions.controlPanel
 
   const moreActive =
     location.pathname.startsWith('/settings') ||
-    location.pathname.startsWith('/admin') ||
-    isLegacyPath(location.pathname)
+    location.pathname.startsWith('/admin')
 
   const tab = (active: boolean) =>
     cn(
@@ -349,54 +259,6 @@ function MobileTabBar() {
               </div>
             )}
 
-            {can(role, 'legacy') && (
-            <div className="my-2 border-t border-border pt-2">
-              <button
-                type="button"
-                aria-expanded={legacyOpen}
-                onClick={() => setLegacyOpen((prev) => !prev)}
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase hover:bg-surface-muted"
-              >
-                <span>{t.common.nav.legacyGroup}</span>
-                {legacyOpen ? (
-                  <ChevronDown className="size-4" aria-hidden />
-                ) : (
-                  <ChevronRight className="size-4" aria-hidden />
-                )}
-              </button>
-
-              {legacyOpen && (
-                <div className="mt-1 flex flex-col gap-1 pl-2">
-                  {LEGACY_NAV.map(({ key, to, icon: Icon }) => (
-                    <NavLink
-                      key={key}
-                      to={to}
-                      end={to === '/legacy'}
-                      onClick={() => setMoreOpen(false)}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-surface-muted"
-                    >
-                      <Icon className="size-4 text-muted-foreground" aria-hidden />
-                      <span className="flex-1">{t.common.nav[key]}</span>
-                      {key === 'inbox' && <InboxBadge />}
-                    </NavLink>
-                  ))}
-                  <div className="px-3 pt-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setMoreOpen(false)
-                        openStartWork()
-                      }}
-                      className="w-full justify-center"
-                    >
-                      <Plus className="size-4" aria-hidden />
-                      <span>{t.common.actions.startWork}</span>
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-            )}
 
             {can(role, 'command') && (
               <div className="my-3 border-t border-border px-3 pt-4">
@@ -420,7 +282,6 @@ function MobileTabBar() {
 }
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { session } = useAuth()
   return (
     <div className="flex min-h-dvh">
       <Sidebar />
@@ -432,7 +293,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
       <MobileTabBar />
-      {can(session?.role, 'command') && <StartWorkSheet />}
     </div>
   )
 }

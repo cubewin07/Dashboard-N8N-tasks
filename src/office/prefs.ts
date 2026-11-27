@@ -1,4 +1,10 @@
 import { create } from 'zustand'
+import {
+  effectiveQuality,
+  probeCapabilities,
+  type Quality,
+  type QualityChoice,
+} from './capabilities'
 import { visualLanguage } from './visualConfig'
 
 /**
@@ -12,8 +18,11 @@ export interface OfficePrefs {
   /** The OS `prefers-reduced-motion` value (kept live). */
   systemReducedMotion: boolean
   dayNight: boolean
+  /** 3D quality (P11 §3.5): auto = from the capability check. */
+  qualityChoice: QualityChoice
   setReducedMotion: (value: boolean | null) => void
   setDayNight: (value: boolean) => void
+  setQuality: (value: QualityChoice) => void
 }
 
 export const PREFS_STORAGE_KEY = 'office.prefs.v1'
@@ -21,7 +30,10 @@ export const PREFS_STORAGE_KEY = 'office.prefs.v1'
 interface Stored {
   reducedMotion?: boolean | null
   dayNight?: boolean
+  quality?: QualityChoice
 }
+
+const QUALITY_CHOICES: readonly QualityChoice[] = ['auto', 'high', 'medium', 'low']
 
 function readStored(): Stored {
   try {
@@ -33,6 +45,9 @@ function readStored(): Stored {
     return {
       reducedMotion: typeof obj.reducedMotion === 'boolean' ? obj.reducedMotion : null,
       dayNight: typeof obj.dayNight === 'boolean' ? obj.dayNight : undefined,
+      quality: QUALITY_CHOICES.includes(obj.quality as QualityChoice)
+        ? (obj.quality as QualityChoice)
+        : undefined,
     }
   } catch {
     return {}
@@ -58,15 +73,24 @@ export const useOfficePrefs = create<OfficePrefs>((set, get) => ({
   reducedMotionChoice: stored.reducedMotion ?? null,
   systemReducedMotion: systemPrefersReduced(),
   dayNight: stored.dayNight ?? visualLanguage.dayNight.enabledByDefault,
+  qualityChoice: stored.quality ?? 'auto',
   setReducedMotion: (value) => {
     set({ reducedMotionChoice: value })
-    writeStored({ reducedMotion: value, dayNight: get().dayNight })
+    persist(get())
   },
   setDayNight: (value) => {
     set({ dayNight: value })
-    writeStored({ reducedMotion: get().reducedMotionChoice, dayNight: value })
+    persist(get())
+  },
+  setQuality: (value) => {
+    set({ qualityChoice: value })
+    persist(get())
   },
 }))
+
+function persist(s: OfficePrefs): void {
+  writeStored({ reducedMotion: s.reducedMotionChoice, dayNight: s.dayNight, quality: s.qualityChoice })
+}
 
 if (typeof window !== 'undefined' && window.matchMedia) {
   const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -80,4 +104,10 @@ export function selectReducedMotion(s: OfficePrefs): boolean {
 
 export function useReducedMotionPref(): boolean {
   return useOfficePrefs(selectReducedMotion)
+}
+
+/** Effective 3D quality: the user's choice within what the device can do. */
+export function useOfficeQuality(): Quality {
+  const choice = useOfficePrefs((s) => s.qualityChoice)
+  return effectiveQuality(choice, probeCapabilities())
 }

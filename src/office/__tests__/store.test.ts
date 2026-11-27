@@ -131,8 +131,8 @@ describe('office store, feedRegistry, and command tracking (P03-T12)', () => {
     })
   })
 
-  it('createFeed("sim") selects SimFeed', () => {
-    const feed = createFeed('sim')
+  it('createFeed("sim") selects SimFeed', async () => {
+    const feed = await createFeed('sim')
     expect((feed as { kind?: string }).kind).toBe('sim')
     feed.stop()
   })

@@ -1,17 +1,15 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useEffect, useState, type ReactNode } from 'react'
-import { Toaster } from 'sonner'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { I18nProvider } from '@/i18n'
 import { setConfigActorGetter } from '@/office/configStore'
 import { setCommandsAllowed } from '@/office/sessionRole'
 import { startOffice, stopOffice } from '@/office/store'
 import { AuthProvider, useAuth } from './auth'
 import { authPort } from './authRegistry'
-import { DriveProvider } from './drive'
 import { can } from './roles'
-import { RealtimeProvider } from './RealtimeProvider'
-import { StartWorkProvider } from './startWork'
+
+// P11-T03: sonner (~10 KB gzip) stays out of the shell. Toasts only come from user actions
+// on lazy routes, long after this has loaded.
+const Toaster = lazy(() => import('sonner').then((m) => ({ default: m.Toaster })))
 
 // Config writes are role-checked against whoever is signed in right now (R15).
 setConfigActorGetter(() => {
@@ -34,33 +32,18 @@ function OfficeBootstrap({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/** The language provider sits above, in `main.tsx`, so the backend gate shares it. */
 export function Providers({ children }: { children: ReactNode }) {
-  const [qc] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: { staleTime: 30_000, refetchOnWindowFocus: false },
-        },
-      }),
-  )
   return (
-    <QueryClientProvider client={qc}>
-      <I18nProvider>
-        <AuthProvider>
-          <OfficeBootstrap>
-            <RealtimeProvider>
-              <DriveProvider>
-                <StartWorkProvider>
-                  <TooltipProvider delayDuration={300}>
-                    {children}
-                    <Toaster position="top-center" richColors />
-                  </TooltipProvider>
-                </StartWorkProvider>
-              </DriveProvider>
-            </RealtimeProvider>
-          </OfficeBootstrap>
-        </AuthProvider>
-      </I18nProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <OfficeBootstrap>
+        <TooltipProvider delayDuration={300}>
+          {children}
+          <Suspense fallback={null}>
+            <Toaster position="top-center" richColors />
+          </Suspense>
+        </TooltipProvider>
+      </OfficeBootstrap>
+    </AuthProvider>
   )
 }

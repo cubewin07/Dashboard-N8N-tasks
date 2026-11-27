@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
+import { NullFeed } from '@/adapters/local/NullFeed'
 import { StaticFeed } from '@/adapters/local/StaticFeed'
 import { ReplayFeed } from '@/adapters/replay/ReplayFeed'
-import * as simAdapter from '@/adapters/sim'
 import type { OfficeFeed } from '@/ports/OfficeFeed'
 import { officeExtensions, type SimControlsDebugApi } from './extensions'
 
@@ -48,19 +48,30 @@ interface SimModuleExports {
   SimControlPanel?: ComponentType
 }
 
-export function createFeed(kind?: FeedKind): OfficeFeed {
+/**
+ * Picks the feed. The simulator is loaded with a dynamic import so it is its own lazy
+ * chunk (performance.md §2) and never part of the first download; with `VITE_FEED=none`
+ * the alias points at `adapters/_nosim` and the chunk is a few bytes.
+ */
+export async function createFeed(kind?: FeedKind): Promise<OfficeFeed> {
   const urlFeed = getUrlParam('feed')
-  const envFeed = import.meta.env.VITE_FEED as string | undefined
+  // An empty VITE_FEED= (copied from .env.example) means "default", not a feed called ''.
+  const envFeed = (import.meta.env.VITE_FEED as string | undefined) || undefined
   const resolved: string = kind ?? urlFeed ?? envFeed ?? 'sim'
 
+  officeExtensions.controlPanel = null
+  officeExtensions.simControls = null
+
+  if (resolved === 'none') {
+    return new NullFeed()
+  }
+
   if (resolved === 'replay') {
-    officeExtensions.controlPanel = null
-    officeExtensions.simControls = null
     return new ReplayFeed({ logUrl: sameOriginLogUrl(getUrlParam('log')) })
   }
 
   if (resolved === 'sim') {
-    const mod = simAdapter as unknown as SimModuleExports
+    const mod = (await import('@/adapters/sim')) as unknown as SimModuleExports
     if (typeof mod.SimFeed === 'function') {
       officeExtensions.controlPanel = mod.SimControlPanel ?? null
       officeExtensions.simControls = mod.simControls ?? null
@@ -69,7 +80,5 @@ export function createFeed(kind?: FeedKind): OfficeFeed {
     }
   }
 
-  officeExtensions.controlPanel = null
-  officeExtensions.simControls = null
   return new StaticFeed()
 }

@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   Copy,
@@ -10,23 +9,13 @@ import {
   ImageIcon,
   Loader2,
   Play,
-  ArrowUpRight,
 } from 'lucide-react'
-import type { Tables } from '@/lib/database.types'
-import { useArtifacts, useLookups } from '@/hooks/queries'
-import { useDrive } from '@/app/drive'
+import { DriveProvider, useDrive } from '@/app/drive'
 import { useI18n } from '@/i18n'
 import { demoPreviewUrl } from '@/lib/drive'
 import { formatDateTime } from '@/lib/time'
 import { fmt, cn } from '@/lib/utils'
-import {
-  PageHeader,
-  ShopChip,
-  EmployeeAvatar,
-  WorkflowIcon,
-  TimeAgo,
-  EmptyState,
-} from '@/components'
+import { EmptyState, PageHeader, TimeAgo } from '@/components'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -44,7 +33,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
+import {
+  demoArtifacts,
+  demoLookups,
+  demoPeople,
+  demoShops,
+  demoWorkflows,
+  type LibraryArtifact,
+} from './demoArtifacts'
+import { PersonAvatar, ShopChip, WorkflowIcon } from './LibraryChips'
 
 type ArtifactTypeFilter = 'all' | 'image' | 'video' | 'text'
 
@@ -61,25 +58,33 @@ function formatDuration(sec: number | null): string {
   return `${m}:${s < 10 ? '0' : ''}${s}`
 }
 
+/** Frozen and unrouted unless VITE_FEATURE_LIBRARY=1 (P11 D2). It owns its Drive state. */
 export function LibraryPage() {
+  return (
+    <DriveProvider>
+      <LibraryContent />
+    </DriveProvider>
+  )
+}
+
+function LibraryContent() {
   const { t, lang } = useI18n()
   const drive = useDrive()
-  const { data: artifacts, isLoading } = useArtifacts()
-  const { shop: shopMap, employee: employeeMap, workflow: workflowMap } = useLookups()
+  const artifacts = demoArtifacts
+  const employeeMap = demoLookups.employee
 
   const [shopFilter, setShopFilter] = useState<string>('all')
   const [workflowFilter, setWorkflowFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<ArtifactTypeFilter>('all')
   const [employeeFilter, setEmployeeFilter] = useState<string>('all')
 
-  const [selectedArtifact, setSelectedArtifact] = useState<Tables<'artifacts'> | null>(null)
+  const [selectedArtifact, setSelectedArtifact] = useState<LibraryArtifact | null>(null)
 
-  const shops = useMemo(() => Array.from(shopMap.values()), [shopMap])
-  const workflows = useMemo(() => Array.from(workflowMap.values()), [workflowMap])
-  const employees = useMemo(() => Array.from(employeeMap.values()), [employeeMap])
+  const shops = demoShops
+  const workflows = demoWorkflows
+  const employees = demoPeople
 
   const filteredArtifacts = useMemo(() => {
-    if (!artifacts) return []
     return artifacts.filter((a) => {
       if (shopFilter !== 'all' && a.shop_id !== Number(shopFilter)) return false
       if (workflowFilter !== 'all' && a.workflow_key !== workflowFilter) return false
@@ -168,14 +173,11 @@ export function LibraryPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t.library.filters.allWorkflows}</SelectItem>
-              {workflows.map((w) => {
-                const wfMeta = (t.common.workflows as Record<string, { name: string; short: string } | undefined>)[w.key]
-                return (
-                  <SelectItem key={w.key} value={w.key}>
-                    {wfMeta?.name ?? w.name}
-                  </SelectItem>
-                )
-              })}
+              {workflows.map((w) => (
+                <SelectItem key={w.key} value={w.key}>
+                  {w.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -226,20 +228,7 @@ export function LibraryPage() {
       </div>
 
       {/* Grid or loading or empty state */}
-      {isLoading ? (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="flex flex-col gap-2 rounded-[var(--radius-card)] border border-border bg-surface p-2.5 shadow-[var(--shadow-soft)]"
-            >
-              <Skeleton className="aspect-[4/3] w-full rounded-lg" />
-              <Skeleton className="h-4 w-3/4 rounded-md" />
-              <Skeleton className="h-4 w-1/2 rounded-md" />
-            </div>
-          ))}
-        </div>
-      ) : filteredArtifacts.length === 0 ? (
+      {filteredArtifacts.length === 0 ? (
         <EmptyState
           icon={FolderSearch}
           title={t.library.empty.title}
@@ -316,7 +305,7 @@ export function LibraryPage() {
 
                 <div className="flex items-center justify-between gap-1.5">
                   <ShopChip shopId={artifact.shop_id} className="max-w-[70%]" />
-                  <EmployeeAvatar ownerKey={artifact.owner_key} size="sm" />
+                  <PersonAvatar ownerKey={artifact.owner_key} />
                 </div>
 
                 <div className="flex items-center justify-between border-t border-border/50 pt-1 text-[11px] text-muted-foreground sm:text-xs">
@@ -402,7 +391,7 @@ export function LibraryPage() {
                   <div>
                     <span className="text-muted-foreground">{t.library.lightbox.creator}:</span>
                     <div className="mt-1 flex items-center gap-1.5 font-medium text-foreground">
-                      <EmployeeAvatar ownerKey={selectedArtifact.owner_key} size="sm" />
+                      <PersonAvatar ownerKey={selectedArtifact.owner_key} />
                       <span className="truncate">
                         {employeeMap.get(selectedArtifact.owner_key)?.name ??
                           selectedArtifact.owner_key}
@@ -415,7 +404,7 @@ export function LibraryPage() {
                     <div className="mt-1 flex items-center gap-1.5 font-medium text-foreground">
                       <WorkflowIcon workflowKey={selectedArtifact.workflow_key} />
                       <span className="truncate">
-                        {(t.common.workflows as Record<string, { name: string; short: string } | undefined>)[selectedArtifact.workflow_key]?.name ??
+                        {demoLookups.workflow.get(selectedArtifact.workflow_key)?.name ??
                           selectedArtifact.workflow_key}
                       </span>
                     </div>
@@ -469,15 +458,7 @@ export function LibraryPage() {
               </div>
             </div>
 
-            <DialogFooter className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <Button asChild variant="ghost" size="sm" className="w-full justify-center sm:w-auto">
-                <Link to={`/tasks/${selectedArtifact.task_id}`}>
-                  <ArrowUpRight className="size-4" aria-hidden />
-                  <span>
-                    {fmt(t.library.lightbox.goToTask, { id: selectedArtifact.task_id })}
-                  </span>
-                </Link>
-              </Button>
+            <DialogFooter className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
 
               <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <Button

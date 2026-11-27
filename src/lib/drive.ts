@@ -1,6 +1,13 @@
 // Drive helpers. MVP: artifacts have fake Drive ids, so previews are generated SVG placeholders.
 // Later: fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, { headers: { Authorization: `Bearer ${token}` } }).
-import type { Tables } from '@/lib/database.types'
+/** The fields a placeholder preview needs. The Library fixture extends this. */
+export interface DemoArtifact {
+  id: number
+  title: string
+  width: number | null
+  height: number | null
+  type: 'image' | 'video' | 'text'
+}
 
 const palettes = [
   ['#f97316', '#dc2626'],
@@ -12,7 +19,7 @@ const palettes = [
 ]
 
 /** Placeholder preview image (data URL) sized to the artifact's aspect ratio. */
-export function demoPreviewUrl(a: Pick<Tables<'artifacts'>, 'id' | 'title' | 'width' | 'height' | 'type'>) {
+export function demoPreviewUrl(a: DemoArtifact) {
   const w = a.width ?? 1080
   const h = a.height ?? 1080
   const [c1, c2] = palettes[a.id % palettes.length]
