@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { NullFeed } from '@/adapters/local/NullFeed'
 import { StaticFeed } from '@/adapters/local/StaticFeed'
 import { ReplayFeed } from '@/adapters/replay/ReplayFeed'
 import type { OfficeFeed } from '@/ports/OfficeFeed'
@@ -54,11 +55,16 @@ interface SimModuleExports {
  */
 export async function createFeed(kind?: FeedKind): Promise<OfficeFeed> {
   const urlFeed = getUrlParam('feed')
-  const envFeed = import.meta.env.VITE_FEED as string | undefined
+  // An empty VITE_FEED= (copied from .env.example) means "default", not a feed called ''.
+  const envFeed = (import.meta.env.VITE_FEED as string | undefined) || undefined
   const resolved: string = kind ?? urlFeed ?? envFeed ?? 'sim'
 
   officeExtensions.controlPanel = null
   officeExtensions.simControls = null
+
+  if (resolved === 'none') {
+    return new NullFeed()
+  }
 
   if (resolved === 'replay') {
     return new ReplayFeed({ logUrl: sameOriginLogUrl(getUrlParam('log')) })
