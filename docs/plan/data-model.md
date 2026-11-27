@@ -1,6 +1,6 @@
 # Data model
 
-Version: **office-model v1.0 (draft)**. Changing a shape here = bump the version in `contracts.md` and add a changelog line there.
+Version: **office-model, versioned with the contract (currently v1.4, see `contracts.md` changelog)**. Changing a shape here = bump the version in `contracts.md` and add a changelog line there.
 
 Two kinds of data, kept strictly apart:
 
