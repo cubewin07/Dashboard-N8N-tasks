@@ -48,7 +48,8 @@ test.describe('P10 People tab (R5)', () => {
     await expect(row).toContainText('Chăm sóc khách hàng')
 
     // Org list and the people list
-    await openFromNav(page, 'Sơ đồ', /#\/org/)
+    // Desktop: the Sơ đồ page; phone: the home tab, which is the same 2D org view (P11-T04).
+    await openFromNav(page, 'Sơ đồ', /#\/(org)?$/)
     await expect(page.locator('[data-org-list] [data-employee-id="emp_tuan_khai"]')).toBeVisible()
     await page.getByRole('tab', { name: 'Nhân sự' }).click()
     await expect(page.locator('[data-person-row="emp_tuan_khai"]')).toBeVisible()
