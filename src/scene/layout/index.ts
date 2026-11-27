@@ -5,6 +5,14 @@ export {
   generateDeskClusterSlots,
   generatePileAnchorSlots,
 } from './floorLayout'
+export {
+  SLOT_OBSTACLE,
+  obstacleBounds,
+  obstacleContains,
+  slotBlocksFloor,
+  slotObstacleRect,
+} from './obstacles'
+export type { ObstacleRect, ObstacleSpec } from './obstacles'
 export { buildTemplateMap, getFloorTemplate } from './templates'
 export type {
   BuildingLayout,

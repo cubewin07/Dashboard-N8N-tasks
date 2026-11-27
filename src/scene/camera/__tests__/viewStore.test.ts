@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   getFloorFadeTarget,
+  isFloorFaded,
   parseViewSearch,
   serializeViewSearch,
   useViewStore,
@@ -121,5 +122,15 @@ describe('viewStore and URL search param sync (R8, R11)', () => {
       faded: true,
       castShadow: false,
     })
+  })
+})
+
+describe('isFloorFaded', () => {
+  it('agrees with getFloorFadeTarget for every floor', () => {
+    for (const active of [null, 0, 2, 5]) {
+      for (let floor = 0; floor < 8; floor += 1) {
+        expect(isFloorFaded(floor, active)).toBe(getFloorFadeTarget(floor, active).faded)
+      }
+    }
   })
 })

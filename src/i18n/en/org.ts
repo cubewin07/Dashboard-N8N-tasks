@@ -33,4 +33,7 @@ export const org: typeof viOrg = {
   currentTaskPrefix: 'Task: {title}',
   archivedSectionTitle: 'Archived temp staff ({n})',
   archivedBadge: 'Archived',
+  tabsAriaLabel: 'Organisation views',
+  tabOrg: 'Chart',
+  tabPeople: 'People',
 }
