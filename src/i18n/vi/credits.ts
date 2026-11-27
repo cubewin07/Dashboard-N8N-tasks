@@ -9,6 +9,7 @@ export const credits = {
   filesCount: '{count} tệp',
   licenseLabel: 'Giấy phép',
   sourceLabel: 'Nguồn',
+  sourceLink: 'nguồn',
   modifiedBadge: 'Đã chỉnh sửa',
   showFiles: 'Xem danh sách tệp',
   backToSettings: 'Về Cài đặt',

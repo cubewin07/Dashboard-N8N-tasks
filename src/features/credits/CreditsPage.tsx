@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useI18n } from '@/i18n'
 import { QueryScope } from '@/lib/queryClient'
+import { REPO_URL } from '@/lib/appInfo'
 import { fmt } from '@/lib/utils'
 
 const CreditsSchema = z.object({
@@ -38,6 +39,13 @@ const LICENSE_URLS: Record<string, string> = {
   CC0: 'https://creativecommons.org/publicdomain/zero/1.0/',
   'CC-BY-4.0': 'https://creativecommons.org/licenses/by/4.0/',
   'OFL-1.1': 'https://openfontlicense.org/open-font-license-official-text/',
+}
+
+/** A URL as is; a path in this repo (a generator script) as its page on GitHub. */
+export function sourceUrl(source: string): string | null {
+  if (/^https?:\/\//.test(source)) return source
+  if (/^[\w.-]+(\/[\w.-]+)+$/.test(source)) return `${REPO_URL}/blob/main/${source}`
+  return null
 }
 
 async function fetchCredits(): Promise<CreditAsset[]> {
@@ -154,11 +162,35 @@ function CreditsContent() {
                         {t.credits.showFiles}
                       </summary>
                       <ul className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-2 text-xs text-muted-foreground">
-                        {group.assets.map((asset) => (
-                          <li key={asset.path} className="break-all">
-                            <span className="text-foreground">{asset.title}</span> · {asset.path}
-                          </li>
-                        ))}
+                        {group.assets.map((asset) => {
+                          const src = sourceUrl(asset.source)
+                          return (
+                            <li key={asset.path} className="break-all" data-credit-row={asset.path}>
+                              <span className="text-foreground">{asset.title}</span> · {asset.path} ·{' '}
+                              <a
+                                href={LICENSE_URLS[asset.license] ?? '#'}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-primary underline-offset-4 hover:underline"
+                              >
+                                {asset.license}
+                              </a>
+                              {src ? (
+                                <>
+                                  {' · '}
+                                  <a
+                                    href={src}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary underline-offset-4 hover:underline"
+                                  >
+                                    {t.credits.sourceLink}
+                                  </a>
+                                </>
+                              ) : null}
+                            </li>
+                          )
+                        })}
                       </ul>
                     </details>
                   </CardContent>
