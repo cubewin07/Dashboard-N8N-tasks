@@ -241,6 +241,15 @@ function useContextRecovery() {
   const [status, setStatus] = useState<ContextStatus>('ok')
   const [canvasKey, setCanvasKey] = useState(0)
   const autoRetried = useRef(false)
+  // R3F forces a context loss on the canvas it disposes (on unmount and on every rebuild):
+  // only the canvas on screen counts.
+  const current = useRef<HTMLCanvasElement | null>(null)
+  useEffect(
+    () => () => {
+      current.current = null
+    },
+    [],
+  )
 
   useEffect(() => {
     if (status !== 'lost') return
@@ -257,13 +266,16 @@ function useContextRecovery() {
   }, [status])
 
   const watch = (canvas: HTMLCanvasElement) => {
+    current.current = canvas
     canvas.addEventListener('webglcontextlost', (event) => {
+      if (canvas !== current.current) return
       // Without preventDefault the browser never tries to restore it.
       event.preventDefault()
       useDiagnostics.getState().record('context_lost', 'webglcontextlost')
       setStatus('lost')
     })
     canvas.addEventListener('webglcontextrestored', () => {
+      if (canvas !== current.current) return
       useDiagnostics.getState().record('context_restored', 'webglcontextrestored')
       requestShadowUpdate()
       setStatus('ok')

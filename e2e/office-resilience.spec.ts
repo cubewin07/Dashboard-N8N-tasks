@@ -55,6 +55,20 @@ test.describe('P11 office resilience', () => {
     // No restore: after the wait the canvas is rebuilt with a fresh context.
     await expect(office).toHaveAttribute('data-context', 'ok', { timeout: 10_000 })
     await expect(office).toHaveAttribute('data-ready', 'true', { timeout: 20_000 })
+    // The old canvas is disposed (R3F forces its context loss): that must not count.
+    await page.waitForTimeout(1500)
+    await expect(office).toHaveAttribute('data-context', 'ok')
+  })
+
+  test('leaving the office records no context loss in Chẩn đoán', async ({ page }) => {
+    await login(page)
+    await expect(page.locator('[data-office-canvas]')).toHaveAttribute('data-ready', 'true', {
+      timeout: 20_000,
+    })
+    await page.goto('./#/settings')
+    await expect(page.locator('[data-diagnostics]')).toBeVisible()
+    await page.waitForTimeout(1500)
+    await expect(page.locator('[data-diagnostics-entries]')).toHaveCount(0)
   })
 
   test('without WebGL2 the office explains the 2D list and offers no 3D button', async ({ page }) => {
